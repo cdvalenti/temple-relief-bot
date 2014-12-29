@@ -22,7 +22,8 @@ MCU = atmega328p
 TARGET = main
 
 #CUSTOM HEADER
-INLCUDER = easy_atmega328p
+EXTRA_SOURCE_DIR = include/
+EXTRA_SOURCE_FILES = easy_atmega328p.c
 
 
 # Programming hardware: type avrdude -c ?
@@ -45,7 +46,9 @@ OPT = s
 FORMAT = ihex
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c $(INLCUDER).c
+SRC = $(TARGET).c
+EXTRA_SOURCE = $(addprefix $(EXTRA_SOURCE_DIR), $(EXTRA_SOURCE_FILES))
+SRC += $(EXTRA_SOURCE) 
 
 # If there is more than one source file, append them above, or modify and
 # uncomment the following:

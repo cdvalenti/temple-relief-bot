@@ -1,0 +1,995 @@
+
+main.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .data         0000002e  00800100  000005b8  0000062c  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  1 .text         000005b8  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .stab         00001c68  00000000  00000000  0000065c  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  3 .stabstr      00000ed3  00000000  00000000  000022c4  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .comment      00000011  00000000  00000000  00003197  2**0
+                  CONTENTS, READONLY
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 34 00 	jmp	0x68	; 0x68 <__ctors_end>
+   4:	0c 94 4b 00 	jmp	0x96	; 0x96 <__vector_1>
+   8:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+   c:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  10:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  14:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  18:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  1c:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  20:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  24:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  28:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  2c:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  30:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  34:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  38:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  3c:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  40:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  44:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  48:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  4c:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  50:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  54:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  58:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  5c:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  60:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+  64:	0c 94 49 00 	jmp	0x92	; 0x92 <__bad_interrupt>
+
+00000068 <__ctors_end>:
+  68:	11 24       	eor	r1, r1
+  6a:	1f be       	out	0x3f, r1	; 63
+  6c:	cf ef       	ldi	r28, 0xFF	; 255
+  6e:	d8 e0       	ldi	r29, 0x08	; 8
+  70:	de bf       	out	0x3e, r29	; 62
+  72:	cd bf       	out	0x3d, r28	; 61
+
+00000074 <__do_copy_data>:
+  74:	11 e0       	ldi	r17, 0x01	; 1
+  76:	a0 e0       	ldi	r26, 0x00	; 0
+  78:	b1 e0       	ldi	r27, 0x01	; 1
+  7a:	e8 eb       	ldi	r30, 0xB8	; 184
+  7c:	f5 e0       	ldi	r31, 0x05	; 5
+  7e:	02 c0       	rjmp	.+4      	; 0x84 <__do_copy_data+0x10>
+  80:	05 90       	lpm	r0, Z+
+  82:	0d 92       	st	X+, r0
+  84:	ae 32       	cpi	r26, 0x2E	; 46
+  86:	b1 07       	cpc	r27, r17
+  88:	d9 f7       	brne	.-10     	; 0x80 <__do_copy_data+0xc>
+  8a:	0e 94 60 02 	call	0x4c0	; 0x4c0 <main>
+  8e:	0c 94 da 02 	jmp	0x5b4	; 0x5b4 <_exit>
+
+00000092 <__bad_interrupt>:
+  92:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+00000096 <__vector_1>:
+#include "include/easy_atmega328p.h"
+#include "include/USART.h"
+#include "include/pinDefines.h"
+
+
+ISR(INT0_vect) {
+  96:	1f 92       	push	r1
+  98:	0f 92       	push	r0
+  9a:	0f b6       	in	r0, 0x3f	; 63
+  9c:	0f 92       	push	r0
+  9e:	11 24       	eor	r1, r1
+  a0:	2f 93       	push	r18
+  a2:	3f 93       	push	r19
+  a4:	4f 93       	push	r20
+  a6:	5f 93       	push	r21
+  a8:	6f 93       	push	r22
+  aa:	7f 93       	push	r23
+  ac:	8f 93       	push	r24
+  ae:	9f 93       	push	r25
+  b0:	af 93       	push	r26
+  b2:	bf 93       	push	r27
+  b4:	ef 93       	push	r30
+  b6:	ff 93       	push	r31
+  
+  printString("Interrupt here!\r\n");
+  b8:	80 e0       	ldi	r24, 0x00	; 0
+  ba:	91 e0       	ldi	r25, 0x01	; 1
+  bc:	0e 94 75 01 	call	0x2ea	; 0x2ea <printString>
+  
+  while ((bit_is_clear(PIND, PD2))) {
+    pin_hi('B', 4);
+  c0:	64 e0       	ldi	r22, 0x04	; 4
+  c2:	70 e0       	ldi	r23, 0x00	; 0
+  c4:	82 e4       	ldi	r24, 0x42	; 66
+
+ISR(INT0_vect) {
+  
+  printString("Interrupt here!\r\n");
+  
+  while ((bit_is_clear(PIND, PD2))) {
+  c6:	4a 99       	sbic	0x09, 2	; 9
+  c8:	03 c0       	rjmp	.+6      	; 0xd0 <__vector_1+0x3a>
+    pin_hi('B', 4);
+  ca:	0e 94 ac 00 	call	0x158	; 0x158 <pin_hi>
+  ce:	f8 cf       	rjmp	.-16     	; 0xc0 <__vector_1+0x2a>
+  }
+  pin_lo('B', 4);
+  d0:	0e 94 d5 00 	call	0x1aa	; 0x1aa <pin_lo>
+}
+  d4:	ff 91       	pop	r31
+  d6:	ef 91       	pop	r30
+  d8:	bf 91       	pop	r27
+  da:	af 91       	pop	r26
+  dc:	9f 91       	pop	r25
+  de:	8f 91       	pop	r24
+  e0:	7f 91       	pop	r23
+  e2:	6f 91       	pop	r22
+  e4:	5f 91       	pop	r21
+  e6:	4f 91       	pop	r20
+  e8:	3f 91       	pop	r19
+  ea:	2f 91       	pop	r18
+  ec:	0f 90       	pop	r0
+  ee:	0f be       	out	0x3f, r0	; 63
+  f0:	0f 90       	pop	r0
+  f2:	1f 90       	pop	r1
+  f4:	18 95       	reti
+
+000000f6 <initInterrupt0>:
+
+void initInterrupt0(void) {
+  EIMSK |= (1 << INT0);
+  f6:	e8 9a       	sbi	0x1d, 0	; 29
+  EICRA |= (1 << ISC01);
+  f8:	e9 e6       	ldi	r30, 0x69	; 105
+  fa:	f0 e0       	ldi	r31, 0x00	; 0
+  fc:	80 81       	ld	r24, Z
+  fe:	82 60       	ori	r24, 0x02	; 2
+ 100:	80 83       	st	Z, r24
+  sei();
+ 102:	78 94       	sei
+ 104:	08 95       	ret
+
+00000106 <toggle>:
+#include "include/easy_atmega328p.h"
+
+void toggle(char port, int bit)
+{
+    if(port == 'A'){
+ 106:	81 34       	cpi	r24, 0x41	; 65
+ 108:	31 f1       	breq	.+76     	; 0x156 <toggle+0x50>
+      //PORTA ^= (1<<bit);
+    }else if (port == 'B'){
+ 10a:	82 34       	cpi	r24, 0x42	; 66
+ 10c:	59 f4       	brne	.+22     	; 0x124 <toggle+0x1e>
+      PORTB ^= (1<<bit);
+ 10e:	25 b1       	in	r18, 0x05	; 5
+ 110:	81 e0       	ldi	r24, 0x01	; 1
+ 112:	90 e0       	ldi	r25, 0x00	; 0
+ 114:	06 2e       	mov	r0, r22
+ 116:	01 c0       	rjmp	.+2      	; 0x11a <toggle+0x14>
+ 118:	88 0f       	add	r24, r24
+ 11a:	0a 94       	dec	r0
+ 11c:	ea f7       	brpl	.-6      	; 0x118 <toggle+0x12>
+ 11e:	28 27       	eor	r18, r24
+ 120:	25 b9       	out	0x05, r18	; 5
+ 122:	08 95       	ret
+    }else if (port == 'C'){
+ 124:	83 34       	cpi	r24, 0x43	; 67
+ 126:	59 f4       	brne	.+22     	; 0x13e <toggle+0x38>
+      PORTC ^= (1<<bit);
+ 128:	28 b1       	in	r18, 0x08	; 8
+ 12a:	81 e0       	ldi	r24, 0x01	; 1
+ 12c:	90 e0       	ldi	r25, 0x00	; 0
+ 12e:	06 2e       	mov	r0, r22
+ 130:	01 c0       	rjmp	.+2      	; 0x134 <toggle+0x2e>
+ 132:	88 0f       	add	r24, r24
+ 134:	0a 94       	dec	r0
+ 136:	ea f7       	brpl	.-6      	; 0x132 <toggle+0x2c>
+ 138:	28 27       	eor	r18, r24
+ 13a:	28 b9       	out	0x08, r18	; 8
+ 13c:	08 95       	ret
+    }else if (port == 'D'){
+ 13e:	84 34       	cpi	r24, 0x44	; 68
+ 140:	51 f4       	brne	.+20     	; 0x156 <toggle+0x50>
+      PORTD ^= (1<<bit);
+ 142:	2b b1       	in	r18, 0x0b	; 11
+ 144:	81 e0       	ldi	r24, 0x01	; 1
+ 146:	90 e0       	ldi	r25, 0x00	; 0
+ 148:	06 2e       	mov	r0, r22
+ 14a:	01 c0       	rjmp	.+2      	; 0x14e <toggle+0x48>
+ 14c:	88 0f       	add	r24, r24
+ 14e:	0a 94       	dec	r0
+ 150:	ea f7       	brpl	.-6      	; 0x14c <toggle+0x46>
+ 152:	28 27       	eor	r18, r24
+ 154:	2b b9       	out	0x0b, r18	; 11
+ 156:	08 95       	ret
+
+00000158 <pin_hi>:
+    }
+}
+
+void pin_hi(char port, int bit)
+{
+    if(port == 'A'){
+ 158:	81 34       	cpi	r24, 0x41	; 65
+ 15a:	31 f1       	breq	.+76     	; 0x1a8 <pin_hi+0x50>
+      //PORTA |= (1<<bit);
+    }else if (port == 'B'){
+ 15c:	82 34       	cpi	r24, 0x42	; 66
+ 15e:	59 f4       	brne	.+22     	; 0x176 <pin_hi+0x1e>
+      PORTB |= (1<<bit);
+ 160:	25 b1       	in	r18, 0x05	; 5
+ 162:	81 e0       	ldi	r24, 0x01	; 1
+ 164:	90 e0       	ldi	r25, 0x00	; 0
+ 166:	06 2e       	mov	r0, r22
+ 168:	01 c0       	rjmp	.+2      	; 0x16c <pin_hi+0x14>
+ 16a:	88 0f       	add	r24, r24
+ 16c:	0a 94       	dec	r0
+ 16e:	ea f7       	brpl	.-6      	; 0x16a <pin_hi+0x12>
+ 170:	28 2b       	or	r18, r24
+ 172:	25 b9       	out	0x05, r18	; 5
+ 174:	08 95       	ret
+    }else if (port == 'C'){
+ 176:	83 34       	cpi	r24, 0x43	; 67
+ 178:	59 f4       	brne	.+22     	; 0x190 <pin_hi+0x38>
+      PORTC |= (1<<bit);
+ 17a:	28 b1       	in	r18, 0x08	; 8
+ 17c:	81 e0       	ldi	r24, 0x01	; 1
+ 17e:	90 e0       	ldi	r25, 0x00	; 0
+ 180:	06 2e       	mov	r0, r22
+ 182:	01 c0       	rjmp	.+2      	; 0x186 <pin_hi+0x2e>
+ 184:	88 0f       	add	r24, r24
+ 186:	0a 94       	dec	r0
+ 188:	ea f7       	brpl	.-6      	; 0x184 <pin_hi+0x2c>
+ 18a:	28 2b       	or	r18, r24
+ 18c:	28 b9       	out	0x08, r18	; 8
+ 18e:	08 95       	ret
+    }else if (port == 'D'){
+ 190:	84 34       	cpi	r24, 0x44	; 68
+ 192:	51 f4       	brne	.+20     	; 0x1a8 <pin_hi+0x50>
+      PORTD |= (1<<bit);
+ 194:	2b b1       	in	r18, 0x0b	; 11
+ 196:	81 e0       	ldi	r24, 0x01	; 1
+ 198:	90 e0       	ldi	r25, 0x00	; 0
+ 19a:	06 2e       	mov	r0, r22
+ 19c:	01 c0       	rjmp	.+2      	; 0x1a0 <pin_hi+0x48>
+ 19e:	88 0f       	add	r24, r24
+ 1a0:	0a 94       	dec	r0
+ 1a2:	ea f7       	brpl	.-6      	; 0x19e <pin_hi+0x46>
+ 1a4:	28 2b       	or	r18, r24
+ 1a6:	2b b9       	out	0x0b, r18	; 11
+ 1a8:	08 95       	ret
+
+000001aa <pin_lo>:
+    }
+}
+
+void pin_lo(char port, int bit)
+{
+    if(port == 'A'){
+ 1aa:	81 34       	cpi	r24, 0x41	; 65
+ 1ac:	49 f1       	breq	.+82     	; 0x200 <pin_lo+0x56>
+      //PORTA &= ~(1<<bit);
+    }else if (port == 'B'){
+ 1ae:	82 34       	cpi	r24, 0x42	; 66
+ 1b0:	61 f4       	brne	.+24     	; 0x1ca <pin_lo+0x20>
+      PORTB &= ~(1<<bit);
+ 1b2:	25 b1       	in	r18, 0x05	; 5
+ 1b4:	81 e0       	ldi	r24, 0x01	; 1
+ 1b6:	90 e0       	ldi	r25, 0x00	; 0
+ 1b8:	06 2e       	mov	r0, r22
+ 1ba:	01 c0       	rjmp	.+2      	; 0x1be <pin_lo+0x14>
+ 1bc:	88 0f       	add	r24, r24
+ 1be:	0a 94       	dec	r0
+ 1c0:	ea f7       	brpl	.-6      	; 0x1bc <pin_lo+0x12>
+ 1c2:	80 95       	com	r24
+ 1c4:	82 23       	and	r24, r18
+ 1c6:	85 b9       	out	0x05, r24	; 5
+ 1c8:	08 95       	ret
+    }else if (port == 'C'){
+ 1ca:	83 34       	cpi	r24, 0x43	; 67
+ 1cc:	61 f4       	brne	.+24     	; 0x1e6 <pin_lo+0x3c>
+      PORTC &= ~(1<<bit);
+ 1ce:	28 b1       	in	r18, 0x08	; 8
+ 1d0:	81 e0       	ldi	r24, 0x01	; 1
+ 1d2:	90 e0       	ldi	r25, 0x00	; 0
+ 1d4:	06 2e       	mov	r0, r22
+ 1d6:	01 c0       	rjmp	.+2      	; 0x1da <pin_lo+0x30>
+ 1d8:	88 0f       	add	r24, r24
+ 1da:	0a 94       	dec	r0
+ 1dc:	ea f7       	brpl	.-6      	; 0x1d8 <pin_lo+0x2e>
+ 1de:	80 95       	com	r24
+ 1e0:	82 23       	and	r24, r18
+ 1e2:	88 b9       	out	0x08, r24	; 8
+ 1e4:	08 95       	ret
+    }else if (port == 'D'){
+ 1e6:	84 34       	cpi	r24, 0x44	; 68
+ 1e8:	59 f4       	brne	.+22     	; 0x200 <pin_lo+0x56>
+      PORTD &= ~(1<<bit);
+ 1ea:	2b b1       	in	r18, 0x0b	; 11
+ 1ec:	81 e0       	ldi	r24, 0x01	; 1
+ 1ee:	90 e0       	ldi	r25, 0x00	; 0
+ 1f0:	06 2e       	mov	r0, r22
+ 1f2:	01 c0       	rjmp	.+2      	; 0x1f6 <pin_lo+0x4c>
+ 1f4:	88 0f       	add	r24, r24
+ 1f6:	0a 94       	dec	r0
+ 1f8:	ea f7       	brpl	.-6      	; 0x1f4 <pin_lo+0x4a>
+ 1fa:	80 95       	com	r24
+ 1fc:	82 23       	and	r24, r18
+ 1fe:	8b b9       	out	0x0b, r24	; 11
+ 200:	08 95       	ret
+
+00000202 <set_as_input>:
+    }
+}
+
+void set_as_input(char port, int bit)
+{
+    if(port == 'A'){
+ 202:	81 34       	cpi	r24, 0x41	; 65
+ 204:	49 f1       	breq	.+82     	; 0x258 <set_as_input+0x56>
+      //DDRA &= ~(1<<bit);
+    }else if (port == 'B'){
+ 206:	82 34       	cpi	r24, 0x42	; 66
+ 208:	61 f4       	brne	.+24     	; 0x222 <set_as_input+0x20>
+      DDRB &= ~(1<<bit);
+ 20a:	24 b1       	in	r18, 0x04	; 4
+ 20c:	81 e0       	ldi	r24, 0x01	; 1
+ 20e:	90 e0       	ldi	r25, 0x00	; 0
+ 210:	06 2e       	mov	r0, r22
+ 212:	01 c0       	rjmp	.+2      	; 0x216 <set_as_input+0x14>
+ 214:	88 0f       	add	r24, r24
+ 216:	0a 94       	dec	r0
+ 218:	ea f7       	brpl	.-6      	; 0x214 <set_as_input+0x12>
+ 21a:	80 95       	com	r24
+ 21c:	82 23       	and	r24, r18
+ 21e:	84 b9       	out	0x04, r24	; 4
+ 220:	08 95       	ret
+    }else if (port == 'C'){
+ 222:	83 34       	cpi	r24, 0x43	; 67
+ 224:	61 f4       	brne	.+24     	; 0x23e <set_as_input+0x3c>
+      DDRC &= ~(1<<bit);
+ 226:	27 b1       	in	r18, 0x07	; 7
+ 228:	81 e0       	ldi	r24, 0x01	; 1
+ 22a:	90 e0       	ldi	r25, 0x00	; 0
+ 22c:	06 2e       	mov	r0, r22
+ 22e:	01 c0       	rjmp	.+2      	; 0x232 <set_as_input+0x30>
+ 230:	88 0f       	add	r24, r24
+ 232:	0a 94       	dec	r0
+ 234:	ea f7       	brpl	.-6      	; 0x230 <set_as_input+0x2e>
+ 236:	80 95       	com	r24
+ 238:	82 23       	and	r24, r18
+ 23a:	87 b9       	out	0x07, r24	; 7
+ 23c:	08 95       	ret
+    }else if (port == 'D'){
+ 23e:	84 34       	cpi	r24, 0x44	; 68
+ 240:	59 f4       	brne	.+22     	; 0x258 <set_as_input+0x56>
+      DDRD &= ~(1<<bit);
+ 242:	2a b1       	in	r18, 0x0a	; 10
+ 244:	81 e0       	ldi	r24, 0x01	; 1
+ 246:	90 e0       	ldi	r25, 0x00	; 0
+ 248:	06 2e       	mov	r0, r22
+ 24a:	01 c0       	rjmp	.+2      	; 0x24e <set_as_input+0x4c>
+ 24c:	88 0f       	add	r24, r24
+ 24e:	0a 94       	dec	r0
+ 250:	ea f7       	brpl	.-6      	; 0x24c <set_as_input+0x4a>
+ 252:	80 95       	com	r24
+ 254:	82 23       	and	r24, r18
+ 256:	8a b9       	out	0x0a, r24	; 10
+ 258:	08 95       	ret
+
+0000025a <set_as_output>:
+    }
+}
+
+void set_as_output(char port, int bit)
+{
+    if(port == 'A'){
+ 25a:	81 34       	cpi	r24, 0x41	; 65
+ 25c:	31 f1       	breq	.+76     	; 0x2aa <set_as_output+0x50>
+      //DDRA |= (1<<bit);
+    }else if (port == 'B'){
+ 25e:	82 34       	cpi	r24, 0x42	; 66
+ 260:	59 f4       	brne	.+22     	; 0x278 <set_as_output+0x1e>
+      DDRB |= (1<<bit);
+ 262:	24 b1       	in	r18, 0x04	; 4
+ 264:	81 e0       	ldi	r24, 0x01	; 1
+ 266:	90 e0       	ldi	r25, 0x00	; 0
+ 268:	06 2e       	mov	r0, r22
+ 26a:	01 c0       	rjmp	.+2      	; 0x26e <set_as_output+0x14>
+ 26c:	88 0f       	add	r24, r24
+ 26e:	0a 94       	dec	r0
+ 270:	ea f7       	brpl	.-6      	; 0x26c <set_as_output+0x12>
+ 272:	28 2b       	or	r18, r24
+ 274:	24 b9       	out	0x04, r18	; 4
+ 276:	08 95       	ret
+    }else if (port == 'C'){
+ 278:	83 34       	cpi	r24, 0x43	; 67
+ 27a:	59 f4       	brne	.+22     	; 0x292 <set_as_output+0x38>
+      DDRC |= (1<<bit);
+ 27c:	27 b1       	in	r18, 0x07	; 7
+ 27e:	81 e0       	ldi	r24, 0x01	; 1
+ 280:	90 e0       	ldi	r25, 0x00	; 0
+ 282:	06 2e       	mov	r0, r22
+ 284:	01 c0       	rjmp	.+2      	; 0x288 <set_as_output+0x2e>
+ 286:	88 0f       	add	r24, r24
+ 288:	0a 94       	dec	r0
+ 28a:	ea f7       	brpl	.-6      	; 0x286 <set_as_output+0x2c>
+ 28c:	28 2b       	or	r18, r24
+ 28e:	27 b9       	out	0x07, r18	; 7
+ 290:	08 95       	ret
+    }else if (port == 'D'){
+ 292:	84 34       	cpi	r24, 0x44	; 68
+ 294:	51 f4       	brne	.+20     	; 0x2aa <set_as_output+0x50>
+      DDRD |= (1<<bit);
+ 296:	2a b1       	in	r18, 0x0a	; 10
+ 298:	81 e0       	ldi	r24, 0x01	; 1
+ 29a:	90 e0       	ldi	r25, 0x00	; 0
+ 29c:	06 2e       	mov	r0, r22
+ 29e:	01 c0       	rjmp	.+2      	; 0x2a2 <set_as_output+0x48>
+ 2a0:	88 0f       	add	r24, r24
+ 2a2:	0a 94       	dec	r0
+ 2a4:	ea f7       	brpl	.-6      	; 0x2a0 <set_as_output+0x46>
+ 2a6:	28 2b       	or	r18, r24
+ 2a8:	2a b9       	out	0x0a, r18	; 10
+ 2aa:	08 95       	ret
+
+000002ac <initUSART>:
+#include <avr/io.h>
+#include "USART.h"
+#include <util/setbaud.h>
+
+void initUSART(void) {                                /* requires BAUD */
+  UBRR0H = UBRRH_VALUE;                        /* defined in setbaud.h */
+ 2ac:	10 92 c5 00 	sts	0x00C5, r1
+  UBRR0L = UBRRL_VALUE;
+ 2b0:	8c e0       	ldi	r24, 0x0C	; 12
+ 2b2:	80 93 c4 00 	sts	0x00C4, r24
+#if USE_2X
+  UCSR0A |= (1 << U2X0);
+ 2b6:	e0 ec       	ldi	r30, 0xC0	; 192
+ 2b8:	f0 e0       	ldi	r31, 0x00	; 0
+ 2ba:	80 81       	ld	r24, Z
+ 2bc:	82 60       	ori	r24, 0x02	; 2
+ 2be:	80 83       	st	Z, r24
+#else
+  UCSR0A &= ~(1 << U2X0);
+#endif
+                                  /* Enable USART transmitter/receiver */
+  UCSR0B = (1 << TXEN0) | (1 << RXEN0);
+ 2c0:	88 e1       	ldi	r24, 0x18	; 24
+ 2c2:	80 93 c1 00 	sts	0x00C1, r24
+  UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);   /* 8 data bits, 1 stop bit */
+ 2c6:	86 e0       	ldi	r24, 0x06	; 6
+ 2c8:	80 93 c2 00 	sts	0x00C2, r24
+ 2cc:	08 95       	ret
+
+000002ce <transmitByte>:
+}
+
+
+void transmitByte(uint8_t data) {
+                                     /* Wait for empty transmit buffer */
+  loop_until_bit_is_set(UCSR0A, UDRE0);
+ 2ce:	90 91 c0 00 	lds	r25, 0x00C0
+ 2d2:	95 ff       	sbrs	r25, 5
+ 2d4:	fc cf       	rjmp	.-8      	; 0x2ce <transmitByte>
+  UDR0 = data;                                            /* send data */
+ 2d6:	80 93 c6 00 	sts	0x00C6, r24
+ 2da:	08 95       	ret
+
+000002dc <receiveByte>:
+}
+
+uint8_t receiveByte(void) {
+  loop_until_bit_is_set(UCSR0A, RXC0);       /* Wait for incoming data */
+ 2dc:	80 91 c0 00 	lds	r24, 0x00C0
+ 2e0:	87 ff       	sbrs	r24, 7
+ 2e2:	fc cf       	rjmp	.-8      	; 0x2dc <receiveByte>
+  return UDR0;                                /* return register value */
+ 2e4:	80 91 c6 00 	lds	r24, 0x00C6
+}
+ 2e8:	08 95       	ret
+
+000002ea <printString>:
+
+
+                       /* Here are a bunch of useful printing commands */
+
+void printString(const char myString[]) {
+ 2ea:	1f 93       	push	r17
+ 2ec:	cf 93       	push	r28
+ 2ee:	df 93       	push	r29
+ 2f0:	ec 01       	movw	r28, r24
+  uint8_t i = 0;
+ 2f2:	10 e0       	ldi	r17, 0x00	; 0
+  while (myString[i]) {
+ 2f4:	fe 01       	movw	r30, r28
+ 2f6:	e1 0f       	add	r30, r17
+ 2f8:	f1 1d       	adc	r31, r1
+ 2fa:	80 81       	ld	r24, Z
+ 2fc:	88 23       	and	r24, r24
+ 2fe:	21 f0       	breq	.+8      	; 0x308 <printString+0x1e>
+    transmitByte(myString[i]);
+ 300:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+    i++;
+ 304:	1f 5f       	subi	r17, 0xFF	; 255
+ 306:	f6 cf       	rjmp	.-20     	; 0x2f4 <printString+0xa>
+  }
+}
+ 308:	df 91       	pop	r29
+ 30a:	cf 91       	pop	r28
+ 30c:	1f 91       	pop	r17
+ 30e:	08 95       	ret
+
+00000310 <readString>:
+
+void readString(char myString[], uint8_t maxLength) {
+ 310:	cf 92       	push	r12
+ 312:	df 92       	push	r13
+ 314:	ef 92       	push	r14
+ 316:	ff 92       	push	r15
+ 318:	0f 93       	push	r16
+ 31a:	1f 93       	push	r17
+ 31c:	cf 93       	push	r28
+ 31e:	df 93       	push	r29
+ 320:	7c 01       	movw	r14, r24
+  char response;
+  uint8_t i;
+  i = 0;
+ 322:	d1 2c       	mov	r13, r1
+  while (i < (maxLength - 1)) {                   /* prevent over-runs */
+ 324:	06 2f       	mov	r16, r22
+ 326:	10 e0       	ldi	r17, 0x00	; 0
+ 328:	01 50       	subi	r16, 0x01	; 1
+ 32a:	11 09       	sbc	r17, r1
+ 32c:	cd 2d       	mov	r28, r13
+ 32e:	d0 e0       	ldi	r29, 0x00	; 0
+ 330:	c0 17       	cp	r28, r16
+ 332:	d1 07       	cpc	r29, r17
+ 334:	44 f4       	brge	.+16     	; 0x346 <readString+0x36>
+    response = receiveByte();
+ 336:	0e 94 6e 01 	call	0x2dc	; 0x2dc <receiveByte>
+ 33a:	c8 2e       	mov	r12, r24
+    transmitByte(response);                                    /* echo */
+ 33c:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+    if (response == '\r') {                     /* enter marks the end */
+ 340:	8d e0       	ldi	r24, 0x0D	; 13
+ 342:	c8 12       	cpse	r12, r24
+ 344:	0c c0       	rjmp	.+24     	; 0x35e <readString+0x4e>
+    else {
+      myString[i] = response;                       /* add in a letter */
+      i++;
+    }
+  }
+  myString[i] = 0;                          /* terminal NULL character */
+ 346:	ce 0d       	add	r28, r14
+ 348:	df 1d       	adc	r29, r15
+ 34a:	18 82       	st	Y, r1
+}
+ 34c:	df 91       	pop	r29
+ 34e:	cf 91       	pop	r28
+ 350:	1f 91       	pop	r17
+ 352:	0f 91       	pop	r16
+ 354:	ff 90       	pop	r15
+ 356:	ef 90       	pop	r14
+ 358:	df 90       	pop	r13
+ 35a:	cf 90       	pop	r12
+ 35c:	08 95       	ret
+    transmitByte(response);                                    /* echo */
+    if (response == '\r') {                     /* enter marks the end */
+      break;
+    }
+    else {
+      myString[i] = response;                       /* add in a letter */
+ 35e:	ce 0d       	add	r28, r14
+ 360:	df 1d       	adc	r29, r15
+ 362:	c8 82       	st	Y, r12
+      i++;
+ 364:	d3 94       	inc	r13
+ 366:	e2 cf       	rjmp	.-60     	; 0x32c <readString+0x1c>
+
+00000368 <printByte>:
+    }
+  }
+  myString[i] = 0;                          /* terminal NULL character */
+}
+
+void printByte(uint8_t byte) {
+ 368:	cf 93       	push	r28
+ 36a:	c8 2f       	mov	r28, r24
+              /* Converts a byte to a string of decimal text, sends it */
+  transmitByte('0' + (byte / 100));                        /* Hundreds */
+ 36c:	64 e6       	ldi	r22, 0x64	; 100
+ 36e:	0e 94 ba 02 	call	0x574	; 0x574 <__udivmodqi4>
+ 372:	80 5d       	subi	r24, 0xD0	; 208
+ 374:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+  transmitByte('0' + ((byte / 10) % 10));                      /* Tens */
+ 378:	2a e0       	ldi	r18, 0x0A	; 10
+ 37a:	8c 2f       	mov	r24, r28
+ 37c:	62 2f       	mov	r22, r18
+ 37e:	0e 94 ba 02 	call	0x574	; 0x574 <__udivmodqi4>
+ 382:	c9 2f       	mov	r28, r25
+ 384:	0e 94 ba 02 	call	0x574	; 0x574 <__udivmodqi4>
+ 388:	80 e3       	ldi	r24, 0x30	; 48
+ 38a:	89 0f       	add	r24, r25
+ 38c:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+  transmitByte('0' + (byte % 10));                             /* Ones */
+ 390:	80 e3       	ldi	r24, 0x30	; 48
+ 392:	8c 0f       	add	r24, r28
+}
+ 394:	cf 91       	pop	r28
+
+void printByte(uint8_t byte) {
+              /* Converts a byte to a string of decimal text, sends it */
+  transmitByte('0' + (byte / 100));                        /* Hundreds */
+  transmitByte('0' + ((byte / 10) % 10));                      /* Tens */
+  transmitByte('0' + (byte % 10));                             /* Ones */
+ 396:	0c 94 67 01 	jmp	0x2ce	; 0x2ce <transmitByte>
+
+0000039a <printWord>:
+}
+
+void printWord(uint16_t word) {
+ 39a:	0f 93       	push	r16
+ 39c:	1f 93       	push	r17
+ 39e:	cf 93       	push	r28
+ 3a0:	df 93       	push	r29
+ 3a2:	ec 01       	movw	r28, r24
+  transmitByte('0' + (word / 10000));                 /* Ten-thousands */
+ 3a4:	60 e1       	ldi	r22, 0x10	; 16
+ 3a6:	77 e2       	ldi	r23, 0x27	; 39
+ 3a8:	0e 94 c6 02 	call	0x58c	; 0x58c <__udivmodhi4>
+ 3ac:	80 e3       	ldi	r24, 0x30	; 48
+ 3ae:	86 0f       	add	r24, r22
+ 3b0:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+  transmitByte('0' + ((word / 1000) % 10));               /* Thousands */
+ 3b4:	ce 01       	movw	r24, r28
+ 3b6:	68 ee       	ldi	r22, 0xE8	; 232
+ 3b8:	73 e0       	ldi	r23, 0x03	; 3
+ 3ba:	0e 94 c6 02 	call	0x58c	; 0x58c <__udivmodhi4>
+ 3be:	cb 01       	movw	r24, r22
+ 3c0:	0a e0       	ldi	r16, 0x0A	; 10
+ 3c2:	10 e0       	ldi	r17, 0x00	; 0
+ 3c4:	b8 01       	movw	r22, r16
+ 3c6:	0e 94 c6 02 	call	0x58c	; 0x58c <__udivmodhi4>
+ 3ca:	80 5d       	subi	r24, 0xD0	; 208
+ 3cc:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+  transmitByte('0' + ((word / 100) % 10));                 /* Hundreds */
+ 3d0:	ce 01       	movw	r24, r28
+ 3d2:	64 e6       	ldi	r22, 0x64	; 100
+ 3d4:	70 e0       	ldi	r23, 0x00	; 0
+ 3d6:	0e 94 c6 02 	call	0x58c	; 0x58c <__udivmodhi4>
+ 3da:	cb 01       	movw	r24, r22
+ 3dc:	b8 01       	movw	r22, r16
+ 3de:	0e 94 c6 02 	call	0x58c	; 0x58c <__udivmodhi4>
+ 3e2:	80 5d       	subi	r24, 0xD0	; 208
+ 3e4:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+  transmitByte('0' + ((word / 10) % 10));                      /* Tens */
+ 3e8:	ce 01       	movw	r24, r28
+ 3ea:	b8 01       	movw	r22, r16
+ 3ec:	0e 94 c6 02 	call	0x58c	; 0x58c <__udivmodhi4>
+ 3f0:	c8 2f       	mov	r28, r24
+ 3f2:	cb 01       	movw	r24, r22
+ 3f4:	b8 01       	movw	r22, r16
+ 3f6:	0e 94 c6 02 	call	0x58c	; 0x58c <__udivmodhi4>
+ 3fa:	80 5d       	subi	r24, 0xD0	; 208
+ 3fc:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+  transmitByte('0' + (word % 10));                             /* Ones */
+ 400:	80 e3       	ldi	r24, 0x30	; 48
+ 402:	8c 0f       	add	r24, r28
+}
+ 404:	df 91       	pop	r29
+ 406:	cf 91       	pop	r28
+ 408:	1f 91       	pop	r17
+ 40a:	0f 91       	pop	r16
+void printWord(uint16_t word) {
+  transmitByte('0' + (word / 10000));                 /* Ten-thousands */
+  transmitByte('0' + ((word / 1000) % 10));               /* Thousands */
+  transmitByte('0' + ((word / 100) % 10));                 /* Hundreds */
+  transmitByte('0' + ((word / 10) % 10));                      /* Tens */
+  transmitByte('0' + (word % 10));                             /* Ones */
+ 40c:	0c 94 67 01 	jmp	0x2ce	; 0x2ce <transmitByte>
+
+00000410 <printBinaryByte>:
+}
+
+void printBinaryByte(uint8_t byte) {
+ 410:	1f 93       	push	r17
+ 412:	cf 93       	push	r28
+ 414:	df 93       	push	r29
+ 416:	1f 92       	push	r1
+ 418:	cd b7       	in	r28, 0x3d	; 61
+ 41a:	de b7       	in	r29, 0x3e	; 62
+ 41c:	89 83       	std	Y+1, r24	; 0x01
+                       /* Prints out a byte as a series of 1's and 0's */
+  uint8_t bit;
+  for (bit = 7; bit < 255; bit--) {
+ 41e:	17 e0       	ldi	r17, 0x07	; 7
+    if (bit_is_set(byte, bit))
+ 420:	89 81       	ldd	r24, Y+1	; 0x01
+ 422:	90 e0       	ldi	r25, 0x00	; 0
+ 424:	01 2e       	mov	r0, r17
+ 426:	02 c0       	rjmp	.+4      	; 0x42c <printBinaryByte+0x1c>
+ 428:	95 95       	asr	r25
+ 42a:	87 95       	ror	r24
+ 42c:	0a 94       	dec	r0
+ 42e:	e2 f7       	brpl	.-8      	; 0x428 <printBinaryByte+0x18>
+ 430:	80 ff       	sbrs	r24, 0
+ 432:	02 c0       	rjmp	.+4      	; 0x438 <printBinaryByte+0x28>
+      transmitByte('1');
+ 434:	81 e3       	ldi	r24, 0x31	; 49
+ 436:	01 c0       	rjmp	.+2      	; 0x43a <printBinaryByte+0x2a>
+    else
+      transmitByte('0');
+ 438:	80 e3       	ldi	r24, 0x30	; 48
+ 43a:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+}
+
+void printBinaryByte(uint8_t byte) {
+                       /* Prints out a byte as a series of 1's and 0's */
+  uint8_t bit;
+  for (bit = 7; bit < 255; bit--) {
+ 43e:	11 50       	subi	r17, 0x01	; 1
+ 440:	78 f7       	brcc	.-34     	; 0x420 <printBinaryByte+0x10>
+    if (bit_is_set(byte, bit))
+      transmitByte('1');
+    else
+      transmitByte('0');
+  }
+}
+ 442:	0f 90       	pop	r0
+ 444:	df 91       	pop	r29
+ 446:	cf 91       	pop	r28
+ 448:	1f 91       	pop	r17
+ 44a:	08 95       	ret
+
+0000044c <nibbleToHexCharacter>:
+
+char nibbleToHexCharacter(uint8_t nibble) {
+                                   /* Converts 4 bits into hexadecimal */
+  if (nibble < 10) {
+ 44c:	8a 30       	cpi	r24, 0x0A	; 10
+ 44e:	10 f4       	brcc	.+4      	; 0x454 <nibbleToHexCharacter+0x8>
+    return ('0' + nibble);
+ 450:	80 5d       	subi	r24, 0xD0	; 208
+ 452:	08 95       	ret
+  }
+  else {
+    return ('A' + nibble - 10);
+ 454:	89 5c       	subi	r24, 0xC9	; 201
+  }
+}
+ 456:	08 95       	ret
+
+00000458 <printHexByte>:
+
+void printHexByte(uint8_t byte) {
+ 458:	cf 93       	push	r28
+ 45a:	c8 2f       	mov	r28, r24
+                        /* Prints a byte as its hexadecimal equivalent */
+  uint8_t nibble;
+  nibble = (byte & 0b11110000) >> 4;
+  transmitByte(nibbleToHexCharacter(nibble));
+ 45c:	82 95       	swap	r24
+ 45e:	8f 70       	andi	r24, 0x0F	; 15
+ 460:	0e 94 26 02 	call	0x44c	; 0x44c <nibbleToHexCharacter>
+ 464:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+  nibble = byte & 0b00001111;
+  transmitByte(nibbleToHexCharacter(nibble));
+ 468:	8c 2f       	mov	r24, r28
+ 46a:	8f 70       	andi	r24, 0x0F	; 15
+ 46c:	0e 94 26 02 	call	0x44c	; 0x44c <nibbleToHexCharacter>
+}
+ 470:	cf 91       	pop	r28
+                        /* Prints a byte as its hexadecimal equivalent */
+  uint8_t nibble;
+  nibble = (byte & 0b11110000) >> 4;
+  transmitByte(nibbleToHexCharacter(nibble));
+  nibble = byte & 0b00001111;
+  transmitByte(nibbleToHexCharacter(nibble));
+ 472:	0c 94 67 01 	jmp	0x2ce	; 0x2ce <transmitByte>
+
+00000476 <getNumber>:
+ 476:	0f 93       	push	r16
+ 478:	1f 93       	push	r17
+ 47a:	cf 93       	push	r28
+ 47c:	df 93       	push	r29
+ 47e:	d0 e3       	ldi	r29, 0x30	; 48
+ 480:	c0 e3       	ldi	r28, 0x30	; 48
+ 482:	00 e3       	ldi	r16, 0x30	; 48
+ 484:	0e 94 6e 01 	call	0x2dc	; 0x2dc <receiveByte>
+ 488:	18 2f       	mov	r17, r24
+ 48a:	0e 94 67 01 	call	0x2ce	; 0x2ce <transmitByte>
+ 48e:	1d 30       	cpi	r17, 0x0D	; 13
+ 490:	21 f0       	breq	.+8      	; 0x49a <getNumber+0x24>
+ 492:	0c 2f       	mov	r16, r28
+ 494:	cd 2f       	mov	r28, r29
+ 496:	d1 2f       	mov	r29, r17
+ 498:	f5 cf       	rjmp	.-22     	; 0x484 <getNumber+0xe>
+ 49a:	d0 53       	subi	r29, 0x30	; 48
+ 49c:	00 53       	subi	r16, 0x30	; 48
+ 49e:	84 e6       	ldi	r24, 0x64	; 100
+ 4a0:	08 9f       	mul	r16, r24
+ 4a2:	d0 0d       	add	r29, r0
+ 4a4:	11 24       	eor	r1, r1
+ 4a6:	9c 2f       	mov	r25, r28
+ 4a8:	99 0f       	add	r25, r25
+ 4aa:	90 56       	subi	r25, 0x60	; 96
+ 4ac:	89 2f       	mov	r24, r25
+ 4ae:	88 0f       	add	r24, r24
+ 4b0:	88 0f       	add	r24, r24
+ 4b2:	89 0f       	add	r24, r25
+ 4b4:	8d 0f       	add	r24, r29
+ 4b6:	df 91       	pop	r29
+ 4b8:	cf 91       	pop	r28
+ 4ba:	1f 91       	pop	r17
+ 4bc:	0f 91       	pop	r16
+ 4be:	08 95       	ret
+
+000004c0 <main>:
+}
+
+int main(void) {
+ 4c0:	cf 93       	push	r28
+ 4c2:	df 93       	push	r29
+ 4c4:	cd b7       	in	r28, 0x3d	; 61
+ 4c6:	de b7       	in	r29, 0x3e	; 62
+ 4c8:	a0 97       	sbiw	r28, 0x20	; 32
+ 4ca:	0f b6       	in	r0, 0x3f	; 63
+ 4cc:	f8 94       	cli
+ 4ce:	de bf       	out	0x3e, r29	; 62
+ 4d0:	0f be       	out	0x3f, r0	; 63
+ 4d2:	cd bf       	out	0x3d, r28	; 61
+  
+  DDRD &= ~(1 << 2);
+ 4d4:	52 98       	cbi	0x0a, 2	; 10
+  PORTD |= (1 << 2);
+ 4d6:	5a 9a       	sbi	0x0b, 2	; 11
+  initInterrupt0();
+ 4d8:	0e 94 7b 00 	call	0xf6	; 0xf6 <initInterrupt0>
+
+  set_as_output('B',4);
+ 4dc:	64 e0       	ldi	r22, 0x04	; 4
+ 4de:	70 e0       	ldi	r23, 0x00	; 0
+ 4e0:	82 e4       	ldi	r24, 0x42	; 66
+ 4e2:	0e 94 2d 01 	call	0x25a	; 0x25a <set_as_output>
+  
+  initUSART();
+ 4e6:	0e 94 56 01 	call	0x2ac	; 0x2ac <initUSART>
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
+
+	__builtin_avr_delay_cycles(__ticks_dc);
+ 4ea:	2f e3       	ldi	r18, 0x3F	; 63
+ 4ec:	8d e0       	ldi	r24, 0x0D	; 13
+ 4ee:	93 e0       	ldi	r25, 0x03	; 3
+ 4f0:	21 50       	subi	r18, 0x01	; 1
+ 4f2:	80 40       	sbci	r24, 0x00	; 0
+ 4f4:	90 40       	sbci	r25, 0x00	; 0
+ 4f6:	e1 f7       	brne	.-8      	; 0x4f0 <main+0x30>
+ 4f8:	00 c0       	rjmp	.+0      	; 0x4fa <main+0x3a>
+ 4fa:	00 00       	nop
+  _delay_ms(1000);
+  printString("Press Enter to continue \r\n");
+ 4fc:	82 e1       	ldi	r24, 0x12	; 18
+ 4fe:	91 e0       	ldi	r25, 0x01	; 1
+ 500:	0e 94 75 01 	call	0x2ea	; 0x2ea <printString>
+  char null_string[32];
+  readString(null_string, 32);
+ 504:	60 e2       	ldi	r22, 0x20	; 32
+ 506:	ce 01       	movw	r24, r28
+ 508:	01 96       	adiw	r24, 0x01	; 1
+ 50a:	0e 94 88 01 	call	0x310	; 0x310 <readString>
+  
+  while(1) { //toggle pin4 every half second
+	pin_hi('B', 4);	
+ 50e:	64 e0       	ldi	r22, 0x04	; 4
+ 510:	70 e0       	ldi	r23, 0x00	; 0
+ 512:	82 e4       	ldi	r24, 0x42	; 66
+ 514:	0e 94 ac 00 	call	0x158	; 0x158 <pin_hi>
+ 518:	8f e4       	ldi	r24, 0x4F	; 79
+ 51a:	93 ec       	ldi	r25, 0xC3	; 195
+ 51c:	01 97       	sbiw	r24, 0x01	; 1
+ 51e:	f1 f7       	brne	.-4      	; 0x51c <main+0x5c>
+ 520:	00 c0       	rjmp	.+0      	; 0x522 <main+0x62>
+ 522:	00 00       	nop
+	_delay_ms(200);
+	pin_lo('B', 4);
+ 524:	64 e0       	ldi	r22, 0x04	; 4
+ 526:	70 e0       	ldi	r23, 0x00	; 0
+ 528:	82 e4       	ldi	r24, 0x42	; 66
+ 52a:	0e 94 d5 00 	call	0x1aa	; 0x1aa <pin_lo>
+ 52e:	9f ef       	ldi	r25, 0xFF	; 255
+ 530:	20 e7       	ldi	r18, 0x70	; 112
+ 532:	82 e0       	ldi	r24, 0x02	; 2
+ 534:	91 50       	subi	r25, 0x01	; 1
+ 536:	20 40       	sbci	r18, 0x00	; 0
+ 538:	80 40       	sbci	r24, 0x00	; 0
+ 53a:	e1 f7       	brne	.-8      	; 0x534 <main+0x74>
+ 53c:	00 c0       	rjmp	.+0      	; 0x53e <main+0x7e>
+ 53e:	00 00       	nop
+	_delay_ms(800);
+  toggle('B', 4);
+ 540:	64 e0       	ldi	r22, 0x04	; 4
+ 542:	70 e0       	ldi	r23, 0x00	; 0
+ 544:	82 e4       	ldi	r24, 0x42	; 66
+ 546:	0e 94 83 00 	call	0x106	; 0x106 <toggle>
+ 54a:	8f e4       	ldi	r24, 0x4F	; 79
+ 54c:	93 ec       	ldi	r25, 0xC3	; 195
+ 54e:	01 97       	sbiw	r24, 0x01	; 1
+ 550:	f1 f7       	brne	.-4      	; 0x54e <main+0x8e>
+ 552:	00 c0       	rjmp	.+0      	; 0x554 <main+0x94>
+ 554:	00 00       	nop
+	_delay_ms(200);
+  toggle('B', 4);
+ 556:	64 e0       	ldi	r22, 0x04	; 4
+ 558:	70 e0       	ldi	r23, 0x00	; 0
+ 55a:	82 e4       	ldi	r24, 0x42	; 66
+ 55c:	0e 94 83 00 	call	0x106	; 0x106 <toggle>
+ 560:	9f ef       	ldi	r25, 0xFF	; 255
+ 562:	20 e7       	ldi	r18, 0x70	; 112
+ 564:	82 e0       	ldi	r24, 0x02	; 2
+ 566:	91 50       	subi	r25, 0x01	; 1
+ 568:	20 40       	sbci	r18, 0x00	; 0
+ 56a:	80 40       	sbci	r24, 0x00	; 0
+ 56c:	e1 f7       	brne	.-8      	; 0x566 <main+0xa6>
+ 56e:	00 c0       	rjmp	.+0      	; 0x570 <main+0xb0>
+ 570:	00 00       	nop
+ 572:	cd cf       	rjmp	.-102    	; 0x50e <main+0x4e>
+
+00000574 <__udivmodqi4>:
+ 574:	99 1b       	sub	r25, r25
+ 576:	79 e0       	ldi	r23, 0x09	; 9
+ 578:	04 c0       	rjmp	.+8      	; 0x582 <__udivmodqi4_ep>
+
+0000057a <__udivmodqi4_loop>:
+ 57a:	99 1f       	adc	r25, r25
+ 57c:	96 17       	cp	r25, r22
+ 57e:	08 f0       	brcs	.+2      	; 0x582 <__udivmodqi4_ep>
+ 580:	96 1b       	sub	r25, r22
+
+00000582 <__udivmodqi4_ep>:
+ 582:	88 1f       	adc	r24, r24
+ 584:	7a 95       	dec	r23
+ 586:	c9 f7       	brne	.-14     	; 0x57a <__udivmodqi4_loop>
+ 588:	80 95       	com	r24
+ 58a:	08 95       	ret
+
+0000058c <__udivmodhi4>:
+ 58c:	aa 1b       	sub	r26, r26
+ 58e:	bb 1b       	sub	r27, r27
+ 590:	51 e1       	ldi	r21, 0x11	; 17
+ 592:	07 c0       	rjmp	.+14     	; 0x5a2 <__udivmodhi4_ep>
+
+00000594 <__udivmodhi4_loop>:
+ 594:	aa 1f       	adc	r26, r26
+ 596:	bb 1f       	adc	r27, r27
+ 598:	a6 17       	cp	r26, r22
+ 59a:	b7 07       	cpc	r27, r23
+ 59c:	10 f0       	brcs	.+4      	; 0x5a2 <__udivmodhi4_ep>
+ 59e:	a6 1b       	sub	r26, r22
+ 5a0:	b7 0b       	sbc	r27, r23
+
+000005a2 <__udivmodhi4_ep>:
+ 5a2:	88 1f       	adc	r24, r24
+ 5a4:	99 1f       	adc	r25, r25
+ 5a6:	5a 95       	dec	r21
+ 5a8:	a9 f7       	brne	.-22     	; 0x594 <__udivmodhi4_loop>
+ 5aa:	80 95       	com	r24
+ 5ac:	90 95       	com	r25
+ 5ae:	bc 01       	movw	r22, r24
+ 5b0:	cd 01       	movw	r24, r26
+ 5b2:	08 95       	ret
+
+000005b4 <_exit>:
+ 5b4:	f8 94       	cli
+
+000005b6 <__stop_program>:
+ 5b6:	ff cf       	rjmp	.-2      	; 0x5b6 <__stop_program>

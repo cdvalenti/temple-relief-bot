@@ -1,9 +1,11 @@
+#define MCU 'atmega328'
+#define F_CPU 1000000UL
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#include <easy_atmega328p.h>
-
-#define MCU 'atmega328'
+#include "include/easy_atmega328p.h"
+#include "include/USART.h"
 
 int main(void)
 {
@@ -13,14 +15,15 @@ int main(void)
 
   while(1) { //toggle pin4 every half second
 	pin_hi('B', 4);	
-	_delay_ms(500);
+	_delay_ms(200);
 	pin_lo('B', 4);
-	_delay_ms(500);
+	_delay_ms(800);
   toggle('B', 4);
-	_delay_ms(500);
+	_delay_ms(200);
   toggle('B', 4);
-	_delay_ms(500);
+	_delay_ms(800);
  }
+ 
+ return(0);
+ 
 }
-
-

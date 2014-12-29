@@ -1,0 +1,476 @@
+   1               		.file	"main.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 102               		.section	.rodata.str1.1,"aMS",@progbits,1
+ 103               	.LC0:
+ 104 0000 0D0A 202A 		.string	"\r\n ****************** Robot Information Page *******************\r\n"
+ 104      2A2A 2A2A 
+ 104      2A2A 2A2A 
+ 104      2A2A 2A2A 
+ 104      2A2A 2A2A 
+ 105               	.LC1:
+ 106 0043 0D0A 5465 		.string	"\r\nTeam Members: Alexander Arocho, Donald Clark, Mabin Kurian, Christian D. Valenti \n\r
+ 106      616D 204D 
+ 106      656D 6265 
+ 106      7273 3A20 
+ 106      416C 6578 
+ 107               	.LC2:
+ 108 0099 0D0A 5075 		.string	"\r\nPurpose: Temple University, College of Engineering Senior Design Project (Spring 2014
+ 108      7270 6F73 
+ 108      653A 2054 
+ 108      656D 706C 
+ 108      6520 556E 
+ 109               	.LC3:
+ 110 00f5 0D0A 436F 		.string	"\r\nCompetition: ASME Student Design Competition, April 2014, Regional Competition at Tem
+ 110      6D70 6574 
+ 110      6974 696F 
+ 110      6E3A 2041 
+ 110      534D 4520 
+ 111               	.LC4:
+ 112 015d 0D0A 436F 		.string	"\r\nContact: christian.valenti@temple.edu \r\n"
+ 112      6E74 6163 
+ 112      743A 2063 
+ 112      6872 6973 
+ 112      7469 616E 
+ 113               	.LC5:
+ 114 0188 0D0A 5072 		.string	"\r\nProject Website: https://sites.google.com/a/temple.edu/temple-relief-robot/ \r\n"
+ 114      6F6A 6563 
+ 114      7420 5765 
+ 114      6273 6974 
+ 114      653A 2068 
+ 115               	.LC6:
+ 116 01d9 0D0A 0D0A 		.string	"\r\n\r\nPress Enter to return to main menu >>  "
+ 116      5072 6573 
+ 116      7320 456E 
+ 116      7465 7220 
+ 116      746F 2072 
+ 117               		.text
+ 119               	.global	printInformation
+ 121               	printInformation:
+ 122               		.stabd	46,0,0
+   1:main.c        **** #include <avr/io.h>
+   2:main.c        **** #include <avr/interrupt.h>
+   3:main.c        **** #include <util/delay.h>
+   4:main.c        **** #include "include/easy_atmega328p.h"
+   5:main.c        **** #include "include/USART.h"
+   6:main.c        **** 
+   7:main.c        **** #define MCU 'atmega328'
+   8:main.c        **** #define F_CPU 1000000UL
+   9:main.c        **** 
+  10:main.c        **** void printInformation(){
+ 124               	.LM0:
+ 125               	.LFBB1:
+ 126 0000 CF93      		push r28
+ 127 0002 DF93      		push r29
+ 128 0004 CDB7      		in r28,__SP_L__
+ 129 0006 DEB7      		in r29,__SP_H__
+ 130 0008 A097      		sbiw r28,32
+ 131 000a 0FB6      		in __tmp_reg__,__SREG__
+ 132 000c F894      		cli
+ 133 000e DEBF      		out __SP_H__,r29
+ 134 0010 0FBE      		out __SREG__,__tmp_reg__
+ 135 0012 CDBF      		out __SP_L__,r28
+ 136               	/* prologue: function */
+ 137               	/* frame size = 32 */
+ 138               	/* stack size = 34 */
+ 139               	.L__stack_usage = 34
+  11:main.c        ****   printString("\r\n ****************** Robot Information Page *******************\r\n");
+ 141               	.LM1:
+ 142 0014 80E0      		ldi r24,lo8(.LC0)
+ 143 0016 90E0      		ldi r25,hi8(.LC0)
+ 144 0018 0E94 0000 		call printString
+  12:main.c        ****   printString("\r\nTeam Members: Alexander Arocho, Donald Clark, Mabin Kurian, Christian D. Valenti
+ 146               	.LM2:
+ 147 001c 80E0      		ldi r24,lo8(.LC1)
+ 148 001e 90E0      		ldi r25,hi8(.LC1)
+ 149 0020 0E94 0000 		call printString
+  13:main.c        ****   printString("\r\nPurpose: Temple University, College of Engineering Senior Design Project (Spring
+ 151               	.LM3:
+ 152 0024 80E0      		ldi r24,lo8(.LC2)
+ 153 0026 90E0      		ldi r25,hi8(.LC2)
+ 154 0028 0E94 0000 		call printString
+  14:main.c        ****   printString("\r\nCompetition: ASME Student Design Competition, April 2014, Regional Competition a
+ 156               	.LM4:
+ 157 002c 80E0      		ldi r24,lo8(.LC3)
+ 158 002e 90E0      		ldi r25,hi8(.LC3)
+ 159 0030 0E94 0000 		call printString
+  15:main.c        ****   printString("\r\nContact: christian.valenti@temple.edu \r\n");
+ 161               	.LM5:
+ 162 0034 80E0      		ldi r24,lo8(.LC4)
+ 163 0036 90E0      		ldi r25,hi8(.LC4)
+ 164 0038 0E94 0000 		call printString
+  16:main.c        ****   printString("\r\nProject Website: https://sites.google.com/a/temple.edu/temple-relief-robot/ \r\n
+ 166               	.LM6:
+ 167 003c 80E0      		ldi r24,lo8(.LC5)
+ 168 003e 90E0      		ldi r25,hi8(.LC5)
+ 169 0040 0E94 0000 		call printString
+  17:main.c        ****   printString("\r\n\r\nPress Enter to return to main menu >>  ");
+ 171               	.LM7:
+ 172 0044 80E0      		ldi r24,lo8(.LC6)
+ 173 0046 90E0      		ldi r25,hi8(.LC6)
+ 174 0048 0E94 0000 		call printString
+  18:main.c        ****   char null_string[32];
+  19:main.c        ****   readString(null_string, 32);
+ 176               	.LM8:
+ 177 004c 60E2      		ldi r22,lo8(32)
+ 178 004e CE01      		movw r24,r28
+ 179 0050 0196      		adiw r24,1
+ 180 0052 0E94 0000 		call readString
+ 181               	/* epilogue start */
+  20:main.c        **** }
+ 183               	.LM9:
+ 184 0056 A096      		adiw r28,32
+ 185 0058 0FB6      		in __tmp_reg__,__SREG__
+ 186 005a F894      		cli
+ 187 005c DEBF      		out __SP_H__,r29
+ 188 005e 0FBE      		out __SREG__,__tmp_reg__
+ 189 0060 CDBF      		out __SP_L__,r28
+ 190 0062 DF91      		pop r29
+ 191 0064 CF91      		pop r28
+ 192 0066 0895      		ret
+ 197               	.Lscope1:
+ 199               		.stabd	78,0,0
+ 200               		.section	.rodata.str1.1
+ 201               	.LC7:
+ 202 0205 5765 6C63 		.string	"Welcome to the Temple Relief Robot Serial Communication (TRRSC) version 1.0\r\n"
+ 202      6F6D 6520 
+ 202      746F 2074 
+ 202      6865 2054 
+ 202      656D 706C 
+ 203               	.LC8:
+ 204 0253 5072 6573 		.string	"Press Enter to continue to the main menu\r\n"
+ 204      7320 456E 
+ 204      7465 7220 
+ 204      746F 2063 
+ 204      6F6E 7469 
+ 205               	.LC9:
+ 206 027e 0D0A 0D0A 		.string	"\r\n\r\n**********************************************************\r\n"
+ 206      2A2A 2A2A 
+ 206      2A2A 2A2A 
+ 206      2A2A 2A2A 
+ 206      2A2A 2A2A 
+ 207               	.LC10:
+ 208 02bf 4D61 696E 		.string	"Main Menu (type your selection and press 'ENTER')\r\n\r\n1. Information \n\r2. Run Tests 
+ 208      204D 656E 
+ 208      7520 2874 
+ 208      7970 6520 
+ 208      796F 7572 
+ 209               	.LC11:
+ 210 0317 4E6F 7468 		.string	"Nothing here yet\r\n"
+ 210      696E 6720 
+ 210      6865 7265 
+ 210      2079 6574 
+ 210      0D0A 00
+ 211               	.LC12:
+ 212 032a 2A2A 2A2A 		.string	"**** That is not a valid option, try again ****"
+ 212      2054 6861 
+ 212      7420 6973 
+ 212      206E 6F74 
+ 212      2061 2076 
+ 213               		.section	.text.startup,"ax",@progbits
+ 215               	.global	main
+ 217               	main:
+ 218               		.stabd	46,0,0
+  21:main.c        **** 
+  22:main.c        **** int main(void)
+  23:main.c        **** {
+ 220               	.LM10:
+ 221               	.LFBB2:
+ 222 0000 CF93      		push r28
+ 223 0002 DF93      		push r29
+ 224 0004 CDB7      		in r28,__SP_L__
+ 225 0006 DEB7      		in r29,__SP_H__
+ 226 0008 C054      		subi r28,64
+ 227 000a D109      		sbc r29,__zero_reg__
+ 228 000c 0FB6      		in __tmp_reg__,__SREG__
+ 229 000e F894      		cli
+ 230 0010 DEBF      		out __SP_H__,r29
+ 231 0012 0FBE      		out __SREG__,__tmp_reg__
+ 232 0014 CDBF      		out __SP_L__,r28
+ 233               	/* prologue: function */
+ 234               	/* frame size = 64 */
+ 235               	/* stack size = 66 */
+ 236               	.L__stack_usage = 66
+  24:main.c        ****   initUSART();
+ 238               	.LM11:
+ 239 0016 0E94 0000 		call initUSART
+ 240               	.LBB5:
+ 241               	.LBB6:
+ 243               	.Ltext1:
+   1:/usr/lib/avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
+   3:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
+   4:/usr/lib/avr/include/util/delay.h ****    All rights reserved.
+   5:/usr/lib/avr/include/util/delay.h **** 
+   6:/usr/lib/avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
+   7:/usr/lib/avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
+   8:/usr/lib/avr/include/util/delay.h **** 
+   9:/usr/lib/avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
+  10:/usr/lib/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
+  11:/usr/lib/avr/include/util/delay.h **** 
+  12:/usr/lib/avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
+  13:/usr/lib/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
+  14:/usr/lib/avr/include/util/delay.h ****      the documentation and/or other materials provided with the
+  15:/usr/lib/avr/include/util/delay.h ****      distribution.
+  16:/usr/lib/avr/include/util/delay.h **** 
+  17:/usr/lib/avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
+  18:/usr/lib/avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
+  19:/usr/lib/avr/include/util/delay.h ****      from this software without specific prior written permission.
+  20:/usr/lib/avr/include/util/delay.h **** 
+  21:/usr/lib/avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  22:/usr/lib/avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  23:/usr/lib/avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  24:/usr/lib/avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  25:/usr/lib/avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  26:/usr/lib/avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  27:/usr/lib/avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:/usr/lib/avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:/usr/lib/avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  30:/usr/lib/avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  31:/usr/lib/avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  32:/usr/lib/avr/include/util/delay.h **** 
+  33:/usr/lib/avr/include/util/delay.h **** /* $Id: delay.h.in 2251 2011-09-14 08:20:33Z joerg_wunsch $ */
+  34:/usr/lib/avr/include/util/delay.h **** 
+  35:/usr/lib/avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
+  36:/usr/lib/avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
+  37:/usr/lib/avr/include/util/delay.h **** 
+  38:/usr/lib/avr/include/util/delay.h **** #ifndef __HAS_DELAY_CYCLES
+  39:/usr/lib/avr/include/util/delay.h **** #define __HAS_DELAY_CYCLES 1
+  40:/usr/lib/avr/include/util/delay.h **** #endif
+  41:/usr/lib/avr/include/util/delay.h **** 
+  42:/usr/lib/avr/include/util/delay.h **** #include <inttypes.h>
+  43:/usr/lib/avr/include/util/delay.h **** #include <util/delay_basic.h>
+  44:/usr/lib/avr/include/util/delay.h **** #include <math.h>
+  45:/usr/lib/avr/include/util/delay.h **** 
+  46:/usr/lib/avr/include/util/delay.h **** /** \file */
+  47:/usr/lib/avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+  48:/usr/lib/avr/include/util/delay.h ****     \code
+  49:/usr/lib/avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
+  50:/usr/lib/avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
+  51:/usr/lib/avr/include/util/delay.h ****     #include <util/delay.h>
+  52:/usr/lib/avr/include/util/delay.h ****     \endcode
+  53:/usr/lib/avr/include/util/delay.h **** 
+  54:/usr/lib/avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
+  55:/usr/lib/avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
+  56:/usr/lib/avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
+  57:/usr/lib/avr/include/util/delay.h ****     used.
+  58:/usr/lib/avr/include/util/delay.h **** 
+  59:/usr/lib/avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
+  60:/usr/lib/avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
+  61:/usr/lib/avr/include/util/delay.h ****     convenience functions where actual time values can be specified
+  62:/usr/lib/avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
+  63:/usr/lib/avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
+  64:/usr/lib/avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
+  65:/usr/lib/avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
+  66:/usr/lib/avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
+  67:/usr/lib/avr/include/util/delay.h **** 
+  68:/usr/lib/avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
+  69:/usr/lib/avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
+  70:/usr/lib/avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
+  71:/usr/lib/avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
+  72:/usr/lib/avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
+  73:/usr/lib/avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
+  74:/usr/lib/avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
+  75:/usr/lib/avr/include/util/delay.h ****     routines linked into the application.
+  76:/usr/lib/avr/include/util/delay.h **** 
+  77:/usr/lib/avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
+  78:/usr/lib/avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
+  79:/usr/lib/avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
+  80:/usr/lib/avr/include/util/delay.h **** 
+  81:/usr/lib/avr/include/util/delay.h **** */
+  82:/usr/lib/avr/include/util/delay.h **** 
+  83:/usr/lib/avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
+  84:/usr/lib/avr/include/util/delay.h **** static inline void _delay_us(double __us) __attribute__((always_inline));
+  85:/usr/lib/avr/include/util/delay.h **** static inline void _delay_ms(double __ms) __attribute__((always_inline));
+  86:/usr/lib/avr/include/util/delay.h **** #endif
+  87:/usr/lib/avr/include/util/delay.h **** 
+  88:/usr/lib/avr/include/util/delay.h **** #ifndef F_CPU
+  89:/usr/lib/avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
+  90:/usr/lib/avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
+  91:/usr/lib/avr/include/util/delay.h **** # define F_CPU 1000000UL
+  92:/usr/lib/avr/include/util/delay.h **** #endif
+  93:/usr/lib/avr/include/util/delay.h **** 
+  94:/usr/lib/avr/include/util/delay.h **** #ifndef __OPTIMIZE__
+  95:/usr/lib/avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+  96:/usr/lib/avr/include/util/delay.h **** #endif
+  97:/usr/lib/avr/include/util/delay.h **** 
+  98:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+  99:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 100:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 101:/usr/lib/avr/include/util/delay.h **** #  include <math.h>
+ 102:/usr/lib/avr/include/util/delay.h **** #endif
+ 103:/usr/lib/avr/include/util/delay.h **** 
+ 104:/usr/lib/avr/include/util/delay.h **** /**
+ 105:/usr/lib/avr/include/util/delay.h ****    \ingroup util_delay
+ 106:/usr/lib/avr/include/util/delay.h **** 
+ 107:/usr/lib/avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+ 108:/usr/lib/avr/include/util/delay.h **** 
+ 109:/usr/lib/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 110:/usr/lib/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 111:/usr/lib/avr/include/util/delay.h **** 
+ 112:/usr/lib/avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
+ 113:/usr/lib/avr/include/util/delay.h **** 
+ 114:/usr/lib/avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
+ 115:/usr/lib/avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
+ 116:/usr/lib/avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
+ 117:/usr/lib/avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
+ 118:/usr/lib/avr/include/util/delay.h ****    user will not be informed about decreased resolution.
+ 119:/usr/lib/avr/include/util/delay.h **** 
+ 120:/usr/lib/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles(unsigned long)
+ 121:/usr/lib/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+ 122:/usr/lib/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
+ 123:/usr/lib/avr/include/util/delay.h ****    no delay i.e., 0ms.
+ 124:/usr/lib/avr/include/util/delay.h **** 
+ 125:/usr/lib/avr/include/util/delay.h ****    Conversion of __us into clock cycles may not always result in integer.
+ 126:/usr/lib/avr/include/util/delay.h ****    By default, the clock cycles rounded up to next integer. This ensures that
+ 127:/usr/lib/avr/include/util/delay.h ****    the user gets atleast __us microseconds of delay.
+ 128:/usr/lib/avr/include/util/delay.h **** 
+ 129:/usr/lib/avr/include/util/delay.h ****    Alternatively, user can define __DELAY_ROUND_DOWN__ and __DELAY_ROUND_CLOSEST__
+ 130:/usr/lib/avr/include/util/delay.h ****    to round down and round to closest integer.
+ 131:/usr/lib/avr/include/util/delay.h **** 
+ 132:/usr/lib/avr/include/util/delay.h ****    Note: The new implementation of _delay_ms(double __ms) with 
+ 133:/usr/lib/avr/include/util/delay.h ****     __builtin_avr_delay_cycles(unsigned long) support is not backward compatible. 
+ 134:/usr/lib/avr/include/util/delay.h ****    User can define __DELAY_BACKWARD_COMPATIBLE__ to get a backward compatible delay.
+ 135:/usr/lib/avr/include/util/delay.h ****    Also, the backward compatible
+ 136:/usr/lib/avr/include/util/delay.h ****    algorithm will be chosen if the code is compiled in a <em>freestanding
+ 137:/usr/lib/avr/include/util/delay.h ****    environment</em> (GCC option \c -ffreestanding), as the math functions
+ 138:/usr/lib/avr/include/util/delay.h ****    required for rounding are not available to the compiler then.
+ 139:/usr/lib/avr/include/util/delay.h **** 
+ 140:/usr/lib/avr/include/util/delay.h ****  */
+ 141:/usr/lib/avr/include/util/delay.h **** void
+ 142:/usr/lib/avr/include/util/delay.h **** _delay_ms(double __ms)
+ 143:/usr/lib/avr/include/util/delay.h **** {
+ 144:/usr/lib/avr/include/util/delay.h **** 	uint16_t __ticks;
+ 145:/usr/lib/avr/include/util/delay.h **** 	double __tmp ; 
+ 146:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 147:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 148:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 149:/usr/lib/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 150:/usr/lib/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 151:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
+ 152:/usr/lib/avr/include/util/delay.h **** 
+ 153:/usr/lib/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 154:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 155:/usr/lib/avr/include/util/delay.h **** 
+ 156:/usr/lib/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 157:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 158:/usr/lib/avr/include/util/delay.h **** 
+ 159:/usr/lib/avr/include/util/delay.h **** 	#else
+ 160:/usr/lib/avr/include/util/delay.h **** 		//round up by default
+ 161:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 162:/usr/lib/avr/include/util/delay.h **** 	#endif
+ 163:/usr/lib/avr/include/util/delay.h **** 
+ 164:/usr/lib/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+ 245               	.LM12:
+ 246 001a 2FE3      		ldi r18,lo8(999999)
+ 247 001c 82E4      		ldi r24,hi8(999999)
+ 248 001e 9FE0      		ldi r25,hlo8(999999)
+ 249 0020 2150      		1: subi r18,1
+ 250 0022 8040      		sbci r24,0
+ 251 0024 9040      		sbci r25,0
+ 252 0026 01F4      		brne 1b
+ 253 0028 00C0      		rjmp .
+ 254 002a 0000      		nop
+ 255               	.LBE6:
+ 256               	.LBE5:
+ 258               	.Ltext2:
+  25:main.c        ****   _delay_ms(5000);
+  26:main.c        ****   
+  27:main.c        ****   printString("Welcome to the Temple Relief Robot Serial Communication (TRRSC) version 1.0\r\n");
+ 260               	.LM13:
+ 261 002c 80E0      		ldi r24,lo8(.LC7)
+ 262 002e 90E0      		ldi r25,hi8(.LC7)
+ 263 0030 0E94 0000 		call printString
+  28:main.c        ****   printString("Press Enter to continue to the main menu\r\n");
+ 265               	.LM14:
+ 266 0034 80E0      		ldi r24,lo8(.LC8)
+ 267 0036 90E0      		ldi r25,hi8(.LC8)
+ 268 0038 0E94 0000 		call printString
+  29:main.c        ****   
+  30:main.c        ****   char null_string[32];
+  31:main.c        ****   readString(null_string, 32);
+ 270               	.LM15:
+ 271 003c 60E2      		ldi r22,lo8(32)
+ 272 003e CE01      		movw r24,r28
+ 273 0040 8196      		adiw r24,33
+ 274 0042 0E94 0000 		call readString
+ 275               	.L6:
+ 276               	.LBB7:
+  32:main.c        ****   
+  33:main.c        ****   while (1) {
+  34:main.c        ****     printString("\r\n\r\n**********************************************************\r\n");
+ 278               	.LM16:
+ 279 0046 80E0      		ldi r24,lo8(.LC9)
+ 280 0048 90E0      		ldi r25,hi8(.LC9)
+ 281 004a 0E94 0000 		call printString
+  35:main.c        ****     printString("Main Menu (type your selection and press 'ENTER')\r\n\r\n1. Information \n\r2. Run
+ 283               	.LM17:
+ 284 004e 80E0      		ldi r24,lo8(.LC10)
+ 285 0050 90E0      		ldi r25,hi8(.LC10)
+ 286 0052 0E94 0000 		call printString
+  36:main.c        ****     char selection[32];
+  37:main.c        ****     readString(selection, 32);
+ 288               	.LM18:
+ 289 0056 60E2      		ldi r22,lo8(32)
+ 290 0058 CE01      		movw r24,r28
+ 291 005a 0196      		adiw r24,1
+ 292 005c 0E94 0000 		call readString
+  38:main.c        ****     
+  39:main.c        ****     if (selection[0] == '1'){
+ 294               	.LM19:
+ 295 0060 8981      		ldd r24,Y+1
+ 296 0062 8133      		cpi r24,lo8(49)
+ 297 0064 01F4      		brne .L3
+  40:main.c        ****       printInformation();
+ 299               	.LM20:
+ 300 0066 0E94 0000 		call printInformation
+ 301 006a 00C0      		rjmp .L6
+ 302               	.L3:
+  41:main.c        ****     }else if (selection[0] == '2') {
+ 304               	.LM21:
+ 305 006c 8233      		cpi r24,lo8(50)
+ 306 006e 01F4      		brne .L5
+  42:main.c        ****       printString("Nothing here yet\r\n");
+ 308               	.LM22:
+ 309 0070 80E0      		ldi r24,lo8(.LC11)
+ 310 0072 90E0      		ldi r25,hi8(.LC11)
+ 311 0074 00C0      		rjmp .L7
+ 312               	.L5:
+  43:main.c        ****     }else{
+  44:main.c        ****       printString("**** That is not a valid option, try again ****");
+ 314               	.LM23:
+ 315 0076 80E0      		ldi r24,lo8(.LC12)
+ 316 0078 90E0      		ldi r25,hi8(.LC12)
+ 317               	.L7:
+ 318 007a 0E94 0000 		call printString
+ 319               	.LBE7:
+  45:main.c        ****     }
+  46:main.c        ****   }
+ 321               	.LM24:
+ 322 007e 00C0      		rjmp .L6
+ 330               	.Lscope2:
+ 332               		.stabd	78,0,0
+ 333               		.text
+ 335               	.Letext0:
+ 336               		.ident	"GCC: (GNU) 4.8.2"
+ 337               	.global __do_copy_data
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+     /tmp/cci5WV7t.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cci5WV7t.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cci5WV7t.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cci5WV7t.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cci5WV7t.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cci5WV7t.s:121    .text:0000000000000000 printInformation
+     /tmp/cci5WV7t.s:217    .text.startup:0000000000000000 main
+
+UNDEFINED SYMBOLS
+printString
+readString
+initUSART
+__do_copy_data
