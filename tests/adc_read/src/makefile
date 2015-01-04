@@ -23,7 +23,7 @@ TARGET = main
 
 #CUSTOM HEADER
 EXTRA_SOURCE_DIR = include/
-EXTRA_SOURCE_FILES = easy_atmega328p.c UASRT.c
+EXTRA_SOURCE_FILES = easy_atmega328p.c USART.c
 
 
 # Programming hardware: type avrdude -c ?

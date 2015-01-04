@@ -6,6 +6,8 @@
 #include <util/delay.h>
 #include "include/easy_atmega328p.h"
 #include "include/USART.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 static inline void initADC0(void) {
   ADMUX |= (1 << REFS0);                // reference voltage on AVCC
@@ -18,7 +20,7 @@ int main(void)
   //init USART serial connection
   initUSART();
   _delay_ms(2000);
-  printString("Press Enter to continue to the main menu\r\n");
+  printString("Press Enter to continue\r\n");
   char null_string[32];
   readString(null_string, 32);
   
@@ -31,7 +33,12 @@ int main(void)
     ADCSRA |= (1 << ADSC);                     // start ADC conversion
     loop_until_bit_is_clear(ADCSRA, ADSC);     // wait until done
     adcValue = ADC;
-    printBinaryByte(adcValue);
+    
+    char adcString[15];
+    sprintf(adcString, "%d", adcValue);
+    
+    printString(adcString);
+    printString("\r\n");
     
     
  }
