@@ -1,5 +1,4 @@
 #define F_CPU 1000000UL
-
 /* Functions to initialize, send, receive over USART
 
    initUSART requires BAUD to be defined in order to calculate

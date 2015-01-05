@@ -1,0 +1,434 @@
+   1               		.file	"easy_atmega328p.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  74               	.global	toggle
+  76               	toggle:
+  77               		.stabd	46,0,0
+   1:include/easy_atmega328p.c **** #include "include/easy_atmega328p.h"
+   2:include/easy_atmega328p.c **** 
+   3:include/easy_atmega328p.c **** void toggle(char port, int bit)
+   4:include/easy_atmega328p.c **** {
+  79               	.LM0:
+  80               	.LFBB1:
+  81               	/* prologue: function */
+  82               	/* frame size = 0 */
+  83               	/* stack size = 0 */
+  84               	.L__stack_usage = 0
+   5:include/easy_atmega328p.c ****     if(port == 'A'){
+  86               	.LM1:
+  87 0000 8134      		cpi r24,lo8(65)
+  88 0002 01F0      		breq .L1
+   6:include/easy_atmega328p.c ****       //PORTA ^= (1<<bit);
+   7:include/easy_atmega328p.c ****     }else if (port == 'B'){
+  90               	.LM2:
+  91 0004 8234      		cpi r24,lo8(66)
+  92 0006 01F4      		brne .L3
+   8:include/easy_atmega328p.c ****       PORTB ^= (1<<bit);
+  94               	.LM3:
+  95 0008 25B1      		in r18,0x5
+  96 000a 81E0      		ldi r24,lo8(1)
+  97 000c 90E0      		ldi r25,0
+  98 000e 062E      		mov r0,r22
+  99 0010 00C0      		rjmp 2f
+ 100               		1:
+ 101 0012 880F      		lsl r24
+ 102               		2:
+ 103 0014 0A94      		dec r0
+ 104 0016 02F4      		brpl 1b
+ 105 0018 2827      		eor r18,r24
+ 106 001a 25B9      		out 0x5,r18
+ 107 001c 0895      		ret
+ 108               	.L3:
+   9:include/easy_atmega328p.c ****     }else if (port == 'C'){
+ 110               	.LM4:
+ 111 001e 8334      		cpi r24,lo8(67)
+ 112 0020 01F4      		brne .L4
+  10:include/easy_atmega328p.c ****       PORTC ^= (1<<bit);
+ 114               	.LM5:
+ 115 0022 28B1      		in r18,0x8
+ 116 0024 81E0      		ldi r24,lo8(1)
+ 117 0026 90E0      		ldi r25,0
+ 118 0028 062E      		mov r0,r22
+ 119 002a 00C0      		rjmp 2f
+ 120               		1:
+ 121 002c 880F      		lsl r24
+ 122               		2:
+ 123 002e 0A94      		dec r0
+ 124 0030 02F4      		brpl 1b
+ 125 0032 2827      		eor r18,r24
+ 126 0034 28B9      		out 0x8,r18
+ 127 0036 0895      		ret
+ 128               	.L4:
+  11:include/easy_atmega328p.c ****     }else if (port == 'D'){
+ 130               	.LM6:
+ 131 0038 8434      		cpi r24,lo8(68)
+ 132 003a 01F4      		brne .L1
+  12:include/easy_atmega328p.c ****       PORTD ^= (1<<bit);
+ 134               	.LM7:
+ 135 003c 2BB1      		in r18,0xb
+ 136 003e 81E0      		ldi r24,lo8(1)
+ 137 0040 90E0      		ldi r25,0
+ 138 0042 062E      		mov r0,r22
+ 139 0044 00C0      		rjmp 2f
+ 140               		1:
+ 141 0046 880F      		lsl r24
+ 142               		2:
+ 143 0048 0A94      		dec r0
+ 144 004a 02F4      		brpl 1b
+ 145 004c 2827      		eor r18,r24
+ 146 004e 2BB9      		out 0xb,r18
+ 147               	.L1:
+ 148 0050 0895      		ret
+ 150               	.Lscope1:
+ 152               		.stabd	78,0,0
+ 155               	.global	pin_hi
+ 157               	pin_hi:
+ 158               		.stabd	46,0,0
+  13:include/easy_atmega328p.c ****     }
+  14:include/easy_atmega328p.c **** }
+  15:include/easy_atmega328p.c **** 
+  16:include/easy_atmega328p.c **** void pin_hi(char port, int bit)
+  17:include/easy_atmega328p.c **** {
+ 160               	.LM8:
+ 161               	.LFBB2:
+ 162               	/* prologue: function */
+ 163               	/* frame size = 0 */
+ 164               	/* stack size = 0 */
+ 165               	.L__stack_usage = 0
+  18:include/easy_atmega328p.c ****     if(port == 'A'){
+ 167               	.LM9:
+ 168 0052 8134      		cpi r24,lo8(65)
+ 169 0054 01F0      		breq .L8
+  19:include/easy_atmega328p.c ****       //PORTA |= (1<<bit);
+  20:include/easy_atmega328p.c ****     }else if (port == 'B'){
+ 171               	.LM10:
+ 172 0056 8234      		cpi r24,lo8(66)
+ 173 0058 01F4      		brne .L10
+  21:include/easy_atmega328p.c ****       PORTB |= (1<<bit);
+ 175               	.LM11:
+ 176 005a 25B1      		in r18,0x5
+ 177 005c 81E0      		ldi r24,lo8(1)
+ 178 005e 90E0      		ldi r25,0
+ 179 0060 062E      		mov r0,r22
+ 180 0062 00C0      		rjmp 2f
+ 181               		1:
+ 182 0064 880F      		lsl r24
+ 183               		2:
+ 184 0066 0A94      		dec r0
+ 185 0068 02F4      		brpl 1b
+ 186 006a 282B      		or r18,r24
+ 187 006c 25B9      		out 0x5,r18
+ 188 006e 0895      		ret
+ 189               	.L10:
+  22:include/easy_atmega328p.c ****     }else if (port == 'C'){
+ 191               	.LM12:
+ 192 0070 8334      		cpi r24,lo8(67)
+ 193 0072 01F4      		brne .L11
+  23:include/easy_atmega328p.c ****       PORTC |= (1<<bit);
+ 195               	.LM13:
+ 196 0074 28B1      		in r18,0x8
+ 197 0076 81E0      		ldi r24,lo8(1)
+ 198 0078 90E0      		ldi r25,0
+ 199 007a 062E      		mov r0,r22
+ 200 007c 00C0      		rjmp 2f
+ 201               		1:
+ 202 007e 880F      		lsl r24
+ 203               		2:
+ 204 0080 0A94      		dec r0
+ 205 0082 02F4      		brpl 1b
+ 206 0084 282B      		or r18,r24
+ 207 0086 28B9      		out 0x8,r18
+ 208 0088 0895      		ret
+ 209               	.L11:
+  24:include/easy_atmega328p.c ****     }else if (port == 'D'){
+ 211               	.LM14:
+ 212 008a 8434      		cpi r24,lo8(68)
+ 213 008c 01F4      		brne .L8
+  25:include/easy_atmega328p.c ****       PORTD |= (1<<bit);
+ 215               	.LM15:
+ 216 008e 2BB1      		in r18,0xb
+ 217 0090 81E0      		ldi r24,lo8(1)
+ 218 0092 90E0      		ldi r25,0
+ 219 0094 062E      		mov r0,r22
+ 220 0096 00C0      		rjmp 2f
+ 221               		1:
+ 222 0098 880F      		lsl r24
+ 223               		2:
+ 224 009a 0A94      		dec r0
+ 225 009c 02F4      		brpl 1b
+ 226 009e 282B      		or r18,r24
+ 227 00a0 2BB9      		out 0xb,r18
+ 228               	.L8:
+ 229 00a2 0895      		ret
+ 231               	.Lscope2:
+ 233               		.stabd	78,0,0
+ 236               	.global	pin_lo
+ 238               	pin_lo:
+ 239               		.stabd	46,0,0
+  26:include/easy_atmega328p.c ****     }
+  27:include/easy_atmega328p.c **** }
+  28:include/easy_atmega328p.c **** 
+  29:include/easy_atmega328p.c **** void pin_lo(char port, int bit)
+  30:include/easy_atmega328p.c **** {
+ 241               	.LM16:
+ 242               	.LFBB3:
+ 243               	/* prologue: function */
+ 244               	/* frame size = 0 */
+ 245               	/* stack size = 0 */
+ 246               	.L__stack_usage = 0
+  31:include/easy_atmega328p.c ****     if(port == 'A'){
+ 248               	.LM17:
+ 249 00a4 8134      		cpi r24,lo8(65)
+ 250 00a6 01F0      		breq .L15
+  32:include/easy_atmega328p.c ****       //PORTA &= ~(1<<bit);
+  33:include/easy_atmega328p.c ****     }else if (port == 'B'){
+ 252               	.LM18:
+ 253 00a8 8234      		cpi r24,lo8(66)
+ 254 00aa 01F4      		brne .L17
+  34:include/easy_atmega328p.c ****       PORTB &= ~(1<<bit);
+ 256               	.LM19:
+ 257 00ac 25B1      		in r18,0x5
+ 258 00ae 81E0      		ldi r24,lo8(1)
+ 259 00b0 90E0      		ldi r25,0
+ 260 00b2 062E      		mov r0,r22
+ 261 00b4 00C0      		rjmp 2f
+ 262               		1:
+ 263 00b6 880F      		lsl r24
+ 264               		2:
+ 265 00b8 0A94      		dec r0
+ 266 00ba 02F4      		brpl 1b
+ 267 00bc 8095      		com r24
+ 268 00be 8223      		and r24,r18
+ 269 00c0 85B9      		out 0x5,r24
+ 270 00c2 0895      		ret
+ 271               	.L17:
+  35:include/easy_atmega328p.c ****     }else if (port == 'C'){
+ 273               	.LM20:
+ 274 00c4 8334      		cpi r24,lo8(67)
+ 275 00c6 01F4      		brne .L18
+  36:include/easy_atmega328p.c ****       PORTC &= ~(1<<bit);
+ 277               	.LM21:
+ 278 00c8 28B1      		in r18,0x8
+ 279 00ca 81E0      		ldi r24,lo8(1)
+ 280 00cc 90E0      		ldi r25,0
+ 281 00ce 062E      		mov r0,r22
+ 282 00d0 00C0      		rjmp 2f
+ 283               		1:
+ 284 00d2 880F      		lsl r24
+ 285               		2:
+ 286 00d4 0A94      		dec r0
+ 287 00d6 02F4      		brpl 1b
+ 288 00d8 8095      		com r24
+ 289 00da 8223      		and r24,r18
+ 290 00dc 88B9      		out 0x8,r24
+ 291 00de 0895      		ret
+ 292               	.L18:
+  37:include/easy_atmega328p.c ****     }else if (port == 'D'){
+ 294               	.LM22:
+ 295 00e0 8434      		cpi r24,lo8(68)
+ 296 00e2 01F4      		brne .L15
+  38:include/easy_atmega328p.c ****       PORTD &= ~(1<<bit);
+ 298               	.LM23:
+ 299 00e4 2BB1      		in r18,0xb
+ 300 00e6 81E0      		ldi r24,lo8(1)
+ 301 00e8 90E0      		ldi r25,0
+ 302 00ea 062E      		mov r0,r22
+ 303 00ec 00C0      		rjmp 2f
+ 304               		1:
+ 305 00ee 880F      		lsl r24
+ 306               		2:
+ 307 00f0 0A94      		dec r0
+ 308 00f2 02F4      		brpl 1b
+ 309 00f4 8095      		com r24
+ 310 00f6 8223      		and r24,r18
+ 311 00f8 8BB9      		out 0xb,r24
+ 312               	.L15:
+ 313 00fa 0895      		ret
+ 315               	.Lscope3:
+ 317               		.stabd	78,0,0
+ 320               	.global	set_as_input
+ 322               	set_as_input:
+ 323               		.stabd	46,0,0
+  39:include/easy_atmega328p.c ****     }
+  40:include/easy_atmega328p.c **** }
+  41:include/easy_atmega328p.c **** 
+  42:include/easy_atmega328p.c **** void set_as_input(char port, int bit)
+  43:include/easy_atmega328p.c **** {
+ 325               	.LM24:
+ 326               	.LFBB4:
+ 327               	/* prologue: function */
+ 328               	/* frame size = 0 */
+ 329               	/* stack size = 0 */
+ 330               	.L__stack_usage = 0
+  44:include/easy_atmega328p.c ****     if(port == 'A'){
+ 332               	.LM25:
+ 333 00fc 8134      		cpi r24,lo8(65)
+ 334 00fe 01F0      		breq .L22
+  45:include/easy_atmega328p.c ****       //DDRA &= ~(1<<bit);
+  46:include/easy_atmega328p.c ****     }else if (port == 'B'){
+ 336               	.LM26:
+ 337 0100 8234      		cpi r24,lo8(66)
+ 338 0102 01F4      		brne .L24
+  47:include/easy_atmega328p.c ****       DDRB &= ~(1<<bit);
+ 340               	.LM27:
+ 341 0104 24B1      		in r18,0x4
+ 342 0106 81E0      		ldi r24,lo8(1)
+ 343 0108 90E0      		ldi r25,0
+ 344 010a 062E      		mov r0,r22
+ 345 010c 00C0      		rjmp 2f
+ 346               		1:
+ 347 010e 880F      		lsl r24
+ 348               		2:
+ 349 0110 0A94      		dec r0
+ 350 0112 02F4      		brpl 1b
+ 351 0114 8095      		com r24
+ 352 0116 8223      		and r24,r18
+ 353 0118 84B9      		out 0x4,r24
+ 354 011a 0895      		ret
+ 355               	.L24:
+  48:include/easy_atmega328p.c ****     }else if (port == 'C'){
+ 357               	.LM28:
+ 358 011c 8334      		cpi r24,lo8(67)
+ 359 011e 01F4      		brne .L25
+  49:include/easy_atmega328p.c ****       DDRC &= ~(1<<bit);
+ 361               	.LM29:
+ 362 0120 27B1      		in r18,0x7
+ 363 0122 81E0      		ldi r24,lo8(1)
+ 364 0124 90E0      		ldi r25,0
+ 365 0126 062E      		mov r0,r22
+ 366 0128 00C0      		rjmp 2f
+ 367               		1:
+ 368 012a 880F      		lsl r24
+ 369               		2:
+ 370 012c 0A94      		dec r0
+ 371 012e 02F4      		brpl 1b
+ 372 0130 8095      		com r24
+ 373 0132 8223      		and r24,r18
+ 374 0134 87B9      		out 0x7,r24
+ 375 0136 0895      		ret
+ 376               	.L25:
+  50:include/easy_atmega328p.c ****     }else if (port == 'D'){
+ 378               	.LM30:
+ 379 0138 8434      		cpi r24,lo8(68)
+ 380 013a 01F4      		brne .L22
+  51:include/easy_atmega328p.c ****       DDRD &= ~(1<<bit);
+ 382               	.LM31:
+ 383 013c 2AB1      		in r18,0xa
+ 384 013e 81E0      		ldi r24,lo8(1)
+ 385 0140 90E0      		ldi r25,0
+ 386 0142 062E      		mov r0,r22
+ 387 0144 00C0      		rjmp 2f
+ 388               		1:
+ 389 0146 880F      		lsl r24
+ 390               		2:
+ 391 0148 0A94      		dec r0
+ 392 014a 02F4      		brpl 1b
+ 393 014c 8095      		com r24
+ 394 014e 8223      		and r24,r18
+ 395 0150 8AB9      		out 0xa,r24
+ 396               	.L22:
+ 397 0152 0895      		ret
+ 399               	.Lscope4:
+ 401               		.stabd	78,0,0
+ 404               	.global	set_as_output
+ 406               	set_as_output:
+ 407               		.stabd	46,0,0
+  52:include/easy_atmega328p.c ****     }
+  53:include/easy_atmega328p.c **** }
+  54:include/easy_atmega328p.c **** 
+  55:include/easy_atmega328p.c **** void set_as_output(char port, int bit)
+  56:include/easy_atmega328p.c **** {
+ 409               	.LM32:
+ 410               	.LFBB5:
+ 411               	/* prologue: function */
+ 412               	/* frame size = 0 */
+ 413               	/* stack size = 0 */
+ 414               	.L__stack_usage = 0
+  57:include/easy_atmega328p.c ****     if(port == 'A'){
+ 416               	.LM33:
+ 417 0154 8134      		cpi r24,lo8(65)
+ 418 0156 01F0      		breq .L29
+  58:include/easy_atmega328p.c ****       //DDRA |= (1<<bit);
+  59:include/easy_atmega328p.c ****     }else if (port == 'B'){
+ 420               	.LM34:
+ 421 0158 8234      		cpi r24,lo8(66)
+ 422 015a 01F4      		brne .L31
+  60:include/easy_atmega328p.c ****       DDRB |= (1<<bit);
+ 424               	.LM35:
+ 425 015c 24B1      		in r18,0x4
+ 426 015e 81E0      		ldi r24,lo8(1)
+ 427 0160 90E0      		ldi r25,0
+ 428 0162 062E      		mov r0,r22
+ 429 0164 00C0      		rjmp 2f
+ 430               		1:
+ 431 0166 880F      		lsl r24
+ 432               		2:
+ 433 0168 0A94      		dec r0
+ 434 016a 02F4      		brpl 1b
+ 435 016c 282B      		or r18,r24
+ 436 016e 24B9      		out 0x4,r18
+ 437 0170 0895      		ret
+ 438               	.L31:
+  61:include/easy_atmega328p.c ****     }else if (port == 'C'){
+ 440               	.LM36:
+ 441 0172 8334      		cpi r24,lo8(67)
+ 442 0174 01F4      		brne .L32
+  62:include/easy_atmega328p.c ****       DDRC |= (1<<bit);
+ 444               	.LM37:
+ 445 0176 27B1      		in r18,0x7
+ 446 0178 81E0      		ldi r24,lo8(1)
+ 447 017a 90E0      		ldi r25,0
+ 448 017c 062E      		mov r0,r22
+ 449 017e 00C0      		rjmp 2f
+ 450               		1:
+ 451 0180 880F      		lsl r24
+ 452               		2:
+ 453 0182 0A94      		dec r0
+ 454 0184 02F4      		brpl 1b
+ 455 0186 282B      		or r18,r24
+ 456 0188 27B9      		out 0x7,r18
+ 457 018a 0895      		ret
+ 458               	.L32:
+  63:include/easy_atmega328p.c ****     }else if (port == 'D'){
+ 460               	.LM38:
+ 461 018c 8434      		cpi r24,lo8(68)
+ 462 018e 01F4      		brne .L29
+  64:include/easy_atmega328p.c ****       DDRD |= (1<<bit);
+ 464               	.LM39:
+ 465 0190 2AB1      		in r18,0xa
+ 466 0192 81E0      		ldi r24,lo8(1)
+ 467 0194 90E0      		ldi r25,0
+ 468 0196 062E      		mov r0,r22
+ 469 0198 00C0      		rjmp 2f
+ 470               		1:
+ 471 019a 880F      		lsl r24
+ 472               		2:
+ 473 019c 0A94      		dec r0
+ 474 019e 02F4      		brpl 1b
+ 475 01a0 282B      		or r18,r24
+ 476 01a2 2AB9      		out 0xa,r18
+ 477               	.L29:
+ 478 01a4 0895      		ret
+ 480               	.Lscope5:
+ 482               		.stabd	78,0,0
+ 484               	.Letext0:
+ 485               		.ident	"GCC: (GNU) 4.7.2"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 easy_atmega328p.c
+     /tmp/ccoBjtfT.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccoBjtfT.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccoBjtfT.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccoBjtfT.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccoBjtfT.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccoBjtfT.s:76     .text:0000000000000000 toggle
+     /tmp/ccoBjtfT.s:157    .text:0000000000000052 pin_hi
+     /tmp/ccoBjtfT.s:238    .text:00000000000000a4 pin_lo
+     /tmp/ccoBjtfT.s:322    .text:00000000000000fc set_as_input
+     /tmp/ccoBjtfT.s:406    .text:0000000000000154 set_as_output
+
+NO UNDEFINED SYMBOLS
