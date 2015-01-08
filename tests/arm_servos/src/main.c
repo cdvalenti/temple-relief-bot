@@ -30,38 +30,66 @@ static inline void initTimer1Servo(void) {
 int main(void)
 {
   //init USART serial connection
+  
   initUSART();
+  /*
   _delay_ms(2000);
   printString("Press Enter to continue\r\n");
   char null_string[32];
   readString(null_string, 32);
+  */
+  uint8_t i;
+  uint32_t sum;
   
   //init ADC
   initADC0();
   uint16_t adcValue;
-  uint16_t pulseValue;
+  
+  //moving average variables
+  uint8_t values = 100;
+  uint16_t pulseValue [values];
+  
+  for(i=0;i<values;i++){
+	  pulseValue[i] = 1500;
+  }
+  
+  uint16_t avgPulseValue;
+  
   float converter;
   //initPWM
   OCR1A = 1500;           /* set it to middle position initially */
   initTimer1Servo();
-
+	
+  
+  
   while(1) { 
     
     ADCSRA |= (1 << ADSC);                     // start ADC conversion
     loop_until_bit_is_clear(ADCSRA, ADSC);     // wait until done
     
     adcValue = ADC;
-    converter = adcValue*1.367;
-    pulseValue = converter + 800;
+    converter = adcValue*1.955;
     
+    for(i=values-1;i>0;i--){
+		pulseValue[i] = pulseValue[i-1];
+	}
+	pulseValue[0] = converter + 500;
+    
+    sum = 0;
+    for(i=0;i<values;i++){
+		sum = sum + pulseValue[i];
+	}
+	
+	avgPulseValue = sum/values;
+	
     char pulseString[15];
-    sprintf(pulseString, "%d", pulseValue);
+    sprintf(pulseString, "%d", avgPulseValue);
     
     printString(pulseString);
     printString("\r\n");
     
-    OCR1A = pulseValue;
-    _delay_ms(10);
+    OCR1A = avgPulseValue;
+    //_delay_ms(50);
     
  }
  
