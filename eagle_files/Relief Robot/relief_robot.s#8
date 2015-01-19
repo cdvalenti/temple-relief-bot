@@ -6200,6 +6200,8 @@ will be further integrated into the Sparkfun Library for other footprints.  It c
 <sheets>
 <sheet>
 <plain>
+<text x="289.56" y="-10.16" size="5.08" layer="91">Christian D. Valenti</text>
+<text x="365.76" y="-10.16" size="5.08" layer="91">1</text>
 </plain>
 <instances>
 <instance part="IC1" gate="G$1" x="45.72" y="45.72"/>

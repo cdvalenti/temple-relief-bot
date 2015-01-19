@@ -32,6 +32,17 @@ int main(void)
   //init USART serial connection
   
   initUSART();
+  printString("USART Initialized!\r\n");
+  DDRB |= (1 << PB2);
+  
+  toggle('B', 2);
+  _delay_ms(200);
+  toggle('B', 2);
+  _delay_ms(200);
+  toggle('B', 2);
+  _delay_ms(200);
+  toggle('B', 2);
+  _delay_ms(200);
   /*
   _delay_ms(2000);
   printString("Press Enter to continue\r\n");
@@ -46,7 +57,7 @@ int main(void)
   uint16_t adcValue;
   
   //moving average variables
-  uint8_t values = 100;
+  uint8_t values = 200;
   uint16_t pulseValue [values];
   
   for(i=0;i<values;i++){
@@ -82,11 +93,11 @@ int main(void)
 	
 	avgPulseValue = sum/values;
 	
-    char pulseString[15];
-    sprintf(pulseString, "%d", avgPulseValue);
+    //char pulseString[15];
+    //sprintf(pulseString, "%d", avgPulseValue);
     
-    printString(pulseString);
-    printString("\r\n");
+    //printString(pulseString);
+    //printString("\r\n");
     
     OCR1A = avgPulseValue;
     //_delay_ms(50);

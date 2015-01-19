@@ -36,22 +36,6 @@ Archive member included because of file (symbol)
                               /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o (exit)
 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
                               main.o (__do_copy_data)
-/usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
-                              main.o (sprintf)
-/usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
-                              /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o) (vfprintf)
-/usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen_P.o)
-                              /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (strnlen_P)
-/usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen.o)
-                              /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (strnlen)
-/usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(fputc.o)
-                              /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (fputc)
-/usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
-                              /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (__ultoa_invert)
-/usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
-                              /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o) (__prologue_saves__)
-/usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
-                              /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o) (__epilogue_restores__)
 
 Memory Configuration
 
@@ -166,7 +150,7 @@ LOAD /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000      0xf2a
+.text           0x0000000000000000      0x97a
  *(.vectors)
  .vectors       0x0000000000000000       0x68 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
                 0x0000000000000000                __vectors
@@ -283,14 +267,6 @@ LOAD /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a
  .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodsi4.o)
  .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
  .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
- .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
- .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
- .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen_P.o)
- .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen.o)
- .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(fputc.o)
- .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
- .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
- .text          0x0000000000000450        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
                 0x0000000000000450                . = ALIGN (0x2)
  *(.text.*)
  .text.startup  0x0000000000000450      0x19e main.o
@@ -397,53 +373,11 @@ LOAD /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a
                 0x0000000000000976        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
  .text.libgcc.fmul
                 0x0000000000000976        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
- .text.avr-libc
-                0x0000000000000976       0x48 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
-                0x0000000000000976                sprintf
- .text.avr-libc
-                0x00000000000009be      0x3ba /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
-                0x00000000000009be                vfprintf
- .text.avr-libc
-                0x0000000000000d78       0x16 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen_P.o)
-                0x0000000000000d78                strnlen_P
- .text.avr-libc
-                0x0000000000000d8e       0x16 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen.o)
-                0x0000000000000d8e                strnlen
- .text.avr-libc
-                0x0000000000000da4       0x58 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(fputc.o)
-                0x0000000000000da4                fputc
- .text.avr-libc
-                0x0000000000000dfc       0xbc /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
-                0x0000000000000dfc                __ultoa_invert
- .text.libgcc.mul
-                0x0000000000000eb8        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
- .text.libgcc.div
-                0x0000000000000eb8        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
- .text.libgcc   0x0000000000000eb8        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
- .text.libgcc.prologue
-                0x0000000000000eb8       0x38 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
-                0x0000000000000eb8                __prologue_saves__
- .text.libgcc.builtins
-                0x0000000000000ef0        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
- .text.libgcc.fmul
-                0x0000000000000ef0        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
- .text.libgcc.mul
-                0x0000000000000ef0        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
- .text.libgcc.div
-                0x0000000000000ef0        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
- .text.libgcc   0x0000000000000ef0        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
- .text.libgcc.prologue
-                0x0000000000000ef0       0x36 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
-                0x0000000000000ef0                __epilogue_restores__
- .text.libgcc.builtins
-                0x0000000000000f26        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
- .text.libgcc.fmul
-                0x0000000000000f26        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
-                0x0000000000000f26                . = ALIGN (0x2)
+                0x0000000000000976                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000000000000f26        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
-                0x0000000000000f26                exit
-                0x0000000000000f26                _exit
+ .fini9         0x0000000000000976        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
+                0x0000000000000976                exit
+                0x0000000000000976                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -462,11 +396,11 @@ LOAD /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000000000000f26        0x4 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
+ .fini0         0x0000000000000976        0x4 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
  *(.fini0)
-                0x0000000000000f2a                _etext = .
+                0x000000000000097a                _etext = .
 
-.data           0x0000000000800100        0x6 load address 0x0000000000000f2a
+.data           0x0000000000800100       0x16 load address 0x000000000000097a
                 0x0000000000800100                PROVIDE (__data_start, .)
  *(.data)
  .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
@@ -491,69 +425,54 @@ LOAD /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a
  .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodsi4.o)
  .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
  .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
- .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
- .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
- .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen_P.o)
- .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen.o)
- .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(fputc.o)
- .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
- .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
- .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
  *(.data*)
  *(.rodata)
  *(.rodata*)
  .rodata.str1.1
-                0x0000000000800100        0x6 main.o
+                0x0000000000800100       0x15 main.o
  *(.gnu.linkonce.d*)
-                0x0000000000800106                . = ALIGN (0x2)
-                0x0000000000800106                _edata = .
-                0x0000000000800106                PROVIDE (__data_end, .)
+                0x0000000000800116                . = ALIGN (0x2)
+ *fill*         0x0000000000800115        0x1 00
+                0x0000000000800116                _edata = .
+                0x0000000000800116                PROVIDE (__data_end, .)
 
-.bss            0x0000000000800106        0x0
-                0x0000000000800106                PROVIDE (__bss_start, .)
+.bss            0x0000000000800116        0x0
+                0x0000000000800116                PROVIDE (__bss_start, .)
  *(.bss)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
- .bss           0x0000000000800106        0x0 main.o
- .bss           0x0000000000800106        0x0 include/easy_atmega328p.o
- .bss           0x0000000000800106        0x0 include/USART.o
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3x.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fixunssfsi.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(floatsisf.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_inf.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_nan.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_pscA.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_pscB.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_round.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_split3.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_zero.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3x.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodqi4.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodhi4.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodsi4.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen_P.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(fputc.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
- .bss           0x0000000000800106        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
+ .bss           0x0000000000800116        0x0 main.o
+ .bss           0x0000000000800116        0x0 include/easy_atmega328p.o
+ .bss           0x0000000000800116        0x0 include/USART.o
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3x.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fixunssfsi.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(floatsisf.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_inf.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_nan.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_pscA.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_pscB.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_round.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_split3.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_zero.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3x.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodqi4.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodhi4.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodsi4.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
+ .bss           0x0000000000800116        0x0 /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
  *(.bss*)
  *(COMMON)
-                0x0000000000800106                PROVIDE (__bss_end, .)
-                0x0000000000000f2a                __data_load_start = LOADADDR (.data)
-                0x0000000000000f30                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x0000000000800116                PROVIDE (__bss_end, .)
+                0x000000000000097a                __data_load_start = LOADADDR (.data)
+                0x0000000000000990                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x0000000000800106        0x0
-                0x0000000000800106                PROVIDE (__noinit_start, .)
+.noinit         0x0000000000800116        0x0
+                0x0000000000800116                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x0000000000800106                PROVIDE (__noinit_end, .)
-                0x0000000000800106                _end = .
-                0x0000000000800106                PROVIDE (__heap_start, .)
+                0x0000000000800116                PROVIDE (__noinit_end, .)
+                0x0000000000800116                _end = .
+                0x0000000000800116                PROVIDE (__heap_start, .)
 
 .eeprom         0x0000000000810000        0x0
  *(.eeprom*)
@@ -571,57 +490,45 @@ LOAD /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a
 .signature
  *(.signature*)
 
-.stab           0x0000000000000000     0x4308
+.stab           0x0000000000000000     0x2e20
  *(.stab)
  .stab          0x0000000000000000      0x6cc /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
- .stab          0x00000000000006cc      0x5dc main.o
-                                        0x5e8 (size before relaxing)
- .stab          0x0000000000000ca8      0x450 include/easy_atmega328p.o
+ .stab          0x00000000000006cc      0x69c main.o
+                                        0x6a8 (size before relaxing)
+ .stab          0x0000000000000d68      0x450 include/easy_atmega328p.o
                                         0x618 (size before relaxing)
- .stab          0x00000000000010f8      0x78c include/USART.o
+ .stab          0x00000000000011b8      0x78c include/USART.o
                                         0x954 (size before relaxing)
- .stab          0x0000000000001884       0x78 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3.o)
+ .stab          0x0000000000001944       0x78 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3.o)
                                          0x84 (size before relaxing)
- .stab          0x00000000000018fc      0x4bc /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3x.o)
+ .stab          0x00000000000019bc      0x4bc /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3x.o)
                                         0x4c8 (size before relaxing)
- .stab          0x0000000000001db8      0x240 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fixunssfsi.o)
+ .stab          0x0000000000001e78      0x240 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fixunssfsi.o)
                                         0x24c (size before relaxing)
- .stab          0x0000000000001ff8      0x318 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(floatsisf.o)
+ .stab          0x00000000000020b8      0x318 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(floatsisf.o)
                                         0x324 (size before relaxing)
- .stab          0x0000000000002310       0x78 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_inf.o)
+ .stab          0x00000000000023d0       0x78 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_inf.o)
                                          0x84 (size before relaxing)
- .stab          0x0000000000002388       0x54 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_nan.o)
+ .stab          0x0000000000002448       0x54 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_nan.o)
                                          0x60 (size before relaxing)
- .stab          0x00000000000023dc       0x84 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_pscA.o)
+ .stab          0x000000000000249c       0x84 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_pscA.o)
                                          0x90 (size before relaxing)
- .stab          0x0000000000002460       0x84 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_pscB.o)
+ .stab          0x0000000000002520       0x84 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_pscB.o)
                                          0x90 (size before relaxing)
- .stab          0x00000000000024e4       0xfc /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_round.o)
+ .stab          0x00000000000025a4       0xfc /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_round.o)
                                         0x108 (size before relaxing)
- .stab          0x00000000000025e0      0x1d4 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_split3.o)
+ .stab          0x00000000000026a0      0x1d4 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_split3.o)
                                         0x1e0 (size before relaxing)
- .stab          0x00000000000027b4       0x90 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_zero.o)
+ .stab          0x0000000000002874       0x90 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fp_zero.o)
                                          0x9c (size before relaxing)
- .stab          0x0000000000002844       0x48 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3.o)
+ .stab          0x0000000000002904       0x48 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3.o)
                                          0x54 (size before relaxing)
- .stab          0x000000000000288c      0x4d4 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3x.o)
+ .stab          0x000000000000294c      0x4d4 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3x.o)
                                         0x4e0 (size before relaxing)
- .stab          0x0000000000002d60      0x3d8 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
-                                        0x3e4 (size before relaxing)
- .stab          0x0000000000003138      0xa44 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
-                                        0xc24 (size before relaxing)
- .stab          0x0000000000003b7c       0x9c /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen_P.o)
-                                         0xa8 (size before relaxing)
- .stab          0x0000000000003c18       0x9c /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen.o)
-                                         0xa8 (size before relaxing)
- .stab          0x0000000000003cb4      0x1d4 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(fputc.o)
-                                        0x3b4 (size before relaxing)
- .stab          0x0000000000003e88      0x480 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
-                                        0x48c (size before relaxing)
 
-.stabstr        0x0000000000000000     0x178c
+.stabstr        0x0000000000000000      0xf3b
  *(.stabstr)
- .stabstr       0x0000000000000000     0x178c /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
+ .stabstr       0x0000000000000000      0xf3b /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
 
 .stab.excl
  *(.stab.excl)
@@ -635,16 +542,12 @@ LOAD /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a
 .stab.indexstr
  *(.stab.indexstr)
 
-.comment        0x0000000000000000       0x22
+.comment        0x0000000000000000       0x11
  *(.comment)
  .comment       0x0000000000000000       0x11 main.o
                                          0x12 (size before relaxing)
  .comment       0x0000000000000000       0x12 include/easy_atmega328p.o
  .comment       0x0000000000000000       0x12 include/USART.o
- .comment       0x0000000000000011       0x11 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
-                                         0x12 (size before relaxing)
- .comment       0x0000000000000000       0x12 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
- .comment       0x0000000000000000       0x12 /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(fputc.o)
 
 .debug
  *(.debug)
@@ -701,9 +604,6 @@ __data_load_start                                 /usr/lib/gcc/avr/4.7.2/avr5/li
 __data_start                                      /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
 __do_copy_data                                    /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_copy_data.o)
                                                   main.o
-__epilogue_restores__                             /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_epilogue.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
 __fixunssfsi                                      /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(fixunssfsi.o)
                                                   main.o
 __floatsisf                                       /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(floatsisf.o)
@@ -741,9 +641,6 @@ __mulsf3                                          /usr/lib/gcc/avr/4.7.2/../../.
 __mulsf3_pse                                      /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3x.o)
 __mulsf3x                                         /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3x.o)
                                                   /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(mulsf3.o)
-__prologue_saves__                                /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_prologue.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
 __stack                                           /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
 __subsf3                                          /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libm.a(addsf3.o)
 __udivmodhi4                                      /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodhi4.o)
@@ -752,8 +649,6 @@ __udivmodqi4                                      /usr/lib/gcc/avr/4.7.2/avr5/li
                                                   include/USART.o
 __udivmodsi4                                      /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_udivmodsi4.o)
                                                   main.o
-__ultoa_invert                                    /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
 __vector_1                                        /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
 __vector_10                                       /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
 __vector_11                                       /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
@@ -784,8 +679,6 @@ __vectors                                         /usr/lib/gcc/avr/4.7.2/../../.
 _exit                                             /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
 exit                                              /usr/lib/gcc/avr/4.7.2/avr5/libgcc.a(_exit.o)
                                                   /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/crtm328p.o
-fputc                                             /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(fputc.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
 getNumber                                         include/USART.o
 initUSART                                         include/USART.o
                                                   main.o
@@ -804,13 +697,6 @@ readString                                        include/USART.o
 receiveByte                                       include/USART.o
 set_as_input                                      include/easy_atmega328p.o
 set_as_output                                     include/easy_atmega328p.o
-sprintf                                           /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)
-                                                  main.o
-strnlen                                           /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
-strnlen_P                                         /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(strnlen_P.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
 toggle                                            include/easy_atmega328p.o
+                                                  main.o
 transmitByte                                      include/USART.o
-vfprintf                                          /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
-                                                  /usr/lib/gcc/avr/4.7.2/../../../avr/lib/avr5/libc.a(sprintf.o)

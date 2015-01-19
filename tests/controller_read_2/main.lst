@@ -1,0 +1,1053 @@
+   1               		.file	"main.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+  89               	.global	initADC
+  91               	initADC:
+  92               		.stabd	46,0,0
+   1:main.c        **** /* Temple Relief Robot, ASME Design Competition 2015
+   2:main.c        ****  * -------------------------------------------------
+   3:main.c        ****  * Title: controller_read.c
+   4:main.c        ****  * 
+   5:main.c        ****  * Description: 
+   6:main.c        ****  * Test script to verify operation of joytick, slide pots, and buttons
+   7:main.c        ****  * on the remote controller. Specifically, to read the ADC values of the
+   8:main.c        ****  * joystick and slide pot, then print the ADC values over USART connection.
+   9:main.c        ****  * 
+  10:main.c        ****  * Written by: Christian D. Valenti (christian.valenti@temple.edu)
+  11:main.c        **** */
+  12:main.c        **** 
+  13:main.c        **** #define MCU 'atmega328'
+  14:main.c        **** #define F_CPU 1000000UL
+  15:main.c        **** 
+  16:main.c        **** #include <avr/io.h>
+  17:main.c        **** #include <avr/interrupt.h>
+  18:main.c        **** #include <util/delay.h>
+  19:main.c        **** #include "include/easy_atmega328p.h"
+  20:main.c        **** #include "include/USART.h"
+  21:main.c        **** #include "include/pinDefines.h"
+  22:main.c        **** #include <stdio.h>
+  23:main.c        **** #include <stdlib.h>
+  24:main.c        **** 
+  25:main.c        **** //function declarations
+  26:main.c        **** void initADC(void);
+  27:main.c        **** uint16_t readADC(uint8_t channel);
+  28:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value);
+  29:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel);
+  30:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size);
+  31:main.c        **** void blinkTwice(void);
+  32:main.c        **** 
+  33:main.c        **** int main(void) {
+  34:main.c        **** 
+  35:main.c        ****   //init USART serial connection
+  36:main.c        ****   initUSART();
+  37:main.c        ****   printString("USART Initialized!\r\n");
+  38:main.c        ****   //blink LED
+  39:main.c        ****   blinkTwice();
+  40:main.c        ****   
+  41:main.c        ****   //init ADC
+  42:main.c        ****   initADC();
+  43:main.c        ****   
+  44:main.c        ****   //moving average variables
+  45:main.c        ****   uint8_t joySize = 10;
+  46:main.c        ****   uint8_t slideSize = 20;
+  47:main.c        ****   
+  48:main.c        ****   uint16_t verticalValue [joySize];
+  49:main.c        ****   uint16_t horizontalValue [joySize];
+  50:main.c        ****   uint16_t topSliderValue [slideSize];
+  51:main.c        ****   uint16_t bottomSliderValue [slideSize];
+  52:main.c        ****   
+  53:main.c        ****   uint16_t * verticalPointer;
+  54:main.c        ****   uint16_t * horizontalPointer;
+  55:main.c        ****   uint16_t * topSliderPointer;
+  56:main.c        ****   uint16_t * bottomSliderPointer;
+  57:main.c        ****   
+  58:main.c        ****   uint16_t avgVerticalValue;
+  59:main.c        ****   uint16_t avgHorizontalValue;
+  60:main.c        ****   uint16_t avgTopSliderValue;
+  61:main.c        ****   uint16_t avgBottomSliderValue;
+  62:main.c        ****   
+  63:main.c        ****   char verticalValueString[15];
+  64:main.c        ****   char horizontalValueString[15];
+  65:main.c        ****   char topSliderValueString[15];
+  66:main.c        ****   char bottomSliderValueString[15];
+  67:main.c        ****   
+  68:main.c        ****   verticalPointer = &verticalValue[0];
+  69:main.c        ****   horizontalPointer = &horizontalValue[0];
+  70:main.c        ****   topSliderPointer = &topSliderValue[0];
+  71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
+  72:main.c        ****   
+  73:main.c        ****   
+  74:main.c        ****   //initialize values of arrays
+  75:main.c        ****   initValues(verticalPointer, joySize, 511);
+  76:main.c        ****   initValues(horizontalPointer, joySize, 511);
+  77:main.c        ****   initValues(topSliderPointer, slideSize, 0);
+  78:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
+  79:main.c        ****   
+  80:main.c        ****   while(1) { 
+  81:main.c        ****     
+  82:main.c        ****     
+  83:main.c        ****     // *********** Read Vertical Joystick ***********
+  84:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
+  85:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
+  86:main.c        ****     
+  87:main.c        **** 
+  88:main.c        ****     // ********** Read Horizontal Joystick **********
+  89:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
+  90:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
+  91:main.c        ****     
+  92:main.c        ****        
+  93:main.c        ****     // ************** Read Top Slider **************
+  94:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
+  95:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
+  96:main.c        ****     
+  97:main.c        ****     
+  98:main.c        ****     /* ********** Read Bottom Slider ********** */
+  99:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
+ 100:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
+ 101:main.c        ****     
+ 102:main.c        ****     
+ 103:main.c        ****     //convert avgValue int to string & print over USART
+ 104:main.c        ****     sprintf(verticalValueString, "%d", avgVerticalValue);
+ 105:main.c        ****     sprintf(horizontalValueString, "%d", avgHorizontalValue);
+ 106:main.c        ****     sprintf(topSliderValueString, "%d", avgTopSliderValue);
+ 107:main.c        ****     sprintf(bottomSliderValueString, "%d", avgBottomSliderValue);
+ 108:main.c        ****     printString(" V: ");
+ 109:main.c        ****     printString(verticalValueString);
+ 110:main.c        ****     printString(" H: ");
+ 111:main.c        ****     printString(horizontalValueString);
+ 112:main.c        ****     printString(" T: ");
+ 113:main.c        ****     printString(topSliderValueString);
+ 114:main.c        ****     printString(" B: ");
+ 115:main.c        ****     printString(bottomSliderValueString);
+ 116:main.c        ****     
+ 117:main.c        ****     //print return carriage
+ 118:main.c        ****     printString("\r\n");
+ 119:main.c        **** 
+ 120:main.c        ****  }
+ 121:main.c        ****  
+ 122:main.c        ****  return(0);
+ 123:main.c        ****  
+ 124:main.c        **** }
+ 125:main.c        **** 
+ 126:main.c        **** //initialize ADC (set ref voltage, prescaler, and enable)
+ 127:main.c        **** void initADC(void) {
+  94               	.LM0:
+  95               	.LFBB1:
+  96               	/* prologue: function */
+  97               	/* frame size = 0 */
+  98               	/* stack size = 0 */
+  99               	.L__stack_usage = 0
+ 128:main.c        ****   ADMUX |= (1 << REFS0);                		// reference voltage on AVCC
+ 101               	.LM1:
+ 102 0000 ECE7      		ldi r30,lo8(124)
+ 103 0002 F0E0      		ldi r31,0
+ 104 0004 8081      		ld r24,Z
+ 105 0006 8064      		ori r24,lo8(64)
+ 106 0008 8083      		st Z,r24
+ 129:main.c        ****   ADCSRA |= (1 << ADPS0) | (1 << ADPS2);    // ADC clock prescaler /32
+ 108               	.LM2:
+ 109 000a EAE7      		ldi r30,lo8(122)
+ 110 000c F0E0      		ldi r31,0
+ 111 000e 8081      		ld r24,Z
+ 112 0010 8560      		ori r24,lo8(5)
+ 113 0012 8083      		st Z,r24
+ 130:main.c        ****   ADCSRA |= (1 << ADEN);               			// enable ADC
+ 115               	.LM3:
+ 116 0014 8081      		ld r24,Z
+ 117 0016 8068      		ori r24,lo8(-128)
+ 118 0018 8083      		st Z,r24
+ 119 001a 0895      		ret
+ 121               	.Lscope1:
+ 123               		.stabd	78,0,0
+ 126               	.global	readADC
+ 128               	readADC:
+ 129               		.stabd	46,0,0
+ 131:main.c        **** }
+ 132:main.c        **** 
+ 133:main.c        **** //read ADC value from channel (ADC0 to ADC 5)
+ 134:main.c        **** uint16_t readADC(uint8_t channel) {
+ 131               	.LM4:
+ 132               	.LFBB2:
+ 133               	/* prologue: function */
+ 134               	/* frame size = 0 */
+ 135               	/* stack size = 0 */
+ 136               	.L__stack_usage = 0
+ 135:main.c        ****   ADMUX = (0b11110000 & ADMUX) | channel;
+ 138               	.LM5:
+ 139 001c 9091 7C00 		lds r25,124
+ 140 0020 907F      		andi r25,lo8(-16)
+ 141 0022 982B      		or r25,r24
+ 142 0024 9093 7C00 		sts 124,r25
+ 136:main.c        ****   ADCSRA |= (1 << ADSC);
+ 144               	.LM6:
+ 145 0028 8091 7A00 		lds r24,122
+ 146 002c 8064      		ori r24,lo8(64)
+ 147 002e 8093 7A00 		sts 122,r24
+ 148               	.L3:
+ 137:main.c        ****   loop_until_bit_is_clear(ADCSRA, ADSC);
+ 150               	.LM7:
+ 151 0032 8091 7A00 		lds r24,122
+ 152 0036 86FD      		sbrc r24,6
+ 153 0038 00C0      		rjmp .L3
+ 138:main.c        ****   return (ADC);
+ 155               	.LM8:
+ 156 003a 2091 7800 		lds r18,120
+ 157 003e 3091 7900 		lds r19,120+1
+ 139:main.c        **** }
+ 159               	.LM9:
+ 160 0042 C901      		movw r24,r18
+ 161 0044 0895      		ret
+ 163               	.Lscope2:
+ 165               		.stabd	78,0,0
+ 170               	.global	initValues
+ 172               	initValues:
+ 173               		.stabd	46,0,0
+ 140:main.c        **** 
+ 141:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value){
+ 175               	.LM10:
+ 176               	.LFBB3:
+ 177               	/* prologue: function */
+ 178               	/* frame size = 0 */
+ 179               	/* stack size = 0 */
+ 180               	.L__stack_usage = 0
+ 142:main.c        ****   
+ 143:main.c        ****   uint8_t i;
+ 144:main.c        ****   
+ 145:main.c        ****   for(i=0;i<size;i++){
+ 182               	.LM11:
+ 183 0046 20E0      		ldi r18,0
+ 184 0048 00C0      		rjmp .L6
+ 185               	.L7:
+ 146:main.c        ****      *arr = value;
+ 187               	.LM12:
+ 188 004a FC01      		movw r30,r24
+ 189 004c 4193      		st Z+,r20
+ 190 004e 5193      		st Z+,r21
+ 191 0050 CF01      		movw r24,r30
+ 145:main.c        ****   for(i=0;i<size;i++){
+ 193               	.LM13:
+ 194 0052 2F5F      		subi r18,lo8(-(1))
+ 195               	.L6:
+ 145:main.c        ****   for(i=0;i<size;i++){
+ 197               	.LM14:
+ 198 0054 2613      		cpse r18,r22
+ 199 0056 00C0      		rjmp .L7
+ 200               	/* epilogue start */
+ 147:main.c        ****      arr++;
+ 148:main.c        ****   }
+ 149:main.c        **** 
+ 150:main.c        **** }
+ 202               	.LM15:
+ 203 0058 0895      		ret
+ 208               	.Lscope3:
+ 210               		.stabd	78,0,0
+ 215               	.global	storeNewADC
+ 217               	storeNewADC:
+ 218               		.stabd	46,0,0
+ 151:main.c        **** 
+ 152:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
+ 220               	.LM16:
+ 221               	.LFBB4:
+ 222 005a CF93      		push r28
+ 223 005c DF93      		push r29
+ 224               	/* prologue: function */
+ 225               	/* frame size = 0 */
+ 226               	/* stack size = 2 */
+ 227               	.L__stack_usage = 2
+ 153:main.c        ****   
+ 154:main.c        ****   arr = arr + (size-1);
+ 229               	.LM17:
+ 230 005e 70E0      		ldi r23,0
+ 231 0060 6150      		subi r22,1
+ 232 0062 7109      		sbc r23,__zero_reg__
+ 233 0064 EB01      		movw r28,r22
+ 234 0066 CC0F      		lsl r28
+ 235 0068 DD1F      		rol r29
+ 236 006a C80F      		add r28,r24
+ 237 006c D91F      		adc r29,r25
+ 155:main.c        ****   
+ 156:main.c        ****   uint8_t i;
+ 157:main.c        ****   
+ 158:main.c        ****   for (i=0;i<(size-1);i++){
+ 239               	.LM18:
+ 240 006e 90E0      		ldi r25,0
+ 241 0070 00C0      		rjmp .L9
+ 242               	.L10:
+ 152:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
+ 244               	.LM19:
+ 245 0072 FE01      		movw r30,r28
+ 159:main.c        ****     *arr = *(arr-1);
+ 247               	.LM20:
+ 248 0074 3291      		ld r19,-Z
+ 249 0076 2291      		ld r18,-Z
+ 250 0078 3983      		std Y+1,r19
+ 251 007a 2883      		st Y,r18
+ 158:main.c        ****   for (i=0;i<(size-1);i++){
+ 253               	.LM21:
+ 254 007c 9F5F      		subi r25,lo8(-(1))
+ 160:main.c        ****     arr--;
+ 256               	.LM22:
+ 257 007e EF01      		movw r28,r30
+ 258               	.L9:
+ 158:main.c        ****   for (i=0;i<(size-1);i++){
+ 260               	.LM23:
+ 261 0080 292F      		mov r18,r25
+ 262 0082 30E0      		ldi r19,0
+ 263 0084 2617      		cp r18,r22
+ 264 0086 3707      		cpc r19,r23
+ 265 0088 04F0      		brlt .L10
+ 161:main.c        ****   }
+ 162:main.c        ****   *arr = readADC(channel);
+ 267               	.LM24:
+ 268 008a 842F      		mov r24,r20
+ 269 008c 0E94 0000 		call readADC
+ 270 0090 9983      		std Y+1,r25
+ 271 0092 8883      		st Y,r24
+ 272               	/* epilogue start */
+ 163:main.c        **** 
+ 164:main.c        **** }
+ 274               	.LM25:
+ 275 0094 DF91      		pop r29
+ 276 0096 CF91      		pop r28
+ 277 0098 0895      		ret
+ 282               	.Lscope4:
+ 284               		.stabd	78,0,0
+ 288               	.global	getAverage
+ 290               	getAverage:
+ 291               		.stabd	46,0,0
+ 165:main.c        **** 
+ 166:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size){
+ 293               	.LM26:
+ 294               	.LFBB5:
+ 295               	/* prologue: function */
+ 296               	/* frame size = 0 */
+ 297               	/* stack size = 0 */
+ 298               	.L__stack_usage = 0
+ 299 009a FC01      		movw r30,r24
+ 300 009c 362F      		mov r19,r22
+ 167:main.c        ****   
+ 168:main.c        ****   uint8_t i;
+ 169:main.c        ****   uint16_t avg;
+ 170:main.c        ****   uint32_t sum = 0;       
+ 302               	.LM27:
+ 303 009e 60E0      		ldi r22,0
+ 304 00a0 70E0      		ldi r23,0
+ 305 00a2 CB01      		movw r24,r22
+ 171:main.c        ****   
+ 172:main.c        ****   for(i=0;i<size;i++){
+ 307               	.LM28:
+ 308 00a4 20E0      		ldi r18,0
+ 309 00a6 00C0      		rjmp .L12
+ 310               	.L13:
+ 173:main.c        ****     sum = sum + *arr;
+ 312               	.LM29:
+ 313 00a8 4191      		ld r20,Z+
+ 314 00aa 5191      		ld r21,Z+
+ 315 00ac 640F      		add r22,r20
+ 316 00ae 751F      		adc r23,r21
+ 317 00b0 811D      		adc r24,__zero_reg__
+ 318 00b2 911D      		adc r25,__zero_reg__
+ 172:main.c        ****   for(i=0;i<size;i++){
+ 320               	.LM30:
+ 321 00b4 2F5F      		subi r18,lo8(-(1))
+ 322               	.L12:
+ 172:main.c        ****   for(i=0;i<size;i++){
+ 324               	.LM31:
+ 325 00b6 2313      		cpse r18,r19
+ 326 00b8 00C0      		rjmp .L13
+ 174:main.c        ****     arr++;
+ 175:main.c        ****   }
+ 176:main.c        ****   
+ 177:main.c        ****   avg = sum / size;
+ 328               	.LM32:
+ 329 00ba 30E0      		ldi r19,0
+ 330 00bc 40E0      		ldi r20,0
+ 331 00be 50E0      		ldi r21,0
+ 332 00c0 0E94 0000 		call __udivmodsi4
+ 178:main.c        ****  
+ 179:main.c        ****   return avg;
+ 180:main.c        **** }
+ 334               	.LM33:
+ 335 00c4 C901      		movw r24,r18
+ 336 00c6 0895      		ret
+ 342               	.Lscope5:
+ 344               		.stabd	78,0,0
+ 346               	.global	blinkTwice
+ 348               	blinkTwice:
+ 349               		.stabd	46,0,0
+ 181:main.c        **** 
+ 182:main.c        **** void blinkTwice(void){
+ 351               	.LM34:
+ 352               	.LFBB6:
+ 353               	/* prologue: function */
+ 354               	/* frame size = 0 */
+ 355               	/* stack size = 0 */
+ 356               	.L__stack_usage = 0
+ 183:main.c        ****   //blink LED
+ 184:main.c        ****   DDRB |= (1 << PB2);
+ 358               	.LM35:
+ 359 00c8 229A      		sbi 0x4,2
+ 185:main.c        ****   toggle('B', 2);
+ 361               	.LM36:
+ 362 00ca 62E0      		ldi r22,lo8(2)
+ 363 00cc 70E0      		ldi r23,0
+ 364 00ce 82E4      		ldi r24,lo8(66)
+ 365 00d0 0E94 0000 		call toggle
+ 366               	.LBB10:
+ 367               	.LBB11:
+ 369               	.Ltext1:
+   1:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
+   3:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
+   4:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    All rights reserved.
+   5:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+   6:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
+   7:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
+   8:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+   9:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
+  10:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
+  11:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  12:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
+  13:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
+  14:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      the documentation and/or other materials provided with the
+  15:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      distribution.
+  16:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  17:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
+  18:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
+  19:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      from this software without specific prior written permission.
+  20:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  21:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  22:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  23:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  24:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  25:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  26:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  27:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  30:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  31:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  32:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  33:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /* $Id: delay.h.in 2251 2011-09-14 08:20:33Z joerg_wunsch $ */
+  34:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  35:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
+  36:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
+  37:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  38:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #ifndef __HAS_DELAY_CYCLES
+  39:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #define __HAS_DELAY_CYCLES 1
+  40:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
+  41:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  42:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #include <inttypes.h>
+  43:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #include <util/delay_basic.h>
+  44:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #include <math.h>
+  45:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  46:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /** \file */
+  47:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+  48:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     \code
+  49:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
+  50:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
+  51:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     #include <util/delay.h>
+  52:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     \endcode
+  53:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  54:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
+  55:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
+  56:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
+  57:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     used.
+  58:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  59:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
+  60:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
+  61:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     convenience functions where actual time values can be specified
+  62:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
+  63:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
+  64:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
+  65:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
+  66:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
+  67:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  68:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
+  69:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
+  70:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
+  71:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
+  72:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
+  73:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
+  74:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
+  75:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     routines linked into the application.
+  76:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  77:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
+  78:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
+  79:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
+  80:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  81:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** */
+  82:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  83:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
+  84:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** static inline void _delay_us(double __us) __attribute__((always_inline));
+  85:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** static inline void _delay_ms(double __ms) __attribute__((always_inline));
+  86:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
+  87:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  88:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #ifndef F_CPU
+  89:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
+  90:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
+  91:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** # define F_CPU 1000000UL
+  92:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
+  93:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  94:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #ifndef __OPTIMIZE__
+  95:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+  96:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
+  97:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+  98:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+  99:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 100:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   __STDC_HOSTED__
+ 101:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #  include <math.h>
+ 102:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
+ 103:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 104:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /**
+ 105:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    \ingroup util_delay
+ 106:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 107:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+ 108:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 109:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 110:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 111:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 112:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
+ 113:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 114:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
+ 115:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
+ 116:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
+ 117:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
+ 118:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    user will not be informed about decreased resolution.
+ 119:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 120:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles(unsigned long)
+ 121:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+ 122:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
+ 123:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    no delay i.e., 0ms.
+ 124:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 125:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Conversion of __us into clock cycles may not always result in integer.
+ 126:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    By default, the clock cycles rounded up to next integer. This ensures that
+ 127:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    the user gets atleast __us microseconds of delay.
+ 128:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 129:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Alternatively, user can define __DELAY_ROUND_DOWN__ and __DELAY_ROUND_CLOSEST__
+ 130:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    to round down and round to closest integer.
+ 131:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 132:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Note: The new implementation of _delay_ms(double __ms) with 
+ 133:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     __builtin_avr_delay_cycles(unsigned long) support is not backward compatible. 
+ 134:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    User can define __DELAY_BACKWARD_COMPATIBLE__ to get a backward compatible delay.
+ 135:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Also, the backward compatible
+ 136:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    algorithm will be chosen if the code is compiled in a <em>freestanding
+ 137:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    environment</em> (GCC option \c -ffreestanding), as the math functions
+ 138:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    required for rounding are not available to the compiler then.
+ 139:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 140:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****  */
+ 141:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** void
+ 142:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** _delay_ms(double __ms)
+ 143:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** {
+ 144:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	uint16_t __ticks;
+ 145:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	double __tmp ; 
+ 146:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 147:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 148:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   __STDC_HOSTED__
+ 149:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 150:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 151:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
+ 152:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 153:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 154:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 155:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 156:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 157:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 158:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 159:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	#else
+ 160:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 		//round up by default
+ 161:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 162:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	#endif
+ 163:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
+ 164:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+ 371               	.LM37:
+ 372 00d4 8FE4      		ldi r24,lo8(-15537)
+ 373 00d6 93EC      		ldi r25,hi8(-15537)
+ 374 00d8 0197      		1: sbiw r24,1
+ 375 00da 01F4      		brne 1b
+ 376 00dc 00C0      		rjmp .
+ 377 00de 0000      		nop
+ 378               	.LBE11:
+ 379               	.LBE10:
+ 381               	.Ltext2:
+ 186:main.c        ****   _delay_ms(200);
+ 187:main.c        ****   toggle('B', 2);
+ 383               	.LM38:
+ 384 00e0 62E0      		ldi r22,lo8(2)
+ 385 00e2 70E0      		ldi r23,0
+ 386 00e4 82E4      		ldi r24,lo8(66)
+ 387 00e6 0E94 0000 		call toggle
+ 388               	.LBB12:
+ 389               	.LBB13:
+ 391               	.Ltext3:
+ 393               	.LM39:
+ 394 00ea 8FE4      		ldi r24,lo8(-15537)
+ 395 00ec 93EC      		ldi r25,hi8(-15537)
+ 396 00ee 0197      		1: sbiw r24,1
+ 397 00f0 01F4      		brne 1b
+ 398 00f2 00C0      		rjmp .
+ 399 00f4 0000      		nop
+ 400               	.LBE13:
+ 401               	.LBE12:
+ 403               	.Ltext4:
+ 188:main.c        ****   _delay_ms(200);
+ 189:main.c        ****   toggle('B', 2);
+ 405               	.LM40:
+ 406 00f6 62E0      		ldi r22,lo8(2)
+ 407 00f8 70E0      		ldi r23,0
+ 408 00fa 82E4      		ldi r24,lo8(66)
+ 409 00fc 0E94 0000 		call toggle
+ 410               	.LBB14:
+ 411               	.LBB15:
+ 413               	.Ltext5:
+ 415               	.LM41:
+ 416 0100 8FE4      		ldi r24,lo8(-15537)
+ 417 0102 93EC      		ldi r25,hi8(-15537)
+ 418 0104 0197      		1: sbiw r24,1
+ 419 0106 01F4      		brne 1b
+ 420 0108 00C0      		rjmp .
+ 421 010a 0000      		nop
+ 422               	.LBE15:
+ 423               	.LBE14:
+ 425               	.Ltext6:
+ 190:main.c        ****   _delay_ms(200);
+ 191:main.c        ****   toggle('B', 2);
+ 427               	.LM42:
+ 428 010c 62E0      		ldi r22,lo8(2)
+ 429 010e 70E0      		ldi r23,0
+ 430 0110 82E4      		ldi r24,lo8(66)
+ 431 0112 0E94 0000 		call toggle
+ 432               	.LBB16:
+ 433               	.LBB17:
+ 435               	.Ltext7:
+ 437               	.LM43:
+ 438 0116 8FE4      		ldi r24,lo8(-15537)
+ 439 0118 93EC      		ldi r25,hi8(-15537)
+ 440 011a 0197      		1: sbiw r24,1
+ 441 011c 01F4      		brne 1b
+ 442 011e 00C0      		rjmp .
+ 443 0120 0000      		nop
+ 444 0122 0895      		ret
+ 445               	.LBE17:
+ 446               	.LBE16:
+ 448               	.Lscope6:
+ 450               		.stabd	78,0,0
+ 451               		.section	.rodata.str1.1,"aMS",@progbits,1
+ 452               	.LC0:
+ 453 0000 5553 4152 		.string	"USART Initialized!\r\n"
+ 453      5420 496E 
+ 453      6974 6961 
+ 453      6C69 7A65 
+ 453      6421 0D0A 
+ 454               	.LC1:
+ 455 0015 2564 00   		.string	"%d"
+ 456               	.LC2:
+ 457 0018 2056 3A20 		.string	" V: "
+ 457      00
+ 458               	.LC3:
+ 459 001d 2048 3A20 		.string	" H: "
+ 459      00
+ 460               	.LC4:
+ 461 0022 2054 3A20 		.string	" T: "
+ 461      00
+ 462               	.LC5:
+ 463 0027 2042 3A20 		.string	" B: "
+ 463      00
+ 464               	.LC6:
+ 465 002c 0D0A 00   		.string	"\r\n"
+ 466               		.section	.text.startup,"ax",@progbits
+ 468               	.global	main
+ 470               	main:
+ 471               		.stabd	46,0,0
+ 473               	.Ltext8:
+  33:main.c        **** int main(void) {
+ 475               	.LM44:
+ 476               	.LFBB7:
+ 477 0000 CF93      		push r28
+ 478 0002 DF93      		push r29
+ 479 0004 CDB7      		in r28,__SP_L__
+ 480 0006 DEB7      		in r29,__SP_H__
+ 481 0008 CC5B      		subi r28,-68
+ 482 000a D109      		sbc r29,__zero_reg__
+ 483 000c 0FB6      		in __tmp_reg__,__SREG__
+ 484 000e F894      		cli
+ 485 0010 DEBF      		out __SP_H__,r29
+ 486 0012 0FBE      		out __SREG__,__tmp_reg__
+ 487 0014 CDBF      		out __SP_L__,r28
+ 488               	/* prologue: function */
+ 489               	/* frame size = 188 */
+ 490               	/* stack size = 190 */
+ 491               	.L__stack_usage = 190
+  36:main.c        ****   initUSART();
+ 493               	.LM45:
+ 494 0016 0E94 0000 		call initUSART
+  37:main.c        ****   printString("USART Initialized!\r\n");
+ 496               	.LM46:
+ 497 001a 80E0      		ldi r24,lo8(.LC0)
+ 498 001c 90E0      		ldi r25,hi8(.LC0)
+ 499 001e 0E94 0000 		call printString
+  39:main.c        ****   blinkTwice();
+ 501               	.LM47:
+ 502 0022 0E94 0000 		call blinkTwice
+  42:main.c        ****   initADC();
+ 504               	.LM48:
+ 505 0026 0E94 0000 		call initADC
+  68:main.c        ****   verticalPointer = &verticalValue[0];
+ 507               	.LM49:
+ 508 002a 5E01      		movw r10,r28
+ 509 002c 81E5      		ldi r24,81
+ 510 002e A80E      		add r10,r24
+ 511 0030 B11C      		adc r11,__zero_reg__
+  75:main.c        ****   initValues(verticalPointer, joySize, 511);
+ 513               	.LM50:
+ 514 0032 4FEF      		ldi r20,lo8(-1)
+ 515 0034 51E0      		ldi r21,lo8(1)
+ 516 0036 6AE0      		ldi r22,lo8(10)
+ 517 0038 C501      		movw r24,r10
+ 518 003a 0E94 0000 		call initValues
+  69:main.c        ****   horizontalPointer = &horizontalValue[0];
+ 520               	.LM51:
+ 521 003e 6E01      		movw r12,r28
+ 522 0040 95E6      		ldi r25,101
+ 523 0042 C90E      		add r12,r25
+ 524 0044 D11C      		adc r13,__zero_reg__
+  76:main.c        ****   initValues(horizontalPointer, joySize, 511);
+ 526               	.LM52:
+ 527 0046 4FEF      		ldi r20,lo8(-1)
+ 528 0048 51E0      		ldi r21,lo8(1)
+ 529 004a 6AE0      		ldi r22,lo8(10)
+ 530 004c C601      		movw r24,r12
+ 531 004e 0E94 0000 		call initValues
+  77:main.c        ****   initValues(topSliderPointer, slideSize, 0);
+ 533               	.LM53:
+ 534 0052 40E0      		ldi r20,0
+ 535 0054 50E0      		ldi r21,0
+ 536 0056 64E1      		ldi r22,lo8(20)
+ 537 0058 EE24      		clr r14
+ 538 005a E394      		inc r14
+ 539 005c F12C      		mov r15,__zero_reg__
+ 540 005e EC0E      		add r14,r28
+ 541 0060 FD1E      		adc r15,r29
+ 542 0062 C701      		movw r24,r14
+ 543 0064 0E94 0000 		call initValues
+  71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
+ 545               	.LM54:
+ 546 0068 8E01      		movw r16,r28
+ 547 006a 075D      		subi r16,-41
+ 548 006c 1F4F      		sbci r17,-1
+  78:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
+ 550               	.LM55:
+ 551 006e 40E0      		ldi r20,0
+ 552 0070 50E0      		ldi r21,0
+ 553 0072 64E1      		ldi r22,lo8(20)
+ 554 0074 C801      		movw r24,r16
+ 555 0076 0E94 0000 		call initValues
+  68:main.c        ****   verticalPointer = &verticalValue[0];
+ 557               	.LM56:
+ 558 007a 2501      		movw r4,r10
+  69:main.c        ****   horizontalPointer = &horizontalValue[0];
+ 560               	.LM57:
+ 561 007c 3601      		movw r6,r12
+  94:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
+ 563               	.LM58:
+ 564 007e CB54      		subi r28,lo8(-181)
+ 565 0080 DF4F      		sbci r29,hi8(-181)
+ 566 0082 E882      		st Y,r14
+ 567 0084 C55B      		subi r28,lo8(181)
+ 568 0086 D040      		sbci r29,hi8(181)
+ 569 0088 CA54      		subi r28,lo8(-182)
+ 570 008a DF4F      		sbci r29,hi8(-182)
+ 571 008c F882      		st Y,r15
+ 572 008e C65B      		subi r28,lo8(182)
+ 573 0090 D040      		sbci r29,hi8(182)
+  71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
+ 575               	.LM59:
+ 576 0092 1801      		movw r2,r16
+ 104:main.c        ****     sprintf(verticalValueString, "%d", avgVerticalValue);
+ 578               	.LM60:
+ 579 0094 00E0      		ldi r16,lo8(.LC1)
+ 580 0096 10E0      		ldi r17,hi8(.LC1)
+ 581 0098 4E01      		movw r8,r28
+ 582 009a 86EA      		ldi r24,-90
+ 583 009c 880E      		add r8,r24
+ 584 009e 911C      		adc r9,__zero_reg__
+ 105:main.c        ****     sprintf(horizontalValueString, "%d", avgHorizontalValue);
+ 586               	.LM61:
+ 587 00a0 5E01      		movw r10,r28
+ 588 00a2 97E9      		ldi r25,-105
+ 589 00a4 A90E      		add r10,r25
+ 590 00a6 B11C      		adc r11,__zero_reg__
+ 106:main.c        ****     sprintf(topSliderValueString, "%d", avgTopSliderValue);
+ 592               	.LM62:
+ 593 00a8 6E01      		movw r12,r28
+ 594 00aa 88E8      		ldi r24,-120
+ 595 00ac C80E      		add r12,r24
+ 596 00ae D11C      		adc r13,__zero_reg__
+ 107:main.c        ****     sprintf(bottomSliderValueString, "%d", avgBottomSliderValue);
+ 598               	.LM63:
+ 599 00b0 7E01      		movw r14,r28
+ 600 00b2 99E7      		ldi r25,121
+ 601 00b4 E90E      		add r14,r25
+ 602 00b6 F11C      		adc r15,__zero_reg__
+ 603               	.L16:
+  84:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
+ 605               	.LM64:
+ 606 00b8 40E0      		ldi r20,0
+ 607 00ba 6AE0      		ldi r22,lo8(10)
+ 608 00bc C201      		movw r24,r4
+ 609 00be 0E94 0000 		call storeNewADC
+  85:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
+ 611               	.LM65:
+ 612 00c2 6AE0      		ldi r22,lo8(10)
+ 613 00c4 C201      		movw r24,r4
+ 614 00c6 0E94 0000 		call getAverage
+ 615 00ca 582F      		mov r21,r24
+ 616 00cc 792F      		mov r23,r25
+  89:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
+ 618               	.LM66:
+ 619 00ce 41E0      		ldi r20,lo8(1)
+ 620 00d0 6AE0      		ldi r22,lo8(10)
+ 621 00d2 C301      		movw r24,r6
+ 622 00d4 C754      		subi r28,lo8(-185)
+ 623 00d6 DF4F      		sbci r29,hi8(-185)
+ 624 00d8 5883      		st Y,r21
+ 625 00da C95B      		subi r28,lo8(185)
+ 626 00dc D040      		sbci r29,hi8(185)
+ 627 00de C654      		subi r28,lo8(-186)
+ 628 00e0 DF4F      		sbci r29,hi8(-186)
+ 629 00e2 7883      		st Y,r23
+ 630 00e4 CA5B      		subi r28,lo8(186)
+ 631 00e6 D040      		sbci r29,hi8(186)
+ 632 00e8 0E94 0000 		call storeNewADC
+  90:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
+ 634               	.LM67:
+ 635 00ec 6AE0      		ldi r22,lo8(10)
+ 636 00ee C301      		movw r24,r6
+ 637 00f0 0E94 0000 		call getAverage
+ 638 00f4 9C01      		movw r18,r24
+  94:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
+ 640               	.LM68:
+ 641 00f6 42E0      		ldi r20,lo8(2)
+ 642 00f8 64E1      		ldi r22,lo8(20)
+ 643 00fa CB54      		subi r28,lo8(-181)
+ 644 00fc DF4F      		sbci r29,hi8(-181)
+ 645 00fe 8881      		ld r24,Y
+ 646 0100 C55B      		subi r28,lo8(181)
+ 647 0102 D040      		sbci r29,hi8(181)
+ 648 0104 CA54      		subi r28,lo8(-182)
+ 649 0106 DF4F      		sbci r29,hi8(-182)
+ 650 0108 9881      		ld r25,Y
+ 651 010a C65B      		subi r28,lo8(182)
+ 652 010c D040      		sbci r29,hi8(182)
+ 653 010e C554      		subi r28,lo8(-187)
+ 654 0110 DF4F      		sbci r29,hi8(-187)
+ 655 0112 2883      		st Y,r18
+ 656 0114 CB5B      		subi r28,lo8(187)
+ 657 0116 D040      		sbci r29,hi8(187)
+ 658 0118 C454      		subi r28,lo8(-188)
+ 659 011a DF4F      		sbci r29,hi8(-188)
+ 660 011c 3883      		st Y,r19
+ 661 011e CC5B      		subi r28,lo8(188)
+ 662 0120 D040      		sbci r29,hi8(188)
+ 663 0122 0E94 0000 		call storeNewADC
+  95:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
+ 665               	.LM69:
+ 666 0126 64E1      		ldi r22,lo8(20)
+ 667 0128 CB54      		subi r28,lo8(-181)
+ 668 012a DF4F      		sbci r29,hi8(-181)
+ 669 012c 8881      		ld r24,Y
+ 670 012e C55B      		subi r28,lo8(181)
+ 671 0130 D040      		sbci r29,hi8(181)
+ 672 0132 CA54      		subi r28,lo8(-182)
+ 673 0134 DF4F      		sbci r29,hi8(-182)
+ 674 0136 9881      		ld r25,Y
+ 675 0138 C65B      		subi r28,lo8(182)
+ 676 013a D040      		sbci r29,hi8(182)
+ 677 013c 0E94 0000 		call getAverage
+ 678 0140 C954      		subi r28,lo8(-183)
+ 679 0142 DF4F      		sbci r29,hi8(-183)
+ 680 0144 8883      		st Y,r24
+ 681 0146 C75B      		subi r28,lo8(183)
+ 682 0148 D040      		sbci r29,hi8(183)
+ 683 014a C854      		subi r28,lo8(-184)
+ 684 014c DF4F      		sbci r29,hi8(-184)
+ 685 014e 9883      		st Y,r25
+ 686 0150 C85B      		subi r28,lo8(184)
+ 687 0152 D040      		sbci r29,hi8(184)
+  99:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
+ 689               	.LM70:
+ 690 0154 43E0      		ldi r20,lo8(3)
+ 691 0156 64E1      		ldi r22,lo8(20)
+ 692 0158 C101      		movw r24,r2
+ 693 015a 0E94 0000 		call storeNewADC
+ 100:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
+ 695               	.LM71:
+ 696 015e 64E1      		ldi r22,lo8(20)
+ 697 0160 C101      		movw r24,r2
+ 698 0162 0E94 0000 		call getAverage
+ 104:main.c        ****     sprintf(verticalValueString, "%d", avgVerticalValue);
+ 700               	.LM72:
+ 701 0166 C654      		subi r28,lo8(-186)
+ 702 0168 DF4F      		sbci r29,hi8(-186)
+ 703 016a 7881      		ld r23,Y
+ 704 016c CA5B      		subi r28,lo8(186)
+ 705 016e D040      		sbci r29,hi8(186)
+ 706 0170 7F93      		push r23
+ 707 0172 C754      		subi r28,lo8(-185)
+ 708 0174 DF4F      		sbci r29,hi8(-185)
+ 709 0176 5881      		ld r21,Y
+ 710 0178 C95B      		subi r28,lo8(185)
+ 711 017a D040      		sbci r29,hi8(185)
+ 712 017c 5F93      		push r21
+ 713 017e 1F93      		push r17
+ 714 0180 0F93      		push r16
+ 715 0182 9F92      		push r9
+ 716 0184 8F92      		push r8
+ 717 0186 C754      		subi r28,lo8(-185)
+ 718 0188 DF4F      		sbci r29,hi8(-185)
+ 719 018a 8883      		st Y,r24
+ 720 018c C95B      		subi r28,lo8(185)
+ 721 018e D040      		sbci r29,hi8(185)
+ 722 0190 C654      		subi r28,lo8(-186)
+ 723 0192 DF4F      		sbci r29,hi8(-186)
+ 724 0194 9883      		st Y,r25
+ 725 0196 CA5B      		subi r28,lo8(186)
+ 726 0198 D040      		sbci r29,hi8(186)
+ 727 019a 0E94 0000 		call sprintf
+ 105:main.c        ****     sprintf(horizontalValueString, "%d", avgHorizontalValue);
+ 729               	.LM73:
+ 730 019e C454      		subi r28,lo8(-188)
+ 731 01a0 DF4F      		sbci r29,hi8(-188)
+ 732 01a2 3881      		ld r19,Y
+ 733 01a4 CC5B      		subi r28,lo8(188)
+ 734 01a6 D040      		sbci r29,hi8(188)
+ 735 01a8 3F93      		push r19
+ 736 01aa C554      		subi r28,lo8(-187)
+ 737 01ac DF4F      		sbci r29,hi8(-187)
+ 738 01ae 2881      		ld r18,Y
+ 739 01b0 CB5B      		subi r28,lo8(187)
+ 740 01b2 D040      		sbci r29,hi8(187)
+ 741 01b4 2F93      		push r18
+ 742 01b6 1F93      		push r17
+ 743 01b8 0F93      		push r16
+ 744 01ba BF92      		push r11
+ 745 01bc AF92      		push r10
+ 746 01be 0E94 0000 		call sprintf
+ 106:main.c        ****     sprintf(topSliderValueString, "%d", avgTopSliderValue);
+ 748               	.LM74:
+ 749 01c2 C854      		subi r28,lo8(-184)
+ 750 01c4 DF4F      		sbci r29,hi8(-184)
+ 751 01c6 8881      		ld r24,Y
+ 752 01c8 C85B      		subi r28,lo8(184)
+ 753 01ca D040      		sbci r29,hi8(184)
+ 754 01cc 8F93      		push r24
+ 755 01ce C954      		subi r28,lo8(-183)
+ 756 01d0 DF4F      		sbci r29,hi8(-183)
+ 757 01d2 9881      		ld r25,Y
+ 758 01d4 C75B      		subi r28,lo8(183)
+ 759 01d6 D040      		sbci r29,hi8(183)
+ 760 01d8 9F93      		push r25
+ 761 01da 1F93      		push r17
+ 762 01dc 0F93      		push r16
+ 763 01de DF92      		push r13
+ 764 01e0 CF92      		push r12
+ 765 01e2 0E94 0000 		call sprintf
+ 107:main.c        ****     sprintf(bottomSliderValueString, "%d", avgBottomSliderValue);
+ 767               	.LM75:
+ 768 01e6 C654      		subi r28,lo8(-186)
+ 769 01e8 DF4F      		sbci r29,hi8(-186)
+ 770 01ea 6881      		ld r22,Y
+ 771 01ec CA5B      		subi r28,lo8(186)
+ 772 01ee D040      		sbci r29,hi8(186)
+ 773 01f0 6F93      		push r22
+ 774 01f2 C754      		subi r28,lo8(-185)
+ 775 01f4 DF4F      		sbci r29,hi8(-185)
+ 776 01f6 4881      		ld r20,Y
+ 777 01f8 C95B      		subi r28,lo8(185)
+ 778 01fa D040      		sbci r29,hi8(185)
+ 779 01fc 4F93      		push r20
+ 780 01fe 1F93      		push r17
+ 781 0200 0F93      		push r16
+ 782 0202 FF92      		push r15
+ 783 0204 EF92      		push r14
+ 784 0206 0E94 0000 		call sprintf
+ 108:main.c        ****     printString(" V: ");
+ 786               	.LM76:
+ 787 020a 80E0      		ldi r24,lo8(.LC2)
+ 788 020c 90E0      		ldi r25,hi8(.LC2)
+ 789 020e 0E94 0000 		call printString
+ 109:main.c        ****     printString(verticalValueString);
+ 791               	.LM77:
+ 792 0212 C401      		movw r24,r8
+ 793 0214 0E94 0000 		call printString
+ 110:main.c        ****     printString(" H: ");
+ 795               	.LM78:
+ 796 0218 80E0      		ldi r24,lo8(.LC3)
+ 797 021a 90E0      		ldi r25,hi8(.LC3)
+ 798 021c 0E94 0000 		call printString
+ 111:main.c        ****     printString(horizontalValueString);
+ 800               	.LM79:
+ 801 0220 C501      		movw r24,r10
+ 802 0222 0E94 0000 		call printString
+ 112:main.c        ****     printString(" T: ");
+ 804               	.LM80:
+ 805 0226 80E0      		ldi r24,lo8(.LC4)
+ 806 0228 90E0      		ldi r25,hi8(.LC4)
+ 807 022a 0E94 0000 		call printString
+ 113:main.c        ****     printString(topSliderValueString);
+ 809               	.LM81:
+ 810 022e C601      		movw r24,r12
+ 811 0230 0E94 0000 		call printString
+ 114:main.c        ****     printString(" B: ");
+ 813               	.LM82:
+ 814 0234 80E0      		ldi r24,lo8(.LC5)
+ 815 0236 90E0      		ldi r25,hi8(.LC5)
+ 816 0238 0E94 0000 		call printString
+ 115:main.c        ****     printString(bottomSliderValueString);
+ 818               	.LM83:
+ 819 023c C701      		movw r24,r14
+ 820 023e 0E94 0000 		call printString
+ 118:main.c        ****     printString("\r\n");
+ 822               	.LM84:
+ 823 0242 80E0      		ldi r24,lo8(.LC6)
+ 824 0244 90E0      		ldi r25,hi8(.LC6)
+ 825 0246 0E94 0000 		call printString
+ 826 024a 0FB6      		in __tmp_reg__,__SREG__
+ 827 024c F894      		cli
+ 828 024e DEBF      		out __SP_H__,r29
+ 829 0250 0FBE      		out __SREG__,__tmp_reg__
+ 830 0252 CDBF      		out __SP_L__,r28
+ 831 0254 00C0      		rjmp .L16
+ 839               	.Lscope7:
+ 841               		.stabd	78,0,0
+ 842               		.text
+ 844               	.Letext0:
+ 845               		.ident	"GCC: (GNU) 4.7.2"
+ 846               	.global __do_copy_data
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+     /tmp/cczSBFo2.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cczSBFo2.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cczSBFo2.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cczSBFo2.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cczSBFo2.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cczSBFo2.s:91     .text:0000000000000000 initADC
+     /tmp/cczSBFo2.s:128    .text:000000000000001c readADC
+     /tmp/cczSBFo2.s:172    .text:0000000000000046 initValues
+     /tmp/cczSBFo2.s:217    .text:000000000000005a storeNewADC
+     /tmp/cczSBFo2.s:290    .text:000000000000009a getAverage
+     /tmp/cczSBFo2.s:348    .text:00000000000000c8 blinkTwice
+     /tmp/cczSBFo2.s:470    .text.startup:0000000000000000 main
+
+UNDEFINED SYMBOLS
+__udivmodsi4
+toggle
+initUSART
+printString
+sprintf
+__do_copy_data

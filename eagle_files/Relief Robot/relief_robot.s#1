@@ -6864,8 +6864,8 @@ This is the through-hole version of this chip.</description>
 <instance part="GND18" gate="1" x="35.56" y="106.68"/>
 <instance part="U$6" gate="G$1" x="299.72" y="76.2"/>
 <instance part="U$7" gate="G$1" x="299.72" y="50.8"/>
-<instance part="SUPPLY11" gate="G$1" x="218.44" y="63.5"/>
-<instance part="SUPPLY12" gate="G$1" x="218.44" y="12.7"/>
+<instance part="SUPPLY11" gate="G$1" x="228.6" y="68.58"/>
+<instance part="SUPPLY12" gate="G$1" x="228.6" y="17.78"/>
 <instance part="GND22" gate="1" x="116.84" y="0"/>
 <instance part="U3" gate="G$1" x="48.26" y="53.34"/>
 <instance part="JP4" gate="G$1" x="-48.26" y="68.58"/>
@@ -7070,16 +7070,6 @@ This is the through-hole version of this chip.</description>
 <wire x1="-50.8" y1="106.68" x2="-50.8" y2="109.22" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="SUPPLY11" gate="G$1" pin="V_BATT"/>
-<wire x1="218.44" y1="63.5" x2="213.36" y2="63.5" width="0.1524" layer="91"/>
-<pinref part="MOD1" gate="G$1" pin="VMOT"/>
-</segment>
-<segment>
-<pinref part="SUPPLY12" gate="G$1" pin="V_BATT"/>
-<wire x1="218.44" y1="12.7" x2="213.36" y2="12.7" width="0.1524" layer="91"/>
-<pinref part="MOD2" gate="G$1" pin="VMOT"/>
-</segment>
-<segment>
 <pinref part="JP6" gate="G$1" pin="3"/>
 <pinref part="SUPPLY14" gate="G$1" pin="V_BATT"/>
 <wire x1="-33.02" y1="27.94" x2="-40.64" y2="27.94" width="0.1524" layer="91"/>
@@ -7088,6 +7078,18 @@ This is the through-hole version of this chip.</description>
 <pinref part="JP7" gate="G$1" pin="3"/>
 <pinref part="SUPPLY15" gate="G$1" pin="V_BATT"/>
 <wire x1="-40.64" y1="5.08" x2="-33.02" y2="5.08" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="MOD1" gate="G$1" pin="VMOT"/>
+<wire x1="213.36" y1="63.5" x2="228.6" y2="63.5" width="0.1524" layer="91"/>
+<pinref part="SUPPLY11" gate="G$1" pin="V_BATT"/>
+<wire x1="228.6" y1="63.5" x2="228.6" y2="68.58" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="MOD2" gate="G$1" pin="VMOT"/>
+<wire x1="213.36" y1="12.7" x2="228.6" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="SUPPLY12" gate="G$1" pin="V_BATT"/>
+<wire x1="228.6" y1="12.7" x2="228.6" y2="17.78" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="5V" class="0">
@@ -7565,9 +7567,9 @@ This is the through-hole version of this chip.</description>
 <net name="N$40" class="0">
 <segment>
 <pinref part="MOD1" gate="G$1" pin="SENSE"/>
-<wire x1="213.36" y1="68.58" x2="231.14" y2="68.58" width="0.1524" layer="91"/>
-<wire x1="231.14" y1="68.58" x2="231.14" y2="48.26" width="0.1524" layer="91"/>
-<wire x1="231.14" y1="48.26" x2="172.72" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="213.36" y1="68.58" x2="223.52" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="223.52" y1="68.58" x2="223.52" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="223.52" y1="48.26" x2="172.72" y2="48.26" width="0.1524" layer="91"/>
 <wire x1="172.72" y1="48.26" x2="172.72" y2="68.58" width="0.1524" layer="91"/>
 <wire x1="172.72" y1="68.58" x2="152.4" y2="68.58" width="0.1524" layer="91"/>
 <pinref part="JP18" gate="G$1" pin="3"/>
@@ -7621,9 +7623,9 @@ This is the through-hole version of this chip.</description>
 <net name="N$41" class="0">
 <segment>
 <pinref part="MOD2" gate="G$1" pin="SENSE"/>
-<wire x1="213.36" y1="17.78" x2="231.14" y2="17.78" width="0.1524" layer="91"/>
-<wire x1="231.14" y1="17.78" x2="231.14" y2="-5.08" width="0.1524" layer="91"/>
-<wire x1="231.14" y1="-5.08" x2="165.1" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="213.36" y1="17.78" x2="223.52" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="223.52" y1="17.78" x2="223.52" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="223.52" y1="-5.08" x2="165.1" y2="-5.08" width="0.1524" layer="91"/>
 <wire x1="165.1" y1="-5.08" x2="165.1" y2="7.62" width="0.1524" layer="91"/>
 <pinref part="JP14" gate="G$1" pin="3"/>
 <wire x1="165.1" y1="7.62" x2="152.4" y2="7.62" width="0.1524" layer="91"/>
