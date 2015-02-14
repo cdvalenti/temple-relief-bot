@@ -41,9 +41,6 @@ void initMotorDriverIO(void);
 void initTimer0PWM(void);
 
 int main(void) {
-
-  //blink LED
-  blinkTwice();
   
   //init ADC, IO, and PWM
   initADC();
@@ -206,19 +203,6 @@ uint16_t getAverage(uint16_t * arr, uint8_t size){
   //calculate avg and return 
   avg = sum / size;
   return avg;
-}
-
-void blinkTwice(void){
-  //blink LED
-  DDRB |= (1 << PB2);
-  toggle('B', 2);
-  _delay_ms(200);
-  toggle('B', 2);
-  _delay_ms(200);
-  toggle('B', 2);
-  _delay_ms(200);
-  toggle('B', 2);
-  _delay_ms(200);
 }
 
 void initTimer1Servo(void) {
