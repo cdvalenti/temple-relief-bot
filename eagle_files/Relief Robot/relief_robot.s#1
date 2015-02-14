@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.5.0">
+<eagle version="6.4">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -6753,13 +6753,11 @@ This is the through-hole version of this chip.</description>
 <part name="U$4" library="SparkFun" deviceset="5V" device=""/>
 <part name="U$5" library="SparkFun" deviceset="5V" device=""/>
 <part name="JP2" library="SparkFun" deviceset="M06" device="SMD-FEMALE-V2"/>
-<part name="SUPPLY6" library="SparkFun-Aesthetics" deviceset="5V" device=""/>
 <part name="JP3" library="SparkFun-Connectors" deviceset="M06" device="SIP"/>
 <part name="IC2" library="adafruit" deviceset="78*" device="T" technology="05"/>
 <part name="SUPPLY8" library="SparkFun-Aesthetics" deviceset="V_BATT" device=""/>
 <part name="SUPPLY9" library="SparkFun-Aesthetics" deviceset="5V" device=""/>
 <part name="GND17" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
-<part name="SUPPLY10" library="SparkFun-Aesthetics" deviceset="5V" device=""/>
 <part name="GND18" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="U$6" library="SparkFun-Electromechanical" deviceset="MOTOR" device="10MM" value="MOTOR_100:1"/>
 <part name="U$7" library="SparkFun-Electromechanical" deviceset="MOTOR" device="10MM" value="MOTOR_100:1"/>
@@ -6854,13 +6852,11 @@ This is the through-hole version of this chip.</description>
 <instance part="U$4" gate="G$1" x="-2.54" y="238.76"/>
 <instance part="U$5" gate="G$1" x="68.58" y="233.68"/>
 <instance part="JP2" gate="G$1" x="30.48" y="167.64" rot="R90"/>
-<instance part="SUPPLY6" gate="G$1" x="30.48" y="182.88"/>
 <instance part="JP3" gate="G$1" x="27.94" y="132.08" rot="R270"/>
 <instance part="IC2" gate="A1" x="-27.94" y="106.68"/>
 <instance part="SUPPLY8" gate="G$1" x="-50.8" y="109.22"/>
 <instance part="SUPPLY9" gate="G$1" x="-10.16" y="109.22"/>
 <instance part="GND17" gate="1" x="-27.94" y="93.98"/>
-<instance part="SUPPLY10" gate="G$1" x="48.26" y="132.08"/>
 <instance part="GND18" gate="1" x="35.56" y="106.68"/>
 <instance part="U$6" gate="G$1" x="299.72" y="76.2"/>
 <instance part="U$7" gate="G$1" x="299.72" y="50.8"/>
@@ -7127,23 +7123,10 @@ This is the through-hole version of this chip.</description>
 <pinref part="U$5" gate="G$1" pin="5V"/>
 </segment>
 <segment>
-<wire x1="30.48" y1="172.72" x2="30.48" y2="182.88" width="0.1524" layer="91"/>
-<label x="30.48" y="175.26" size="1.778" layer="95" rot="R90"/>
-<pinref part="JP2" gate="G$1" pin="3"/>
-<pinref part="SUPPLY6" gate="G$1" pin="5V"/>
-</segment>
-<segment>
 <pinref part="SUPPLY9" gate="G$1" pin="5V"/>
 <pinref part="IC2" gate="A1" pin="VO"/>
 <wire x1="-10.16" y1="109.22" x2="-10.16" y2="106.68" width="0.1524" layer="91"/>
 <wire x1="-10.16" y1="106.68" x2="-17.78" y2="106.68" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="JP3" gate="G$1" pin="4"/>
-<wire x1="30.48" y1="127" x2="30.48" y2="116.84" width="0.1524" layer="91"/>
-<wire x1="30.48" y1="116.84" x2="48.26" y2="116.84" width="0.1524" layer="91"/>
-<pinref part="SUPPLY10" gate="G$1" pin="5V"/>
-<wire x1="48.26" y1="116.84" x2="48.26" y2="132.08" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="U3" gate="G$1" pin="VCC"/>
@@ -7405,15 +7388,6 @@ This is the through-hole version of this chip.</description>
 <wire x1="93.98" y1="50.8" x2="73.66" y2="50.8" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$24" class="0">
-<segment>
-<pinref part="U$2" gate="G$1" pin="7"/>
-<wire x1="106.68" y1="157.48" x2="96.52" y2="157.48" width="0.1524" layer="91"/>
-<wire x1="96.52" y1="157.48" x2="96.52" y2="48.26" width="0.1524" layer="91"/>
-<pinref part="U3" gate="G$1" pin="PD3(INT1)"/>
-<wire x1="96.52" y1="48.26" x2="73.66" y2="48.26" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="N$25" class="0">
 <segment>
 <pinref part="U3" gate="G$1" pin="PB0(ICP)"/>
@@ -7456,28 +7430,6 @@ This is the through-hole version of this chip.</description>
 <wire x1="88.9" y1="22.86" x2="88.9" y2="12.7" width="0.1524" layer="91"/>
 <wire x1="88.9" y1="12.7" x2="119.38" y2="12.7" width="0.1524" layer="91"/>
 <pinref part="JP12" gate="G$1" pin="5"/>
-</segment>
-</net>
-<net name="N$27" class="0">
-<segment>
-<pinref part="U3" gate="G$1" pin="PD4(XCK/T0)"/>
-<wire x1="73.66" y1="45.72" x2="81.28" y2="45.72" width="0.1524" layer="91"/>
-<wire x1="81.28" y1="45.72" x2="81.28" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="81.28" y1="38.1" x2="83.82" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="83.82" y1="38.1" x2="83.82" y2="5.08" width="0.1524" layer="91"/>
-<wire x1="83.82" y1="5.08" x2="-7.62" y2="5.08" width="0.1524" layer="91"/>
-<wire x1="-7.62" y1="5.08" x2="-7.62" y2="25.4" width="0.1524" layer="91"/>
-<pinref part="JP6" gate="G$1" pin="2"/>
-<wire x1="-7.62" y1="25.4" x2="-40.64" y2="25.4" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$32" class="0">
-<segment>
-<pinref part="U3" gate="G$1" pin="PD7(AIN1)"/>
-<wire x1="73.66" y1="38.1" x2="76.2" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="76.2" y1="38.1" x2="76.2" y2="2.54" width="0.1524" layer="91"/>
-<wire x1="76.2" y1="2.54" x2="-40.64" y2="2.54" width="0.1524" layer="91"/>
-<pinref part="JP7" gate="G$1" pin="2"/>
 </segment>
 </net>
 <net name="N$11" class="0">
@@ -7582,15 +7534,6 @@ This is the through-hole version of this chip.</description>
 <wire x1="220.98" y1="83.82" x2="220.98" y2="78.74" width="0.1524" layer="91"/>
 <pinref part="JP10" gate="G$1" pin="2"/>
 <wire x1="220.98" y1="78.74" x2="241.3" y2="78.74" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$31" class="0">
-<segment>
-<pinref part="U3" gate="G$1" pin="PB3(MOSI/OC2)"/>
-<wire x1="73.66" y1="25.4" x2="101.6" y2="25.4" width="0.1524" layer="91"/>
-<wire x1="101.6" y1="25.4" x2="101.6" y2="71.12" width="0.1524" layer="91"/>
-<wire x1="101.6" y1="71.12" x2="119.38" y2="71.12" width="0.1524" layer="91"/>
-<pinref part="JP19" gate="G$1" pin="4"/>
 </segment>
 </net>
 <net name="N$42" class="0">
@@ -7749,6 +7692,53 @@ This is the through-hole version of this chip.</description>
 <segment>
 <pinref part="JP12" gate="G$1" pin="3"/>
 <wire x1="119.38" y1="7.62" x2="121.92" y2="7.62" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$6" class="0">
+<segment>
+<pinref part="U3" gate="G$1" pin="PB3(MOSI/OC2)"/>
+<wire x1="73.66" y1="25.4" x2="83.82" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="83.82" y1="25.4" x2="83.82" y2="5.08" width="0.1524" layer="91"/>
+<wire x1="83.82" y1="5.08" x2="-7.62" y2="5.08" width="0.1524" layer="91"/>
+<wire x1="-7.62" y1="5.08" x2="-7.62" y2="25.4" width="0.1524" layer="91"/>
+<pinref part="JP6" gate="G$1" pin="2"/>
+<wire x1="-7.62" y1="25.4" x2="-40.64" y2="25.4" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$27" class="0">
+<segment>
+<pinref part="U3" gate="G$1" pin="PD4(XCK/T0)"/>
+<wire x1="73.66" y1="45.72" x2="81.28" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="81.28" y1="45.72" x2="81.28" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="81.28" y1="63.5" x2="101.6" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="101.6" y1="63.5" x2="101.6" y2="71.12" width="0.1524" layer="91"/>
+<pinref part="JP19" gate="G$1" pin="4"/>
+<wire x1="101.6" y1="71.12" x2="119.38" y2="71.12" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$24" class="0">
+<segment>
+<pinref part="U3" gate="G$1" pin="PD3(INT1)"/>
+<wire x1="73.66" y1="48.26" x2="76.2" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="76.2" y1="48.26" x2="76.2" y2="2.54" width="0.1524" layer="91"/>
+<pinref part="JP7" gate="G$1" pin="2"/>
+<wire x1="76.2" y1="2.54" x2="-40.64" y2="2.54" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$31" class="0">
+<segment>
+<pinref part="U3" gate="G$1" pin="PD7(AIN1)"/>
+<wire x1="73.66" y1="38.1" x2="96.52" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="96.52" y1="38.1" x2="96.52" y2="157.48" width="0.1524" layer="91"/>
+<pinref part="U$2" gate="G$1" pin="7"/>
+<wire x1="96.52" y1="157.48" x2="106.68" y2="157.48" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="USB_5V" class="0">
+<segment>
+<wire x1="30.48" y1="172.72" x2="30.48" y2="175.26" width="0.1524" layer="91"/>
+<label x="30.48" y="175.26" size="1.778" layer="95" rot="R90"/>
+<pinref part="JP2" gate="G$1" pin="3"/>
 </segment>
 </net>
 </nets>

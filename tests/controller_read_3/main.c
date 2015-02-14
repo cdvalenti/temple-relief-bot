@@ -1,10 +1,10 @@
 /* Temple Relief Robot, ASME Design Competition 2015
  * -------------------------------------------------
- * Title: temple-relief-robot/src/main.c
+ * Title: controller_read_3.c
  * 
  * Description: 
- * Main source code version 1
- * 02/13/2015
+ * Test script to verify operation of joytick, slide pots, and buttons
+ * on the remote controller. Version 3 does not include a USART Connection, therefore is must faster.
  * 
  * Written by: Christian D. Valenti (christian.valenti@temple.edu)
  */

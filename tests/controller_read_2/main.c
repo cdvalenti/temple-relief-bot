@@ -8,7 +8,7 @@
  * joystick and slide pot, then print the ADC values over USART connection.
  * 
  * Written by: Christian D. Valenti (christian.valenti@temple.edu)
-*/
+ */
 
 #define MCU 'atmega328'
 #define F_CPU 1000000UL
@@ -83,28 +83,20 @@ int main(void) {
   
   while(1) { 
     
-    
     /* *********** Read Vertical Joystick *********** */
     storeNewADC(verticalPointer, joySize, 0);
     avgVerticalValue = getAverage(verticalPointer, joySize);
-    
-
     /* ********** Read Horizontal Joystick ********** */
     storeNewADC(horizontalPointer, joySize, 1);
     avgHorizontalValue = getAverage(horizontalPointer, joySize);
-    
-       
     /* ************** Read Top Slider ************** */
     storeNewADC(topSliderPointer, slideSize, 2);
     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
-    
-    
     /* ********** Read Bottom Slider ********** */
     storeNewADC(bottomSliderPointer, slideSize, 3);
     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
     
-    
-    //convert avgValue int to string & print over USART
+    /* convert 'avgValue' ints to strings & print over USART */
     sprintf(verticalValueString, "%d", avgVerticalValue);
     sprintf(horizontalValueString, "%d", avgHorizontalValue);
     sprintf(topSliderValueString, "%d", avgTopSliderValue);
@@ -117,8 +109,6 @@ int main(void) {
     printString(topSliderValueString);
     printString(" B: ");
     printString(bottomSliderValueString);
-    
-    //print return carriage
     printString("\r\n");
 
  }

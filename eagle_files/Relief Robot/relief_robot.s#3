@@ -6819,6 +6819,7 @@ This is the through-hole version of this chip.</description>
 <text x="-50.8" y="35.56" size="1.778" layer="91">SOLENOID CONTROL</text>
 <text x="-50.8" y="12.7" size="1.778" layer="91">PAYLOAD CONTROL</text>
 <text x="119.38" y="180.34" size="1.778" layer="91">RJ45 CONNECTOR</text>
+<text x="215.9" y="182.88" size="1.778" layer="91">CONTROLLER</text>
 </plain>
 <instances>
 <instance part="SUPPLY1" gate="G$1" x="-27.94" y="142.24"/>
