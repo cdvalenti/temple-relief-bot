@@ -73,14 +73,16 @@ int main(void) {
   //create avg value variables
   uint16_t avgVerticalValue;
   uint16_t avgHorizontalValue;
+  uint16_t leftMotor;
+  uint16_t rightMotor;
   uint16_t avgTopSliderValue;
   uint16_t avgBottomSliderValue;
   
   float converterSlideValue = 1.955;
   float offsetSlideValue = 500.0;
   
-  float convertedVerticalValue;  
-  float convertedHorizontalValue;
+  float convertedLeftValue;  
+  float convertedRightValue;
   float convertedTopSliderValue;
   float convertedBottomSliderValue;
   
@@ -105,7 +107,79 @@ int main(void) {
     storeNewADC(bottomSliderPointer, slideSize, 3);
     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
     
-    /* *************** Convert Vertical ADC to PWM ************** */
+    //change vert values if left right joystick press
+    
+    if(avgHorizontalValue > 561 || avgHorizontalValue < 461){
+      leftMotor = avgVerticalValue - (511 - avgHorizontalValue)/2;
+      rightMotor = avgVerticalValue + (511 - avgHorizontalValue)/2;
+    }else{
+      leftMotor = avgVerticalValue;
+      rightMotor = avgVerticalValue;
+    }
+    
+    //stay within bounds
+    
+    if (leftMotor > 1023){
+      leftMotor = 1023;
+    }
+    if (leftMotor < 0){
+      leftMotor = 0;
+    }
+    if (rightMotor > 1023){
+      leftMotor = 1023;
+    }
+    if (rightMotor < 0){
+      leftMotor = 0;
+    }
+    
+    
+    //Compute PWM for motors
+    
+    if(leftMotor > 561){   //forwards
+      //set direction bits
+      pin_hi('B', DRIVER1A);
+      pin_lo('D', DRIVER1B);
+      //convert ADC to PWM (0-255)
+      convertedLeftValue = ((float)avgVerticalValue - 513.0)/2;
+    }else if(leftMotor < 461){   //backwards
+      //set direction bits
+      pin_lo('B', DRIVER1A);
+      pin_hi('D', DRIVER1B);
+      //convert ADC to PWM (0-255)
+      convertedLeftValue = (510.0 - (float)avgVerticalValue)/2;
+    }else{    //center
+      //set direction bits
+      pin_lo('B', DRIVER1A);
+      pin_lo('D', DRIVER1B);
+      //set PWM to zero
+      convertedLeftValue = 0.0;
+    }
+    
+    if(rightMotor > 561){   //forwards
+      //set direction bits
+      pin_lo('B', DRIVER2A);
+      pin_hi('B', DRIVER2B);
+      //convert ADC to PWM (0-255)
+      convertedRightValue = ((float)avgVerticalValue - 513.0)/2;
+    }else if(rightMotor < 461){   //backwards
+      //set direction bits
+      pin_hi('B', DRIVER2A);
+      pin_lo('B', DRIVER2B);
+      //convert ADC to PWM (0-255)
+      convertedRightValue = (510.0 - (float)avgVerticalValue)/2;
+    }else{    //center
+      //set direction bits
+      pin_lo('B', DRIVER2A);
+      pin_lo('B', DRIVER2B);
+      //set PWM to zero
+      convertedRightValue = 0.0;
+    }
+      
+    //set both motor speeds
+    OCR0A = (uint8_t) convertedLeftValue;
+    OCR0B = (uint8_t) convertedRightValue;
+    
+    /* *************** Convert Vertical ADC to PWM ************** 
     if(avgVerticalValue > 561){   //if joystick pushed forwards
       //set direction bits
       pin_hi('B', DRIVER1A);
@@ -130,10 +204,8 @@ int main(void) {
       pin_lo('B', DRIVER2B);
       //set PWM to zero
       convertedVerticalValue = 0.0;
-    }
-    //set both motor to same speed for now
-    OCR0A = (uint8_t) convertedVerticalValue;
-    OCR0B = (uint8_t) convertedVerticalValue;
+    }*/
+    
     
     /* *****Convert Top Slider ADC value to PWM and set***** */
     convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;

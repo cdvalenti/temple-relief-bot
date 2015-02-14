@@ -11,11 +11,11 @@
   92               		.stabd	46,0,0
    1:main.c        **** /* Temple Relief Robot, ASME Design Competition 2015
    2:main.c        ****  * -------------------------------------------------
-   3:main.c        ****  * Title: controller_read_3.c
+   3:main.c        ****  * Title: temple-relief-robot/src/main.c
    4:main.c        ****  * 
    5:main.c        ****  * Description: 
-   6:main.c        ****  * Test script to verify operation of joytick, slide pots, and buttons
-   7:main.c        ****  * on the remote controller. Version 3 does not include a USART Connection, therefore is must faste
+   6:main.c        ****  * Main source code version 1
+   7:main.c        ****  * 02/13/2015
    8:main.c        ****  * 
    9:main.c        ****  * Written by: Christian D. Valenti (christian.valenti@temple.edu)
   10:main.c        ****  */
@@ -52,138 +52,207 @@
   41:main.c        **** void initTimer0PWM(void);
   42:main.c        **** 
   43:main.c        **** int main(void) {
-  44:main.c        **** 
-  45:main.c        ****   //blink LED
-  46:main.c        ****   blinkTwice();
-  47:main.c        ****   
-  48:main.c        ****   //init ADC, IO, and PWM
-  49:main.c        ****   initADC();
-  50:main.c        ****   initTimer1Servo();
-  51:main.c        ****   initMotorDriverIO();
-  52:main.c        ****   initTimer0PWM();
-  53:main.c        ****   
-  54:main.c        ****   //moving average array sizes
-  55:main.c        ****   uint8_t joySize = 30;
-  56:main.c        ****   uint8_t slideSize = 75;
-  57:main.c        ****   
-  58:main.c        ****   //create value arrays
-  59:main.c        ****   uint16_t verticalValue [joySize];
-  60:main.c        ****   uint16_t horizontalValue [joySize];
-  61:main.c        ****   uint16_t topSliderValue [slideSize];
-  62:main.c        ****   uint16_t bottomSliderValue [slideSize];
-  63:main.c        ****   
-  64:main.c        ****   //create pointers
-  65:main.c        ****   uint16_t * verticalPointer;
-  66:main.c        ****   uint16_t * horizontalPointer;
-  67:main.c        ****   uint16_t * topSliderPointer;
-  68:main.c        ****   uint16_t * bottomSliderPointer;
-  69:main.c        ****   
-  70:main.c        ****   //have pointers pointing to first element of each array
-  71:main.c        ****   verticalPointer = &verticalValue[0];
-  72:main.c        ****   horizontalPointer = &horizontalValue[0];
-  73:main.c        ****   topSliderPointer = &topSliderValue[0];
-  74:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
-  75:main.c        ****   
-  76:main.c        ****   //create avg value variables
-  77:main.c        ****   uint16_t avgVerticalValue;
-  78:main.c        ****   uint16_t avgHorizontalValue;
-  79:main.c        ****   uint16_t avgTopSliderValue;
-  80:main.c        ****   uint16_t avgBottomSliderValue;
-  81:main.c        ****   
-  82:main.c        ****   float converterSlideValue = 1.955;
-  83:main.c        ****   float offsetSlideValue = 500.0;
-  84:main.c        ****   
-  85:main.c        ****   float convertedVerticalValue;  
-  86:main.c        ****   float convertedHorizontalValue;
-  87:main.c        ****   float convertedTopSliderValue;
-  88:main.c        ****   float convertedBottomSliderValue;
-  89:main.c        ****   
-  90:main.c        ****   //initialize values of arrays
-  91:main.c        ****   initValues(verticalPointer, joySize, 511);
-  92:main.c        ****   initValues(horizontalPointer, joySize, 511);
-  93:main.c        ****   initValues(topSliderPointer, slideSize, 0);
-  94:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
-  95:main.c        ****   
-  96:main.c        ****   while(1) { 
-  97:main.c        ****     
-  98:main.c        ****     /* ***************** Read Vertical Joystick ***************** */
-  99:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
- 100:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
- 101:main.c        ****     /* **************** Read Horizontal Joystick **************** */
- 102:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
- 103:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
- 104:main.c        ****     /* ******************** Read Top Slider ******************** */
- 105:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
- 106:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
- 107:main.c        ****     /* ****************** Read Bottom Slider ****************** */
- 108:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
- 109:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
- 110:main.c        ****     
- 111:main.c        ****     /* *************** Convert Vertical ADC to PWM ************** */
- 112:main.c        ****     if(avgVerticalValue > 561){   //if joystick pushed forwards
- 113:main.c        ****       //set direction bits
- 114:main.c        ****       pin_hi('B', DRIVER1A);
- 115:main.c        ****       pin_lo('D', DRIVER1B);
- 116:main.c        ****       pin_lo('B', DRIVER2A);
- 117:main.c        ****       pin_hi('B', DRIVER2B);
- 118:main.c        ****       //convert ADC to PWM (0-255)
- 119:main.c        ****       convertedVerticalValue = ((float)avgVerticalValue - 513.0)/2;
- 120:main.c        ****     }else if(avgVerticalValue < 461){   //if joystick pushed backwards
- 121:main.c        ****       //set direction bits
- 122:main.c        ****       pin_lo('B', DRIVER1A);
- 123:main.c        ****       pin_hi('D', DRIVER1B);
- 124:main.c        ****       pin_hi('B', DRIVER2A);
- 125:main.c        ****       pin_lo('B', DRIVER2B);
- 126:main.c        ****       //convert ADC to PWM (0-255)
- 127:main.c        ****       convertedVerticalValue = (510.0 - (float)avgVerticalValue)/2;
- 128:main.c        ****     }else{    //if joystick in center
- 129:main.c        ****       //set direction bits
- 130:main.c        ****       pin_lo('B', DRIVER1A);
- 131:main.c        ****       pin_lo('D', DRIVER1B);
- 132:main.c        ****       pin_lo('B', DRIVER2A);
- 133:main.c        ****       pin_lo('B', DRIVER2B);
- 134:main.c        ****       //set PWM to zero
- 135:main.c        ****       convertedVerticalValue = 0.0;
- 136:main.c        ****     }
- 137:main.c        ****     //set both motor to same speed for now
- 138:main.c        ****     OCR0A = (uint8_t) convertedVerticalValue;
- 139:main.c        ****     OCR0B = (uint8_t) convertedVerticalValue;
- 140:main.c        ****     
- 141:main.c        ****     /* *****Convert Top Slider ADC value to PWM and set***** */
- 142:main.c        ****     convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;
- 143:main.c        ****     OCR1A = (uint16_t) convertedTopSliderValue;
- 144:main.c        ****     /* *****Convert Bottom Slider ADC value to PWM and set***** */
- 145:main.c        ****     convertedBottomSliderValue = (converterSlideValue * avgBottomSliderValue) + offsetSlideValue;
- 146:main.c        ****     OCR1B = (uint16_t) convertedBottomSliderValue;
- 147:main.c        ****  }
- 148:main.c        ****  
- 149:main.c        ****  return(0);
- 150:main.c        ****  
- 151:main.c        **** }
- 152:main.c        **** 
- 153:main.c        **** void initADC(void) {
+  44:main.c        ****   
+  45:main.c        ****   //init ADC, IO, and PWM
+  46:main.c        ****   initADC();
+  47:main.c        ****   initTimer1Servo();
+  48:main.c        ****   initMotorDriverIO();
+  49:main.c        ****   initTimer0PWM();
+  50:main.c        ****   
+  51:main.c        ****   //moving average array sizes
+  52:main.c        ****   uint8_t joySize = 30;
+  53:main.c        ****   uint8_t slideSize = 75;
+  54:main.c        ****   
+  55:main.c        ****   //create value arrays
+  56:main.c        ****   uint16_t verticalValue [joySize];
+  57:main.c        ****   uint16_t horizontalValue [joySize];
+  58:main.c        ****   uint16_t topSliderValue [slideSize];
+  59:main.c        ****   uint16_t bottomSliderValue [slideSize];
+  60:main.c        ****   
+  61:main.c        ****   //create pointers
+  62:main.c        ****   uint16_t * verticalPointer;
+  63:main.c        ****   uint16_t * horizontalPointer;
+  64:main.c        ****   uint16_t * topSliderPointer;
+  65:main.c        ****   uint16_t * bottomSliderPointer;
+  66:main.c        ****   
+  67:main.c        ****   //have pointers pointing to first element of each array
+  68:main.c        ****   verticalPointer = &verticalValue[0];
+  69:main.c        ****   horizontalPointer = &horizontalValue[0];
+  70:main.c        ****   topSliderPointer = &topSliderValue[0];
+  71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
+  72:main.c        ****   
+  73:main.c        ****   //create avg value variables
+  74:main.c        ****   uint16_t avgVerticalValue;
+  75:main.c        ****   uint16_t avgHorizontalValue;
+  76:main.c        ****   uint16_t leftMotor;
+  77:main.c        ****   uint16_t rightMotor;
+  78:main.c        ****   uint16_t avgTopSliderValue;
+  79:main.c        ****   uint16_t avgBottomSliderValue;
+  80:main.c        ****   
+  81:main.c        ****   float converterSlideValue = 1.955;
+  82:main.c        ****   float offsetSlideValue = 500.0;
+  83:main.c        ****   
+  84:main.c        ****   float convertedLeftValue;  
+  85:main.c        ****   float convertedRightValue;
+  86:main.c        ****   float convertedTopSliderValue;
+  87:main.c        ****   float convertedBottomSliderValue;
+  88:main.c        ****   
+  89:main.c        ****   //initialize values of arrays
+  90:main.c        ****   initValues(verticalPointer, joySize, 511);
+  91:main.c        ****   initValues(horizontalPointer, joySize, 511);
+  92:main.c        ****   initValues(topSliderPointer, slideSize, 0);
+  93:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
+  94:main.c        ****   
+  95:main.c        ****   while(1) { 
+  96:main.c        ****     
+  97:main.c        ****     /* ***************** Read Vertical Joystick ***************** */
+  98:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
+  99:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
+ 100:main.c        ****     /* **************** Read Horizontal Joystick **************** */
+ 101:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
+ 102:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
+ 103:main.c        ****     /* ******************** Read Top Slider ******************** */
+ 104:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
+ 105:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
+ 106:main.c        ****     /* ****************** Read Bottom Slider ****************** */
+ 107:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
+ 108:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
+ 109:main.c        ****     
+ 110:main.c        ****     //change vert values if left right joystick press
+ 111:main.c        ****     
+ 112:main.c        ****     if(avgHorizontalValue > 561 && avgHorizontalValue < 461){
+ 113:main.c        ****       leftMotor = avgVerticalValue - (511 - avgHorizontalValue)/2;
+ 114:main.c        ****       rightMotor = avgVerticalValue + (511 - avgHorizontalValue)/2;
+ 115:main.c        ****     }else{
+ 116:main.c        ****       leftMotor = avgVerticalValue;
+ 117:main.c        ****       rightMotor = avgVerticalValue;
+ 118:main.c        ****     }
+ 119:main.c        ****     
+ 120:main.c        ****     //stay within bounds
+ 121:main.c        ****     
+ 122:main.c        ****     if (leftMotor > 1023){
+ 123:main.c        ****       leftMotor = 1023;
+ 124:main.c        ****     }
+ 125:main.c        ****     if (leftMotor < 0){
+ 126:main.c        ****       leftMotor = 0;
+ 127:main.c        ****     }
+ 128:main.c        ****     if (rightMotor > 1023){
+ 129:main.c        ****       leftMotor = 1023;
+ 130:main.c        ****     }
+ 131:main.c        ****     if (rightMotor < 0){
+ 132:main.c        ****       leftMotor = 0;
+ 133:main.c        ****     }
+ 134:main.c        ****     
+ 135:main.c        ****     
+ 136:main.c        ****     //Compute PWM for motors
+ 137:main.c        ****     
+ 138:main.c        ****     if(leftMotor > 561){   //forwards
+ 139:main.c        ****       //set direction bits
+ 140:main.c        ****       pin_hi('B', DRIVER1A);
+ 141:main.c        ****       pin_lo('D', DRIVER1B);
+ 142:main.c        ****       //convert ADC to PWM (0-255)
+ 143:main.c        ****       convertedLeftValue = ((float)avgVerticalValue - 513.0)/2;
+ 144:main.c        ****     }else if(leftMotor < 461){   //backwards
+ 145:main.c        ****       //set direction bits
+ 146:main.c        ****       pin_lo('B', DRIVER1A);
+ 147:main.c        ****       pin_hi('D', DRIVER1B);
+ 148:main.c        ****       //convert ADC to PWM (0-255)
+ 149:main.c        ****       convertedLeftValue = (510.0 - (float)avgVerticalValue)/2;
+ 150:main.c        ****     }else{    //center
+ 151:main.c        ****       //set direction bits
+ 152:main.c        ****       pin_lo('B', DRIVER1A);
+ 153:main.c        ****       pin_lo('D', DRIVER1B);
+ 154:main.c        ****       //set PWM to zero
+ 155:main.c        ****       convertedLeftValue = 0.0;
+ 156:main.c        ****     }
+ 157:main.c        ****     
+ 158:main.c        ****     if(rightMotor > 561){   //forwards
+ 159:main.c        ****       //set direction bits
+ 160:main.c        ****       pin_lo('B', DRIVER2A);
+ 161:main.c        ****       pin_hi('B', DRIVER2B);
+ 162:main.c        ****       //convert ADC to PWM (0-255)
+ 163:main.c        ****       convertedRightValue = ((float)avgVerticalValue - 513.0)/2;
+ 164:main.c        ****     }else if(rightMotor < 461){   //backwards
+ 165:main.c        ****       //set direction bits
+ 166:main.c        ****       pin_hi('B', DRIVER2A);
+ 167:main.c        ****       pin_lo('B', DRIVER2B);
+ 168:main.c        ****       //convert ADC to PWM (0-255)
+ 169:main.c        ****       convertedRightValue = (510.0 - (float)avgVerticalValue)/2;
+ 170:main.c        ****     }else{    //center
+ 171:main.c        ****       //set direction bits
+ 172:main.c        ****       pin_lo('B', DRIVER2A);
+ 173:main.c        ****       pin_lo('B', DRIVER2B);
+ 174:main.c        ****       //set PWM to zero
+ 175:main.c        ****       convertedRightValue = 0.0;
+ 176:main.c        ****     }
+ 177:main.c        ****       
+ 178:main.c        ****     //set both motor speeds
+ 179:main.c        ****     OCR0A = (uint8_t) convertedLeftValue;
+ 180:main.c        ****     OCR0B = (uint8_t) convertedRightValue;
+ 181:main.c        ****     
+ 182:main.c        ****     /* *************** Convert Vertical ADC to PWM ************** 
+ 183:main.c        ****     if(avgVerticalValue > 561){   //if joystick pushed forwards
+ 184:main.c        ****       //set direction bits
+ 185:main.c        ****       pin_hi('B', DRIVER1A);
+ 186:main.c        ****       pin_lo('D', DRIVER1B);
+ 187:main.c        ****       pin_lo('B', DRIVER2A);
+ 188:main.c        ****       pin_hi('B', DRIVER2B);
+ 189:main.c        ****       //convert ADC to PWM (0-255)
+ 190:main.c        ****       convertedVerticalValue = ((float)avgVerticalValue - 513.0)/2;
+ 191:main.c        ****     }else if(avgVerticalValue < 461){   //if joystick pushed backwards
+ 192:main.c        ****       //set direction bits
+ 193:main.c        ****       pin_lo('B', DRIVER1A);
+ 194:main.c        ****       pin_hi('D', DRIVER1B);
+ 195:main.c        ****       pin_hi('B', DRIVER2A);
+ 196:main.c        ****       pin_lo('B', DRIVER2B);
+ 197:main.c        ****       //convert ADC to PWM (0-255)
+ 198:main.c        ****       convertedVerticalValue = (510.0 - (float)avgVerticalValue)/2;
+ 199:main.c        ****     }else{    //if joystick in center
+ 200:main.c        ****       //set direction bits
+ 201:main.c        ****       pin_lo('B', DRIVER1A);
+ 202:main.c        ****       pin_lo('D', DRIVER1B);
+ 203:main.c        ****       pin_lo('B', DRIVER2A);
+ 204:main.c        ****       pin_lo('B', DRIVER2B);
+ 205:main.c        ****       //set PWM to zero
+ 206:main.c        ****       convertedVerticalValue = 0.0;
+ 207:main.c        ****     }*/
+ 208:main.c        ****     
+ 209:main.c        ****     
+ 210:main.c        ****     /* *****Convert Top Slider ADC value to PWM and set***** */
+ 211:main.c        ****     convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;
+ 212:main.c        ****     OCR1A = (uint16_t) convertedTopSliderValue;
+ 213:main.c        ****     /* *****Convert Bottom Slider ADC value to PWM and set***** */
+ 214:main.c        ****     convertedBottomSliderValue = (converterSlideValue * avgBottomSliderValue) + offsetSlideValue;
+ 215:main.c        ****     OCR1B = (uint16_t) convertedBottomSliderValue;
+ 216:main.c        ****  }
+ 217:main.c        ****  
+ 218:main.c        ****  return(0);
+ 219:main.c        ****  
+ 220:main.c        **** }
+ 221:main.c        **** 
+ 222:main.c        **** void initADC(void) {
   94               	.LM0:
   95               	.LFBB1:
   96               	/* prologue: function */
   97               	/* frame size = 0 */
   98               	/* stack size = 0 */
   99               	.L__stack_usage = 0
- 154:main.c        ****   //initialize ADC (set ref voltage, prescaler, and enable)
- 155:main.c        ****   ADMUX |= (1 << REFS0);                		// reference voltage on AVCC
+ 223:main.c        ****   //initialize ADC (set ref voltage, prescaler, and enable)
+ 224:main.c        ****   ADMUX |= (1 << REFS0);                		// reference voltage on AVCC
  101               	.LM1:
  102 0000 ECE7      		ldi r30,lo8(124)
  103 0002 F0E0      		ldi r31,0
  104 0004 8081      		ld r24,Z
  105 0006 8064      		ori r24,lo8(64)
  106 0008 8083      		st Z,r24
- 156:main.c        ****   ADCSRA |= (1 << ADPS0) | (1 << ADPS1);    // ADC clock prescaler /8
+ 225:main.c        ****   ADCSRA |= (1 << ADPS0) | (1 << ADPS1);    // ADC clock prescaler /8
  108               	.LM2:
  109 000a EAE7      		ldi r30,lo8(122)
  110 000c F0E0      		ldi r31,0
  111 000e 8081      		ld r24,Z
  112 0010 8360      		ori r24,lo8(3)
  113 0012 8083      		st Z,r24
- 157:main.c        ****   ADCSRA |= (1 << ADEN);               			// enable ADC
+ 226:main.c        ****   ADCSRA |= (1 << ADEN);               			// enable ADC
  115               	.LM3:
  116 0014 8081      		ld r24,Z
  117 0016 8068      		ori r24,lo8(-128)
@@ -194,38 +263,38 @@
  126               	.global	readADC
  128               	readADC:
  129               		.stabd	46,0,0
- 158:main.c        **** }
- 159:main.c        **** 
- 160:main.c        **** uint16_t readADC(uint8_t channel) {
+ 227:main.c        **** }
+ 228:main.c        **** 
+ 229:main.c        **** uint16_t readADC(uint8_t channel) {
  131               	.LM4:
  132               	.LFBB2:
  133               	/* prologue: function */
  134               	/* frame size = 0 */
  135               	/* stack size = 0 */
  136               	.L__stack_usage = 0
- 161:main.c        ****   //read ADC value from channel (ADC0 to ADC 5)
- 162:main.c        ****   ADMUX = (0b11110000 & ADMUX) | channel;
+ 230:main.c        ****   //read ADC value from channel (ADC0 to ADC 5)
+ 231:main.c        ****   ADMUX = (0b11110000 & ADMUX) | channel;
  138               	.LM5:
  139 001c 9091 7C00 		lds r25,124
  140 0020 907F      		andi r25,lo8(-16)
  141 0022 982B      		or r25,r24
  142 0024 9093 7C00 		sts 124,r25
- 163:main.c        ****   ADCSRA |= (1 << ADSC);
+ 232:main.c        ****   ADCSRA |= (1 << ADSC);
  144               	.LM6:
  145 0028 8091 7A00 		lds r24,122
  146 002c 8064      		ori r24,lo8(64)
  147 002e 8093 7A00 		sts 122,r24
  148               	.L3:
- 164:main.c        ****   loop_until_bit_is_clear(ADCSRA, ADSC);
+ 233:main.c        ****   loop_until_bit_is_clear(ADCSRA, ADSC);
  150               	.LM7:
  151 0032 8091 7A00 		lds r24,122
  152 0036 86FD      		sbrc r24,6
  153 0038 00C0      		rjmp .L3
- 165:main.c        ****   return (ADC);
+ 234:main.c        ****   return (ADC);
  155               	.LM8:
  156 003a 2091 7800 		lds r18,120
  157 003e 3091 7900 		lds r19,120+1
- 166:main.c        **** }
+ 235:main.c        **** }
  159               	.LM9:
  160 0042 C901      		movw r24,r18
  161 0044 0895      		ret
@@ -234,41 +303,41 @@
  170               	.global	initValues
  172               	initValues:
  173               		.stabd	46,0,0
- 167:main.c        **** 
- 168:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value){
+ 236:main.c        **** 
+ 237:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value){
  175               	.LM10:
  176               	.LFBB3:
  177               	/* prologue: function */
  178               	/* frame size = 0 */
  179               	/* stack size = 0 */
  180               	.L__stack_usage = 0
- 169:main.c        ****   
- 170:main.c        ****   uint8_t i;
- 171:main.c        ****   
- 172:main.c        ****   //copy 'value' into each element of array
- 173:main.c        ****   for(i=0;i<size;i++){
+ 238:main.c        ****   
+ 239:main.c        ****   uint8_t i;
+ 240:main.c        ****   
+ 241:main.c        ****   //copy 'value' into each element of array
+ 242:main.c        ****   for(i=0;i<size;i++){
  182               	.LM11:
  183 0046 20E0      		ldi r18,0
  184 0048 00C0      		rjmp .L6
  185               	.L7:
- 174:main.c        ****      *arr = value;
+ 243:main.c        ****      *arr = value;
  187               	.LM12:
  188 004a FC01      		movw r30,r24
  189 004c 4193      		st Z+,r20
  190 004e 5193      		st Z+,r21
  191 0050 CF01      		movw r24,r30
- 173:main.c        ****   for(i=0;i<size;i++){
+ 242:main.c        ****   for(i=0;i<size;i++){
  193               	.LM13:
  194 0052 2F5F      		subi r18,lo8(-(1))
  195               	.L6:
- 173:main.c        ****   for(i=0;i<size;i++){
+ 242:main.c        ****   for(i=0;i<size;i++){
  197               	.LM14:
  198 0054 2613      		cpse r18,r22
  199 0056 00C0      		rjmp .L7
  200               	/* epilogue start */
- 175:main.c        ****      arr++;
- 176:main.c        ****   }
- 177:main.c        **** }
+ 244:main.c        ****      arr++;
+ 245:main.c        ****   }
+ 246:main.c        **** }
  202               	.LM15:
  203 0058 0895      		ret
  208               	.Lscope3:
@@ -276,8 +345,8 @@
  215               	.global	storeNewADC
  217               	storeNewADC:
  218               		.stabd	46,0,0
- 178:main.c        **** 
- 179:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
+ 247:main.c        **** 
+ 248:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
  220               	.LM16:
  221               	.LFBB4:
  222 005a CF93      		push r28
@@ -286,9 +355,9 @@
  225               	/* frame size = 0 */
  226               	/* stack size = 2 */
  227               	.L__stack_usage = 2
- 180:main.c        ****   
- 181:main.c        ****   uint8_t i;
- 182:main.c        ****   arr = arr + (size-1);
+ 249:main.c        ****   
+ 250:main.c        ****   uint8_t i;
+ 251:main.c        ****   arr = arr + (size-1);
  229               	.LM17:
  230 005e 70E0      		ldi r23,0
  231 0060 6150      		subi r22,1
@@ -298,47 +367,47 @@
  235 0068 DD1F      		rol r29
  236 006a C80F      		add r28,r24
  237 006c D91F      		adc r29,r25
- 183:main.c        ****   
- 184:main.c        ****   //starting with last element of array, store value from the previous element
- 185:main.c        ****   for (i=0;i<(size-1);i++){
+ 252:main.c        ****   
+ 253:main.c        ****   //starting with last element of array, store value from the previous element
+ 254:main.c        ****   for (i=0;i<(size-1);i++){
  239               	.LM18:
  240 006e 90E0      		ldi r25,0
  241 0070 00C0      		rjmp .L9
  242               	.L10:
- 179:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
+ 248:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
  244               	.LM19:
  245 0072 FE01      		movw r30,r28
- 186:main.c        ****     *arr = *(arr-1);
+ 255:main.c        ****     *arr = *(arr-1);
  247               	.LM20:
  248 0074 3291      		ld r19,-Z
  249 0076 2291      		ld r18,-Z
  250 0078 3983      		std Y+1,r19
  251 007a 2883      		st Y,r18
- 185:main.c        ****   for (i=0;i<(size-1);i++){
+ 254:main.c        ****   for (i=0;i<(size-1);i++){
  253               	.LM21:
  254 007c 9F5F      		subi r25,lo8(-(1))
- 187:main.c        ****     arr--;
+ 256:main.c        ****     arr--;
  256               	.LM22:
  257 007e EF01      		movw r28,r30
  258               	.L9:
- 185:main.c        ****   for (i=0;i<(size-1);i++){
+ 254:main.c        ****   for (i=0;i<(size-1);i++){
  260               	.LM23:
  261 0080 292F      		mov r18,r25
  262 0082 30E0      		ldi r19,0
  263 0084 2617      		cp r18,r22
  264 0086 3707      		cpc r19,r23
  265 0088 04F0      		brlt .L10
- 188:main.c        ****   }
- 189:main.c        ****   
- 190:main.c        ****   //read ADC for newest value into array
- 191:main.c        ****   *arr = readADC(channel);
+ 257:main.c        ****   }
+ 258:main.c        ****   
+ 259:main.c        ****   //read ADC for newest value into array
+ 260:main.c        ****   *arr = readADC(channel);
  267               	.LM24:
  268 008a 842F      		mov r24,r20
  269 008c 0E94 0000 		call readADC
  270 0090 9983      		std Y+1,r25
  271 0092 8883      		st Y,r24
  272               	/* epilogue start */
- 192:main.c        **** }
+ 261:main.c        **** }
  274               	.LM25:
  275 0094 DF91      		pop r29
  276 0096 CF91      		pop r28
@@ -348,8 +417,8 @@
  288               	.global	getAverage
  290               	getAverage:
  291               		.stabd	46,0,0
- 193:main.c        **** 
- 194:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size){
+ 262:main.c        **** 
+ 263:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size){
  293               	.LM26:
  294               	.LFBB5:
  295               	/* prologue: function */
@@ -358,22 +427,22 @@
  298               	.L__stack_usage = 0
  299 009a FC01      		movw r30,r24
  300 009c 362F      		mov r19,r22
- 195:main.c        ****   
- 196:main.c        ****   uint8_t i;
- 197:main.c        ****   uint16_t avg;
- 198:main.c        ****   uint32_t sum = 0;
+ 264:main.c        ****   
+ 265:main.c        ****   uint8_t i;
+ 266:main.c        ****   uint16_t avg;
+ 267:main.c        ****   uint32_t sum = 0;
  302               	.LM27:
  303 009e 60E0      		ldi r22,0
  304 00a0 70E0      		ldi r23,0
  305 00a2 CB01      		movw r24,r22
- 199:main.c        ****       
- 200:main.c        ****   //sum all elements in array
- 201:main.c        ****   for(i=0;i<size;i++){
+ 268:main.c        ****       
+ 269:main.c        ****   //sum all elements in array
+ 270:main.c        ****   for(i=0;i<size;i++){
  307               	.LM28:
  308 00a4 20E0      		ldi r18,0
  309 00a6 00C0      		rjmp .L12
  310               	.L13:
- 202:main.c        ****     sum = sum + *arr;
+ 271:main.c        ****     sum = sum + *arr;
  312               	.LM29:
  313 00a8 4191      		ld r20,Z+
  314 00aa 5191      		ld r21,Z+
@@ -381,818 +450,667 @@
  316 00ae 751F      		adc r23,r21
  317 00b0 811D      		adc r24,__zero_reg__
  318 00b2 911D      		adc r25,__zero_reg__
- 201:main.c        ****   for(i=0;i<size;i++){
+ 270:main.c        ****   for(i=0;i<size;i++){
  320               	.LM30:
  321 00b4 2F5F      		subi r18,lo8(-(1))
  322               	.L12:
- 201:main.c        ****   for(i=0;i<size;i++){
+ 270:main.c        ****   for(i=0;i<size;i++){
  324               	.LM31:
  325 00b6 2313      		cpse r18,r19
  326 00b8 00C0      		rjmp .L13
- 203:main.c        ****     arr++;
- 204:main.c        ****   }
- 205:main.c        ****   
- 206:main.c        ****   //calculate avg and return 
- 207:main.c        ****   avg = sum / size;
+ 272:main.c        ****     arr++;
+ 273:main.c        ****   }
+ 274:main.c        ****   
+ 275:main.c        ****   //calculate avg and return 
+ 276:main.c        ****   avg = sum / size;
  328               	.LM32:
  329 00ba 30E0      		ldi r19,0
  330 00bc 40E0      		ldi r20,0
  331 00be 50E0      		ldi r21,0
  332 00c0 0E94 0000 		call __udivmodsi4
- 208:main.c        ****   return avg;
- 209:main.c        **** }
+ 277:main.c        ****   return avg;
+ 278:main.c        **** }
  334               	.LM33:
  335 00c4 C901      		movw r24,r18
  336 00c6 0895      		ret
  342               	.Lscope5:
  344               		.stabd	78,0,0
- 346               	.global	blinkTwice
- 348               	blinkTwice:
+ 346               	.global	initTimer1Servo
+ 348               	initTimer1Servo:
  349               		.stabd	46,0,0
- 210:main.c        **** 
- 211:main.c        **** void blinkTwice(void){
+ 279:main.c        **** 
+ 280:main.c        **** void initTimer1Servo(void) {
  351               	.LM34:
  352               	.LFBB6:
  353               	/* prologue: function */
  354               	/* frame size = 0 */
  355               	/* stack size = 0 */
  356               	.L__stack_usage = 0
- 212:main.c        ****   //blink LED
- 213:main.c        ****   DDRB |= (1 << PB2);
+ 281:main.c        ****   /* Set up Timer1 (16bit) to give a pulse every 50ms */
+ 282:main.c        ****   
+ 283:main.c        ****   //Use Fast PWM mode, counter max in ICR1
+ 284:main.c        ****   TCCR1A |= (1 << WGM11);
  358               	.LM35:
- 359 00c8 229A      		sbi 0x4,2
- 214:main.c        ****   toggle('B', 2);
- 361               	.LM36:
- 362 00ca 62E0      		ldi r22,lo8(2)
- 363 00cc 70E0      		ldi r23,0
- 364 00ce 82E4      		ldi r24,lo8(66)
- 365 00d0 0E94 0000 		call toggle
- 366               	.LBB10:
- 367               	.LBB11:
- 369               	.Ltext1:
-   1:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
-   2:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
-   3:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
-   4:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    All rights reserved.
-   5:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-   6:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
-   7:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
-   8:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-   9:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
-  10:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
-  11:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  12:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
-  13:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
-  14:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      the documentation and/or other materials provided with the
-  15:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      distribution.
-  16:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  17:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
-  18:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
-  19:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****      from this software without specific prior written permission.
-  20:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  21:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  22:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  23:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  24:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-  25:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-  26:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  27:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-  28:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-  29:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  30:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  31:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
-  32:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  33:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /* $Id: delay.h.in 2251 2011-09-14 08:20:33Z joerg_wunsch $ */
-  34:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  35:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
-  36:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
-  37:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  38:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #ifndef __HAS_DELAY_CYCLES
-  39:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #define __HAS_DELAY_CYCLES 1
-  40:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
-  41:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  42:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #include <inttypes.h>
-  43:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #include <util/delay_basic.h>
-  44:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #include <math.h>
-  45:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  46:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /** \file */
-  47:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
-  48:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     \code
-  49:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
-  50:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
-  51:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     #include <util/delay.h>
-  52:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     \endcode
-  53:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  54:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
-  55:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
-  56:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
-  57:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     used.
-  58:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  59:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
-  60:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
-  61:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     convenience functions where actual time values can be specified
-  62:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
-  63:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
-  64:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
-  65:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
-  66:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
-  67:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  68:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
-  69:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
-  70:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
-  71:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
-  72:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
-  73:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
-  74:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
-  75:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     routines linked into the application.
-  76:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  77:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
-  78:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
-  79:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
-  80:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  81:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** */
-  82:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  83:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
-  84:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** static inline void _delay_us(double __us) __attribute__((always_inline));
-  85:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** static inline void _delay_ms(double __ms) __attribute__((always_inline));
-  86:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
-  87:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  88:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #ifndef F_CPU
-  89:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
-  90:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
-  91:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** # define F_CPU 1000000UL
-  92:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
-  93:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  94:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #ifndef __OPTIMIZE__
-  95:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
-  96:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
-  97:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
-  98:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
-  99:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
- 100:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   __STDC_HOSTED__
- 101:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #  include <math.h>
- 102:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #endif
- 103:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 104:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** /**
- 105:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    \ingroup util_delay
- 106:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 107:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
- 108:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 109:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
- 110:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
- 111:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 112:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
- 113:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 114:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
- 115:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
- 116:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
- 117:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
- 118:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    user will not be informed about decreased resolution.
- 119:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 120:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles(unsigned long)
- 121:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
- 122:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
- 123:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    no delay i.e., 0ms.
- 124:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 125:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Conversion of __us into clock cycles may not always result in integer.
- 126:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    By default, the clock cycles rounded up to next integer. This ensures that
- 127:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    the user gets atleast __us microseconds of delay.
- 128:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 129:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Alternatively, user can define __DELAY_ROUND_DOWN__ and __DELAY_ROUND_CLOSEST__
- 130:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    to round down and round to closest integer.
- 131:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 132:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Note: The new implementation of _delay_ms(double __ms) with 
- 133:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****     __builtin_avr_delay_cycles(unsigned long) support is not backward compatible. 
- 134:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    User can define __DELAY_BACKWARD_COMPATIBLE__ to get a backward compatible delay.
- 135:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    Also, the backward compatible
- 136:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    algorithm will be chosen if the code is compiled in a <em>freestanding
- 137:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    environment</em> (GCC option \c -ffreestanding), as the math functions
- 138:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****    required for rounding are not available to the compiler then.
- 139:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 140:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****  */
- 141:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** void
- 142:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** _delay_ms(double __ms)
- 143:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** {
- 144:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	uint16_t __ticks;
- 145:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	double __tmp ; 
- 146:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
- 147:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
- 148:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h ****   __STDC_HOSTED__
- 149:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	uint32_t __ticks_dc;
- 150:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
- 151:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
- 152:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 153:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
- 154:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
- 155:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 156:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
- 157:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
- 158:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 159:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	#else
- 160:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 		//round up by default
- 161:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
- 162:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	#endif
- 163:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 
- 164:/usr/lib/gcc/avr/4.7.2/../../../avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
- 371               	.LM37:
- 372 00d4 8FE4      		ldi r24,lo8(-15537)
- 373 00d6 93EC      		ldi r25,hi8(-15537)
- 374 00d8 0197      		1: sbiw r24,1
- 375 00da 01F4      		brne 1b
- 376 00dc 00C0      		rjmp .
- 377 00de 0000      		nop
- 378               	.LBE11:
- 379               	.LBE10:
- 381               	.Ltext2:
- 215:main.c        ****   _delay_ms(200);
- 216:main.c        ****   toggle('B', 2);
- 383               	.LM38:
- 384 00e0 62E0      		ldi r22,lo8(2)
- 385 00e2 70E0      		ldi r23,0
- 386 00e4 82E4      		ldi r24,lo8(66)
- 387 00e6 0E94 0000 		call toggle
- 388               	.LBB12:
- 389               	.LBB13:
- 391               	.Ltext3:
- 393               	.LM39:
- 394 00ea 8FE4      		ldi r24,lo8(-15537)
- 395 00ec 93EC      		ldi r25,hi8(-15537)
- 396 00ee 0197      		1: sbiw r24,1
- 397 00f0 01F4      		brne 1b
- 398 00f2 00C0      		rjmp .
- 399 00f4 0000      		nop
- 400               	.LBE13:
- 401               	.LBE12:
- 403               	.Ltext4:
- 217:main.c        ****   _delay_ms(200);
- 218:main.c        ****   toggle('B', 2);
- 405               	.LM40:
- 406 00f6 62E0      		ldi r22,lo8(2)
- 407 00f8 70E0      		ldi r23,0
- 408 00fa 82E4      		ldi r24,lo8(66)
- 409 00fc 0E94 0000 		call toggle
- 410               	.LBB14:
- 411               	.LBB15:
- 413               	.Ltext5:
- 415               	.LM41:
- 416 0100 8FE4      		ldi r24,lo8(-15537)
- 417 0102 93EC      		ldi r25,hi8(-15537)
- 418 0104 0197      		1: sbiw r24,1
- 419 0106 01F4      		brne 1b
- 420 0108 00C0      		rjmp .
- 421 010a 0000      		nop
- 422               	.LBE15:
- 423               	.LBE14:
- 425               	.Ltext6:
- 219:main.c        ****   _delay_ms(200);
- 220:main.c        ****   toggle('B', 2);
- 427               	.LM42:
- 428 010c 62E0      		ldi r22,lo8(2)
- 429 010e 70E0      		ldi r23,0
- 430 0110 82E4      		ldi r24,lo8(66)
- 431 0112 0E94 0000 		call toggle
- 432               	.LBB16:
- 433               	.LBB17:
- 435               	.Ltext7:
- 437               	.LM43:
- 438 0116 8FE4      		ldi r24,lo8(-15537)
- 439 0118 93EC      		ldi r25,hi8(-15537)
- 440 011a 0197      		1: sbiw r24,1
- 441 011c 01F4      		brne 1b
- 442 011e 00C0      		rjmp .
- 443 0120 0000      		nop
- 444 0122 0895      		ret
- 445               	.LBE17:
- 446               	.LBE16:
- 448               	.Lscope6:
- 450               		.stabd	78,0,0
- 452               	.global	initTimer1Servo
- 454               	initTimer1Servo:
- 455               		.stabd	46,0,0
- 457               	.Ltext8:
- 221:main.c        ****   _delay_ms(200);
- 222:main.c        **** }
- 223:main.c        **** 
- 224:main.c        **** void initTimer1Servo(void) {
- 459               	.LM44:
- 460               	.LFBB7:
- 461               	/* prologue: function */
- 462               	/* frame size = 0 */
- 463               	/* stack size = 0 */
- 464               	.L__stack_usage = 0
- 225:main.c        ****   /* Set up Timer1 (16bit) to give a pulse every 50ms */
- 226:main.c        ****   
- 227:main.c        ****   //Use Fast PWM mode, counter max in ICR1
- 228:main.c        ****   TCCR1A |= (1 << WGM11);
- 466               	.LM45:
- 467 0124 E0E8      		ldi r30,lo8(-128)
- 468 0126 F0E0      		ldi r31,0
- 469 0128 8081      		ld r24,Z
- 470 012a 8260      		ori r24,lo8(2)
- 471 012c 8083      		st Z,r24
- 229:main.c        ****   TCCR1B |= (1 << WGM12) | (1 << WGM13);
- 473               	.LM46:
- 474 012e A1E8      		ldi r26,lo8(-127)
- 475 0130 B0E0      		ldi r27,0
- 476 0132 8C91      		ld r24,X
- 477 0134 8861      		ori r24,lo8(24)
- 478 0136 8C93      		st X,r24
- 230:main.c        ****   
- 231:main.c        ****   // /1 prescaling -- counting in microseconds
- 232:main.c        ****   TCCR1B |= (1 << CS10);
- 480               	.LM47:
- 481 0138 8C91      		ld r24,X
- 482 013a 8160      		ori r24,lo8(1)
- 483 013c 8C93      		st X,r24
- 233:main.c        ****   
- 234:main.c        ****   //TOP value = 50ms
- 235:main.c        ****   ICR1 = 50000;
- 485               	.LM48:
- 486 013e 80E5      		ldi r24,lo8(80)
- 487 0140 93EC      		ldi r25,lo8(-61)
- 488 0142 9093 8700 		sts 134+1,r25
- 489 0146 8093 8600 		sts 134,r24
- 236:main.c        ****   
- 237:main.c        ****   //Direct output on PB1 (OC1A) and PB2 (OC1B)
- 238:main.c        ****   TCCR1A |= (1 << COM1A1);
- 491               	.LM49:
- 492 014a 8081      		ld r24,Z
- 493 014c 8068      		ori r24,lo8(-128)
- 494 014e 8083      		st Z,r24
- 239:main.c        ****   TCCR1A |= (1 << COM1B1);
- 496               	.LM50:
- 497 0150 8081      		ld r24,Z
- 498 0152 8062      		ori r24,lo8(32)
- 499 0154 8083      		st Z,r24
- 240:main.c        ****   
- 241:main.c        ****   //set pins for output
- 242:main.c        ****   DDRB |= (1 << SERVO1);
- 501               	.LM51:
- 502 0156 219A      		sbi 0x4,1
- 243:main.c        ****   DDRB |= (1 << SERVO2);
- 504               	.LM52:
- 505 0158 229A      		sbi 0x4,2
- 506 015a 0895      		ret
- 508               	.Lscope7:
- 510               		.stabd	78,0,0
- 512               	.global	initTimer0PWM
- 514               	initTimer0PWM:
- 515               		.stabd	46,0,0
- 244:main.c        **** }
- 245:main.c        **** 
- 246:main.c        **** void initTimer0PWM(void){
- 517               	.LM53:
- 518               	.LFBB8:
- 519               	/* prologue: function */
- 520               	/* frame size = 0 */
- 521               	/* stack size = 0 */
- 522               	.L__stack_usage = 0
- 247:main.c        ****   /* Set up Timer0 (8bit) */
- 248:main.c        ****   
- 249:main.c        ****   //Use Mode 3, FastPWM
- 250:main.c        ****   TCCR0A |= (1 << WGM00) | (1 << WGM01);
- 524               	.LM54:
- 525 015c 84B5      		in r24,0x24
- 526 015e 8360      		ori r24,lo8(3)
- 527 0160 84BD      		out 0x24,r24
- 251:main.c        **** 
- 252:main.c        ****   //Clear at match, set at bottom
- 253:main.c        ****   TCCR0A |= (1 << COM0A1) | (1 << COM0B1);
- 529               	.LM55:
- 530 0162 84B5      		in r24,0x24
- 531 0164 806A      		ori r24,lo8(-96)
- 532 0166 84BD      		out 0x24,r24
- 254:main.c        ****   
- 255:main.c        ****   // No prescale, gives freq = ~4kHz
- 256:main.c        ****   TCCR0B |= (1<<CS00);
- 534               	.LM56:
- 535 0168 85B5      		in r24,0x25
- 536 016a 8160      		ori r24,lo8(1)
- 537 016c 85BD      		out 0x25,r24
- 257:main.c        ****   
- 258:main.c        ****   //set pins for output
- 259:main.c        ****   DDRD |= (1 << DRIVER1PWM) | (1 << DRIVER2PWM);
- 539               	.LM57:
- 540 016e 8AB1      		in r24,0xa
- 541 0170 8066      		ori r24,lo8(96)
- 542 0172 8AB9      		out 0xa,r24
- 543 0174 0895      		ret
- 545               	.Lscope8:
- 547               		.stabd	78,0,0
- 549               	.global	initMotorDriverIO
- 551               	initMotorDriverIO:
- 552               		.stabd	46,0,0
- 260:main.c        **** }
- 261:main.c        **** 
- 262:main.c        **** void initMotorDriverIO(void){
- 554               	.LM58:
- 555               	.LFBB9:
- 556               	/* prologue: function */
- 557               	/* frame size = 0 */
- 558               	/* stack size = 0 */
- 559               	.L__stack_usage = 0
- 263:main.c        ****   //set for output
- 264:main.c        ****   DDRB |= (1<<DRIVER1A);
- 561               	.LM59:
- 562 0176 209A      		sbi 0x4,0
- 265:main.c        ****   DDRB |= (1<<DRIVER1B);
- 564               	.LM60:
- 565 0178 249A      		sbi 0x4,4
- 266:main.c        ****   DDRB |= (1<<DRIVER2A);
- 567               	.LM61:
- 568 017a 249A      		sbi 0x4,4
- 267:main.c        ****   DDRB |= (1<<DRIVER2B);
- 570               	.LM62:
- 571 017c 259A      		sbi 0x4,5
- 268:main.c        ****   //init to zero
- 269:main.c        ****   pin_lo('B',DRIVER1A);
- 573               	.LM63:
- 574 017e 60E0      		ldi r22,0
- 575 0180 70E0      		ldi r23,0
- 576 0182 82E4      		ldi r24,lo8(66)
- 577 0184 0E94 0000 		call pin_lo
- 270:main.c        ****   pin_lo('D',DRIVER1B);
- 579               	.LM64:
- 580 0188 64E0      		ldi r22,lo8(4)
- 581 018a 70E0      		ldi r23,0
- 582 018c 84E4      		ldi r24,lo8(68)
- 583 018e 0E94 0000 		call pin_lo
- 271:main.c        ****   pin_lo('B',DRIVER2A);
- 585               	.LM65:
- 586 0192 64E0      		ldi r22,lo8(4)
- 587 0194 70E0      		ldi r23,0
- 588 0196 82E4      		ldi r24,lo8(66)
- 589 0198 0E94 0000 		call pin_lo
- 272:main.c        ****   pin_lo('B',DRIVER2B);
- 591               	.LM66:
- 592 019c 65E0      		ldi r22,lo8(5)
- 593 019e 70E0      		ldi r23,0
- 594 01a0 82E4      		ldi r24,lo8(66)
- 595 01a2 0C94 0000 		jmp pin_lo
- 597               	.Lscope9:
- 599               		.stabd	78,0,0
- 600               	.global	__floatunsisf
- 601               	.global	__subsf3
- 602               	.global	__mulsf3
- 603               	.global	__fixunssfsi
- 604               	.global	__addsf3
- 605               		.section	.text.startup,"ax",@progbits
- 607               	.global	main
- 609               	main:
- 610               		.stabd	46,0,0
+ 359 00c8 E0E8      		ldi r30,lo8(-128)
+ 360 00ca F0E0      		ldi r31,0
+ 361 00cc 8081      		ld r24,Z
+ 362 00ce 8260      		ori r24,lo8(2)
+ 363 00d0 8083      		st Z,r24
+ 285:main.c        ****   TCCR1B |= (1 << WGM12) | (1 << WGM13);
+ 365               	.LM36:
+ 366 00d2 A1E8      		ldi r26,lo8(-127)
+ 367 00d4 B0E0      		ldi r27,0
+ 368 00d6 8C91      		ld r24,X
+ 369 00d8 8861      		ori r24,lo8(24)
+ 370 00da 8C93      		st X,r24
+ 286:main.c        ****   
+ 287:main.c        ****   // /1 prescaling -- counting in microseconds
+ 288:main.c        ****   TCCR1B |= (1 << CS10);
+ 372               	.LM37:
+ 373 00dc 8C91      		ld r24,X
+ 374 00de 8160      		ori r24,lo8(1)
+ 375 00e0 8C93      		st X,r24
+ 289:main.c        ****   
+ 290:main.c        ****   //TOP value = 50ms
+ 291:main.c        ****   ICR1 = 50000;
+ 377               	.LM38:
+ 378 00e2 80E5      		ldi r24,lo8(80)
+ 379 00e4 93EC      		ldi r25,lo8(-61)
+ 380 00e6 9093 8700 		sts 134+1,r25
+ 381 00ea 8093 8600 		sts 134,r24
+ 292:main.c        ****   
+ 293:main.c        ****   //Direct output on PB1 (OC1A) and PB2 (OC1B)
+ 294:main.c        ****   TCCR1A |= (1 << COM1A1);
+ 383               	.LM39:
+ 384 00ee 8081      		ld r24,Z
+ 385 00f0 8068      		ori r24,lo8(-128)
+ 386 00f2 8083      		st Z,r24
+ 295:main.c        ****   TCCR1A |= (1 << COM1B1);
+ 388               	.LM40:
+ 389 00f4 8081      		ld r24,Z
+ 390 00f6 8062      		ori r24,lo8(32)
+ 391 00f8 8083      		st Z,r24
+ 296:main.c        ****   
+ 297:main.c        ****   //set pins for output
+ 298:main.c        ****   DDRB |= (1 << SERVO1);
+ 393               	.LM41:
+ 394 00fa 219A      		sbi 0x4,1
+ 299:main.c        ****   DDRB |= (1 << SERVO2);
+ 396               	.LM42:
+ 397 00fc 229A      		sbi 0x4,2
+ 398 00fe 0895      		ret
+ 400               	.Lscope6:
+ 402               		.stabd	78,0,0
+ 404               	.global	initTimer0PWM
+ 406               	initTimer0PWM:
+ 407               		.stabd	46,0,0
+ 300:main.c        **** }
+ 301:main.c        **** 
+ 302:main.c        **** void initTimer0PWM(void){
+ 409               	.LM43:
+ 410               	.LFBB7:
+ 411               	/* prologue: function */
+ 412               	/* frame size = 0 */
+ 413               	/* stack size = 0 */
+ 414               	.L__stack_usage = 0
+ 303:main.c        ****   /* Set up Timer0 (8bit) */
+ 304:main.c        ****   
+ 305:main.c        ****   //Use Mode 3, FastPWM
+ 306:main.c        ****   TCCR0A |= (1 << WGM00) | (1 << WGM01);
+ 416               	.LM44:
+ 417 0100 84B5      		in r24,0x24
+ 418 0102 8360      		ori r24,lo8(3)
+ 419 0104 84BD      		out 0x24,r24
+ 307:main.c        **** 
+ 308:main.c        ****   //Clear at match, set at bottom
+ 309:main.c        ****   TCCR0A |= (1 << COM0A1) | (1 << COM0B1);
+ 421               	.LM45:
+ 422 0106 84B5      		in r24,0x24
+ 423 0108 806A      		ori r24,lo8(-96)
+ 424 010a 84BD      		out 0x24,r24
+ 310:main.c        ****   
+ 311:main.c        ****   // No prescale, gives freq = ~4kHz
+ 312:main.c        ****   TCCR0B |= (1<<CS00);
+ 426               	.LM46:
+ 427 010c 85B5      		in r24,0x25
+ 428 010e 8160      		ori r24,lo8(1)
+ 429 0110 85BD      		out 0x25,r24
+ 313:main.c        ****   
+ 314:main.c        ****   //set pins for output
+ 315:main.c        ****   DDRD |= (1 << DRIVER1PWM) | (1 << DRIVER2PWM);
+ 431               	.LM47:
+ 432 0112 8AB1      		in r24,0xa
+ 433 0114 8066      		ori r24,lo8(96)
+ 434 0116 8AB9      		out 0xa,r24
+ 435 0118 0895      		ret
+ 437               	.Lscope7:
+ 439               		.stabd	78,0,0
+ 441               	.global	initMotorDriverIO
+ 443               	initMotorDriverIO:
+ 444               		.stabd	46,0,0
+ 316:main.c        **** }
+ 317:main.c        **** 
+ 318:main.c        **** void initMotorDriverIO(void){
+ 446               	.LM48:
+ 447               	.LFBB8:
+ 448               	/* prologue: function */
+ 449               	/* frame size = 0 */
+ 450               	/* stack size = 0 */
+ 451               	.L__stack_usage = 0
+ 319:main.c        ****   //set for output
+ 320:main.c        ****   DDRB |= (1<<DRIVER1A);
+ 453               	.LM49:
+ 454 011a 209A      		sbi 0x4,0
+ 321:main.c        ****   DDRB |= (1<<DRIVER1B);
+ 456               	.LM50:
+ 457 011c 249A      		sbi 0x4,4
+ 322:main.c        ****   DDRB |= (1<<DRIVER2A);
+ 459               	.LM51:
+ 460 011e 249A      		sbi 0x4,4
+ 323:main.c        ****   DDRB |= (1<<DRIVER2B);
+ 462               	.LM52:
+ 463 0120 259A      		sbi 0x4,5
+ 324:main.c        ****   //init to zero
+ 325:main.c        ****   pin_lo('B',DRIVER1A);
+ 465               	.LM53:
+ 466 0122 60E0      		ldi r22,0
+ 467 0124 70E0      		ldi r23,0
+ 468 0126 82E4      		ldi r24,lo8(66)
+ 469 0128 0E94 0000 		call pin_lo
+ 326:main.c        ****   pin_lo('D',DRIVER1B);
+ 471               	.LM54:
+ 472 012c 64E0      		ldi r22,lo8(4)
+ 473 012e 70E0      		ldi r23,0
+ 474 0130 84E4      		ldi r24,lo8(68)
+ 475 0132 0E94 0000 		call pin_lo
+ 327:main.c        ****   pin_lo('B',DRIVER2A);
+ 477               	.LM55:
+ 478 0136 64E0      		ldi r22,lo8(4)
+ 479 0138 70E0      		ldi r23,0
+ 480 013a 82E4      		ldi r24,lo8(66)
+ 481 013c 0E94 0000 		call pin_lo
+ 328:main.c        ****   pin_lo('B',DRIVER2B);
+ 483               	.LM56:
+ 484 0140 65E0      		ldi r22,lo8(5)
+ 485 0142 70E0      		ldi r23,0
+ 486 0144 82E4      		ldi r24,lo8(66)
+ 487 0146 0C94 0000 		jmp pin_lo
+ 489               	.Lscope8:
+ 491               		.stabd	78,0,0
+ 492               	.global	__floatunsisf
+ 493               	.global	__subsf3
+ 494               	.global	__mulsf3
+ 495               	.global	__fixunssfsi
+ 496               	.global	__addsf3
+ 497               		.section	.text.startup,"ax",@progbits
+ 499               	.global	main
+ 501               	main:
+ 502               		.stabd	46,0,0
   43:main.c        **** int main(void) {
- 612               	.LM67:
- 613               	.LFBB10:
- 614 0000 CF93      		push r28
- 615 0002 DF93      		push r29
- 616 0004 CDB7      		in r28,__SP_L__
- 617 0006 DEB7      		in r29,__SP_H__
- 618 0008 C45A      		subi r28,-92
- 619 000a D140      		sbci r29,1
- 620 000c 0FB6      		in __tmp_reg__,__SREG__
- 621 000e F894      		cli
- 622 0010 DEBF      		out __SP_H__,r29
- 623 0012 0FBE      		out __SREG__,__tmp_reg__
- 624 0014 CDBF      		out __SP_L__,r28
- 625               	/* prologue: function */
- 626               	/* frame size = 420 */
- 627               	/* stack size = 422 */
- 628               	.L__stack_usage = 422
-  46:main.c        ****   blinkTwice();
- 630               	.LM68:
- 631 0016 0E94 0000 		call blinkTwice
-  49:main.c        ****   initADC();
- 633               	.LM69:
- 634 001a 0E94 0000 		call initADC
-  50:main.c        ****   initTimer1Servo();
- 636               	.LM70:
- 637 001e 0E94 0000 		call initTimer1Servo
-  51:main.c        ****   initMotorDriverIO();
- 639               	.LM71:
- 640 0022 0E94 0000 		call initMotorDriverIO
-  52:main.c        ****   initTimer0PWM();
- 642               	.LM72:
- 643 0026 0E94 0000 		call initTimer0PWM
-  71:main.c        ****   verticalPointer = &verticalValue[0];
- 645               	.LM73:
- 646 002a 4E01      		movw r8,r28
- 647 002c 83ED      		ldi r24,-45
- 648 002e 881A      		sub r8,r24
- 649 0030 8EEF      		ldi r24,-2
- 650 0032 980A      		sbc r9,r24
-  91:main.c        ****   initValues(verticalPointer, joySize, 511);
- 652               	.LM74:
- 653 0034 4FEF      		ldi r20,lo8(-1)
- 654 0036 51E0      		ldi r21,lo8(1)
- 655 0038 6EE1      		ldi r22,lo8(30)
- 656 003a C401      		movw r24,r8
- 657 003c 0E94 0000 		call initValues
-  72:main.c        ****   horizontalPointer = &horizontalValue[0];
- 659               	.LM75:
- 660 0040 5E01      		movw r10,r28
- 661 0042 87E9      		ldi r24,-105
- 662 0044 A81A      		sub r10,r24
- 663 0046 8EEF      		ldi r24,-2
- 664 0048 B80A      		sbc r11,r24
-  92:main.c        ****   initValues(horizontalPointer, joySize, 511);
- 666               	.LM76:
- 667 004a 4FEF      		ldi r20,lo8(-1)
- 668 004c 51E0      		ldi r21,lo8(1)
- 669 004e 6EE1      		ldi r22,lo8(30)
- 670 0050 C501      		movw r24,r10
- 671 0052 0E94 0000 		call initValues
-  93:main.c        ****   initValues(topSliderPointer, slideSize, 0);
- 673               	.LM77:
- 674 0056 40E0      		ldi r20,0
- 675 0058 50E0      		ldi r21,0
- 676 005a 6BE4      		ldi r22,lo8(75)
- 677 005c EE24      		clr r14
- 678 005e E394      		inc r14
- 679 0060 F12C      		mov r15,__zero_reg__
- 680 0062 EC0E      		add r14,r28
- 681 0064 FD1E      		adc r15,r29
- 682 0066 C701      		movw r24,r14
- 683 0068 0E94 0000 		call initValues
-  74:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
- 685               	.LM78:
- 686 006c 8E01      		movw r16,r28
- 687 006e 0956      		subi r16,105
- 688 0070 1F4F      		sbci r17,-1
-  94:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
- 690               	.LM79:
- 691 0072 40E0      		ldi r20,0
- 692 0074 50E0      		ldi r21,0
- 693 0076 6BE4      		ldi r22,lo8(75)
- 694 0078 C801      		movw r24,r16
- 695 007a 0E94 0000 		call initValues
-  71:main.c        ****   verticalPointer = &verticalValue[0];
- 697               	.LM80:
- 698 007e D82C      		mov r13,r8
- 699 0080 C92C      		mov r12,r9
-  72:main.c        ****   horizontalPointer = &horizontalValue[0];
- 701               	.LM81:
- 702 0082 7A2C      		mov r7,r10
- 703 0084 6B2C      		mov r6,r11
- 105:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
- 705               	.LM82:
- 706 0086 BE2C      		mov r11,r14
- 707 0088 AF2C      		mov r10,r15
-  74:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
- 709               	.LM83:
- 710 008a 902E      		mov r9,r16
- 711 008c 812E      		mov r8,r17
- 712               	.L22:
-  99:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
- 714               	.LM84:
- 715 008e 40E0      		ldi r20,0
- 716 0090 6EE1      		ldi r22,lo8(30)
- 717 0092 8D2D      		mov r24,r13
- 718 0094 9C2D      		mov r25,r12
- 719 0096 0E94 0000 		call storeNewADC
- 100:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
- 721               	.LM85:
- 722 009a 6EE1      		ldi r22,lo8(30)
- 723 009c 8D2D      		mov r24,r13
- 724 009e 9C2D      		mov r25,r12
- 725 00a0 0E94 0000 		call getAverage
- 726 00a4 2C01      		movw r4,r24
- 102:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
- 728               	.LM86:
- 729 00a6 41E0      		ldi r20,lo8(1)
- 730 00a8 6EE1      		ldi r22,lo8(30)
- 731 00aa 872D      		mov r24,r7
- 732 00ac 962D      		mov r25,r6
- 733 00ae 0E94 0000 		call storeNewADC
- 105:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
- 735               	.LM87:
- 736 00b2 42E0      		ldi r20,lo8(2)
- 737 00b4 6BE4      		ldi r22,lo8(75)
- 738 00b6 8B2D      		mov r24,r11
- 739 00b8 9A2D      		mov r25,r10
- 740 00ba 0E94 0000 		call storeNewADC
- 106:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
- 742               	.LM88:
- 743 00be 6BE4      		ldi r22,lo8(75)
- 744 00c0 8B2D      		mov r24,r11
- 745 00c2 9A2D      		mov r25,r10
- 746 00c4 0E94 0000 		call getAverage
- 747 00c8 7C01      		movw r14,r24
- 108:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
- 749               	.LM89:
- 750 00ca 43E0      		ldi r20,lo8(3)
- 751 00cc 6BE4      		ldi r22,lo8(75)
- 752 00ce 892D      		mov r24,r9
- 753 00d0 982D      		mov r25,r8
- 754 00d2 0E94 0000 		call storeNewADC
- 109:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
- 756               	.LM90:
- 757 00d6 6BE4      		ldi r22,lo8(75)
- 758 00d8 892D      		mov r24,r9
- 759 00da 982D      		mov r25,r8
- 760 00dc 0E94 0000 		call getAverage
- 761 00e0 8C01      		movw r16,r24
- 114:main.c        ****       pin_hi('B', DRIVER1A);
- 763               	.LM91:
- 764 00e2 60E0      		ldi r22,0
- 765 00e4 70E0      		ldi r23,0
- 112:main.c        ****     if(avgVerticalValue > 561){   //if joystick pushed forwards
+ 504               	.LM57:
+ 505               	.LFBB9:
+ 506 0000 CF93      		push r28
+ 507 0002 DF93      		push r29
+ 508 0004 CDB7      		in r28,__SP_L__
+ 509 0006 DEB7      		in r29,__SP_H__
+ 510 0008 C85A      		subi r28,-88
+ 511 000a D140      		sbci r29,1
+ 512 000c 0FB6      		in __tmp_reg__,__SREG__
+ 513 000e F894      		cli
+ 514 0010 DEBF      		out __SP_H__,r29
+ 515 0012 0FBE      		out __SREG__,__tmp_reg__
+ 516 0014 CDBF      		out __SP_L__,r28
+ 517               	/* prologue: function */
+ 518               	/* frame size = 424 */
+ 519               	/* stack size = 426 */
+ 520               	.L__stack_usage = 426
+  46:main.c        ****   initADC();
+ 522               	.LM58:
+ 523 0016 0E94 0000 		call initADC
+  47:main.c        ****   initTimer1Servo();
+ 525               	.LM59:
+ 526 001a 0E94 0000 		call initTimer1Servo
+  48:main.c        ****   initMotorDriverIO();
+ 528               	.LM60:
+ 529 001e 0E94 0000 		call initMotorDriverIO
+  49:main.c        ****   initTimer0PWM();
+ 531               	.LM61:
+ 532 0022 0E94 0000 		call initTimer0PWM
+  68:main.c        ****   verticalPointer = &verticalValue[0];
+ 534               	.LM62:
+ 535 0026 5E01      		movw r10,r28
+ 536 0028 83ED      		ldi r24,-45
+ 537 002a A81A      		sub r10,r24
+ 538 002c 8EEF      		ldi r24,-2
+ 539 002e B80A      		sbc r11,r24
+  90:main.c        ****   initValues(verticalPointer, joySize, 511);
+ 541               	.LM63:
+ 542 0030 4FEF      		ldi r20,lo8(-1)
+ 543 0032 51E0      		ldi r21,lo8(1)
+ 544 0034 6EE1      		ldi r22,lo8(30)
+ 545 0036 C501      		movw r24,r10
+ 546 0038 0E94 0000 		call initValues
+  69:main.c        ****   horizontalPointer = &horizontalValue[0];
+ 548               	.LM64:
+ 549 003c 6E01      		movw r12,r28
+ 550 003e 87E9      		ldi r24,-105
+ 551 0040 C81A      		sub r12,r24
+ 552 0042 8EEF      		ldi r24,-2
+ 553 0044 D80A      		sbc r13,r24
+  91:main.c        ****   initValues(horizontalPointer, joySize, 511);
+ 555               	.LM65:
+ 556 0046 4FEF      		ldi r20,lo8(-1)
+ 557 0048 51E0      		ldi r21,lo8(1)
+ 558 004a 6EE1      		ldi r22,lo8(30)
+ 559 004c C601      		movw r24,r12
+ 560 004e 0E94 0000 		call initValues
+  92:main.c        ****   initValues(topSliderPointer, slideSize, 0);
+ 562               	.LM66:
+ 563 0052 40E0      		ldi r20,0
+ 564 0054 50E0      		ldi r21,0
+ 565 0056 6BE4      		ldi r22,lo8(75)
+ 566 0058 EE24      		clr r14
+ 567 005a E394      		inc r14
+ 568 005c F12C      		mov r15,__zero_reg__
+ 569 005e EC0E      		add r14,r28
+ 570 0060 FD1E      		adc r15,r29
+ 571 0062 C701      		movw r24,r14
+ 572 0064 0E94 0000 		call initValues
+  71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
+ 574               	.LM67:
+ 575 0068 8E01      		movw r16,r28
+ 576 006a 0956      		subi r16,105
+ 577 006c 1F4F      		sbci r17,-1
+  93:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
+ 579               	.LM68:
+ 580 006e 40E0      		ldi r20,0
+ 581 0070 50E0      		ldi r21,0
+ 582 0072 6BE4      		ldi r22,lo8(75)
+ 583 0074 C801      		movw r24,r16
+ 584 0076 0E94 0000 		call initValues
+  68:main.c        ****   verticalPointer = &verticalValue[0];
+ 586               	.LM69:
+ 587 007a 7A2C      		mov r7,r10
+ 588 007c 6B2C      		mov r6,r11
+  69:main.c        ****   horizontalPointer = &horizontalValue[0];
+ 590               	.LM70:
+ 591 007e CB55      		subi r28,lo8(-421)
+ 592 0080 DE4F      		sbci r29,hi8(-421)
+ 593 0082 C882      		st Y,r12
+ 594 0084 C55A      		subi r28,lo8(421)
+ 595 0086 D140      		sbci r29,hi8(421)
+ 596 0088 CA55      		subi r28,lo8(-422)
+ 597 008a DE4F      		sbci r29,hi8(-422)
+ 598 008c D882      		st Y,r13
+ 599 008e C65A      		subi r28,lo8(422)
+ 600 0090 D140      		sbci r29,hi8(422)
+ 104:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
+ 602               	.LM71:
+ 603 0092 5E2C      		mov r5,r14
+ 604 0094 4F2C      		mov r4,r15
+  71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
+ 606               	.LM72:
+ 607 0096 302E      		mov r3,r16
+ 608 0098 212E      		mov r2,r17
+ 609               	.L25:
+  98:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
+ 611               	.LM73:
+ 612 009a 40E0      		ldi r20,0
+ 613 009c 6EE1      		ldi r22,lo8(30)
+ 614 009e 872D      		mov r24,r7
+ 615 00a0 962D      		mov r25,r6
+ 616 00a2 0E94 0000 		call storeNewADC
+  99:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
+ 618               	.LM74:
+ 619 00a6 6EE1      		ldi r22,lo8(30)
+ 620 00a8 872D      		mov r24,r7
+ 621 00aa 962D      		mov r25,r6
+ 622 00ac 0E94 0000 		call getAverage
+ 623 00b0 8C01      		movw r16,r24
+ 101:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
+ 625               	.LM75:
+ 626 00b2 41E0      		ldi r20,lo8(1)
+ 627 00b4 6EE1      		ldi r22,lo8(30)
+ 628 00b6 CB55      		subi r28,lo8(-421)
+ 629 00b8 DE4F      		sbci r29,hi8(-421)
+ 630 00ba 8881      		ld r24,Y
+ 631 00bc C55A      		subi r28,lo8(421)
+ 632 00be D140      		sbci r29,hi8(421)
+ 633 00c0 CA55      		subi r28,lo8(-422)
+ 634 00c2 DE4F      		sbci r29,hi8(-422)
+ 635 00c4 9881      		ld r25,Y
+ 636 00c6 C65A      		subi r28,lo8(422)
+ 637 00c8 D140      		sbci r29,hi8(422)
+ 638 00ca 0E94 0000 		call storeNewADC
+ 104:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
+ 640               	.LM76:
+ 641 00ce 42E0      		ldi r20,lo8(2)
+ 642 00d0 6BE4      		ldi r22,lo8(75)
+ 643 00d2 852D      		mov r24,r5
+ 644 00d4 942D      		mov r25,r4
+ 645 00d6 0E94 0000 		call storeNewADC
+ 105:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
+ 647               	.LM77:
+ 648 00da 6BE4      		ldi r22,lo8(75)
+ 649 00dc 852D      		mov r24,r5
+ 650 00de 942D      		mov r25,r4
+ 651 00e0 0E94 0000 		call getAverage
+ 652 00e4 7C01      		movw r14,r24
+ 107:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
+ 654               	.LM78:
+ 655 00e6 43E0      		ldi r20,lo8(3)
+ 656 00e8 6BE4      		ldi r22,lo8(75)
+ 657 00ea 832D      		mov r24,r3
+ 658 00ec 922D      		mov r25,r2
+ 659 00ee 0E94 0000 		call storeNewADC
+ 108:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
+ 661               	.LM79:
+ 662 00f2 6BE4      		ldi r22,lo8(75)
+ 663 00f4 832D      		mov r24,r3
+ 664 00f6 922D      		mov r25,r2
+ 665 00f8 0E94 0000 		call getAverage
+ 666 00fc 6C01      		movw r12,r24
+ 122:main.c        ****     if (leftMotor > 1023){
+ 668               	.LM80:
+ 669 00fe 0115      		cp r16,__zero_reg__
+ 670 0100 84E0      		ldi r24,4
+ 671 0102 1807      		cpc r17,r24
+ 672 0104 00F4      		brsh .+2
+ 673 0106 00C0      		rjmp .L18
+ 674               	.L26:
+ 140:main.c        ****       pin_hi('B', DRIVER1A);
+ 676               	.LM81:
+ 677 0108 60E0      		ldi r22,0
+ 678 010a 70E0      		ldi r23,0
+ 679 010c 82E4      		ldi r24,lo8(66)
+ 680 010e 0E94 0000 		call pin_hi
+ 141:main.c        ****       pin_lo('D', DRIVER1B);
+ 682               	.LM82:
+ 683 0112 64E0      		ldi r22,lo8(4)
+ 684 0114 70E0      		ldi r23,0
+ 685 0116 84E4      		ldi r24,lo8(68)
+ 686 0118 0E94 0000 		call pin_lo
+ 143:main.c        ****       convertedLeftValue = ((float)avgVerticalValue - 513.0)/2;
+ 688               	.LM83:
+ 689 011c B801      		movw r22,r16
+ 690 011e 80E0      		ldi r24,0
+ 691 0120 90E0      		ldi r25,0
+ 692 0122 0E94 0000 		call __floatunsisf
+ 693 0126 20E0      		ldi r18,0
+ 694 0128 30E4      		ldi r19,lo8(64)
+ 695 012a 40E0      		ldi r20,0
+ 696 012c 54E4      		ldi r21,lo8(68)
+ 697 012e 0E94 0000 		call __subsf3
+ 698 0132 20E0      		ldi r18,0
+ 699 0134 30E0      		ldi r19,0
+ 700 0136 40E0      		ldi r20,0
+ 701 0138 5FE3      		ldi r21,lo8(63)
+ 702 013a 0E94 0000 		call __mulsf3
+ 703 013e 4B01      		movw r8,r22
+ 704 0140 5C01      		movw r10,r24
+ 158:main.c        ****     if(rightMotor > 561){   //forwards
+ 706               	.LM84:
+ 707 0142 0233      		cpi r16,50
+ 708 0144 82E0      		ldi r24,2
+ 709 0146 1807      		cpc r17,r24
+ 710 0148 00F4      		brsh .+2
+ 711 014a 00C0      		rjmp .L28
+ 712 014c 00C0      		rjmp .L19
+ 713               	.L29:
+ 146:main.c        ****       pin_lo('B', DRIVER1A);
+ 715               	.LM85:
+ 716 014e 60E0      		ldi r22,0
+ 717 0150 70E0      		ldi r23,0
+ 144:main.c        ****     }else if(leftMotor < 461){   //backwards
+ 719               	.LM86:
+ 720 0152 0D3C      		cpi r16,-51
+ 721 0154 81E0      		ldi r24,1
+ 722 0156 1807      		cpc r17,r24
+ 723 0158 00F4      		brsh .L21
+ 146:main.c        ****       pin_lo('B', DRIVER1A);
+ 725               	.LM87:
+ 726 015a 82E4      		ldi r24,lo8(66)
+ 727 015c 0E94 0000 		call pin_lo
+ 147:main.c        ****       pin_hi('D', DRIVER1B);
+ 729               	.LM88:
+ 730 0160 64E0      		ldi r22,lo8(4)
+ 731 0162 70E0      		ldi r23,0
+ 732 0164 84E4      		ldi r24,lo8(68)
+ 733 0166 0E94 0000 		call pin_hi
+ 149:main.c        ****       convertedLeftValue = (510.0 - (float)avgVerticalValue)/2;
+ 735               	.LM89:
+ 736 016a B801      		movw r22,r16
+ 737 016c 80E0      		ldi r24,0
+ 738 016e 90E0      		ldi r25,0
+ 739 0170 0E94 0000 		call __floatunsisf
+ 740 0174 9B01      		movw r18,r22
+ 741 0176 AC01      		movw r20,r24
+ 742 0178 60E0      		ldi r22,0
+ 743 017a 70E0      		ldi r23,0
+ 744 017c 8FEF      		ldi r24,lo8(-1)
+ 745 017e 93E4      		ldi r25,lo8(67)
+ 746 0180 0E94 0000 		call __subsf3
+ 747 0184 20E0      		ldi r18,0
+ 748 0186 30E0      		ldi r19,0
+ 749 0188 40E0      		ldi r20,0
+ 750 018a 5FE3      		ldi r21,lo8(63)
+ 751 018c 0E94 0000 		call __mulsf3
+ 752 0190 4B01      		movw r8,r22
+ 753 0192 5C01      		movw r10,r24
+ 754 0194 00C0      		rjmp .L22
+ 755               	.L21:
+ 152:main.c        ****       pin_lo('B', DRIVER1A);
+ 757               	.LM90:
+ 758 0196 82E4      		ldi r24,lo8(66)
+ 759 0198 0E94 0000 		call pin_lo
+ 153:main.c        ****       pin_lo('D', DRIVER1B);
+ 761               	.LM91:
+ 762 019c 64E0      		ldi r22,lo8(4)
+ 763 019e 70E0      		ldi r23,0
+ 764 01a0 84E4      		ldi r24,lo8(68)
+ 765 01a2 0E94 0000 		call pin_lo
+ 155:main.c        ****       convertedLeftValue = 0.0;
  767               	.LM92:
- 768 00e6 82E3      		ldi r24,50
- 769 00e8 4816      		cp r4,r24
- 770 00ea 82E0      		ldi r24,2
- 771 00ec 5806      		cpc r5,r24
- 772 00ee 00F0      		brlo .L19
- 114:main.c        ****       pin_hi('B', DRIVER1A);
- 774               	.LM93:
- 775 00f0 82E4      		ldi r24,lo8(66)
- 776 00f2 0E94 0000 		call pin_hi
- 115:main.c        ****       pin_lo('D', DRIVER1B);
- 778               	.LM94:
- 779 00f6 64E0      		ldi r22,lo8(4)
- 780 00f8 70E0      		ldi r23,0
- 781 00fa 84E4      		ldi r24,lo8(68)
- 782 00fc 0E94 0000 		call pin_lo
- 116:main.c        ****       pin_lo('B', DRIVER2A);
- 784               	.LM95:
- 785 0100 64E0      		ldi r22,lo8(4)
- 786 0102 70E0      		ldi r23,0
- 787 0104 82E4      		ldi r24,lo8(66)
- 788 0106 0E94 0000 		call pin_lo
- 117:main.c        ****       pin_hi('B', DRIVER2B);
- 790               	.LM96:
- 791 010a 65E0      		ldi r22,lo8(5)
- 792 010c 70E0      		ldi r23,0
- 793 010e 82E4      		ldi r24,lo8(66)
- 794 0110 0E94 0000 		call pin_hi
- 119:main.c        ****       convertedVerticalValue = ((float)avgVerticalValue - 513.0)/2;
- 796               	.LM97:
- 797 0114 B201      		movw r22,r4
- 798 0116 80E0      		ldi r24,0
- 799 0118 90E0      		ldi r25,0
- 800 011a 0E94 0000 		call __floatunsisf
- 801 011e 20E0      		ldi r18,0
- 802 0120 30E4      		ldi r19,lo8(64)
- 803 0122 40E0      		ldi r20,0
- 804 0124 54E4      		ldi r21,lo8(68)
- 805 0126 00C0      		rjmp .L23
- 806               	.L19:
- 120:main.c        ****     }else if(avgVerticalValue < 461){   //if joystick pushed backwards
- 808               	.LM98:
- 809 0128 8DEC      		ldi r24,-51
- 810 012a 4816      		cp r4,r24
- 811 012c 81E0      		ldi r24,1
- 812 012e 5806      		cpc r5,r24
- 813 0130 00F4      		brsh .L21
- 122:main.c        ****       pin_lo('B', DRIVER1A);
- 815               	.LM99:
- 816 0132 82E4      		ldi r24,lo8(66)
- 817 0134 0E94 0000 		call pin_lo
- 123:main.c        ****       pin_hi('D', DRIVER1B);
- 819               	.LM100:
- 820 0138 64E0      		ldi r22,lo8(4)
- 821 013a 70E0      		ldi r23,0
- 822 013c 84E4      		ldi r24,lo8(68)
- 823 013e 0E94 0000 		call pin_hi
- 124:main.c        ****       pin_hi('B', DRIVER2A);
- 825               	.LM101:
- 826 0142 64E0      		ldi r22,lo8(4)
- 827 0144 70E0      		ldi r23,0
- 828 0146 82E4      		ldi r24,lo8(66)
- 829 0148 0E94 0000 		call pin_hi
- 125:main.c        ****       pin_lo('B', DRIVER2B);
- 831               	.LM102:
- 832 014c 65E0      		ldi r22,lo8(5)
- 833 014e 70E0      		ldi r23,0
- 834 0150 82E4      		ldi r24,lo8(66)
- 835 0152 0E94 0000 		call pin_lo
- 127:main.c        ****       convertedVerticalValue = (510.0 - (float)avgVerticalValue)/2;
- 837               	.LM103:
- 838 0156 B201      		movw r22,r4
- 839 0158 80E0      		ldi r24,0
- 840 015a 90E0      		ldi r25,0
- 841 015c 0E94 0000 		call __floatunsisf
- 842 0160 9B01      		movw r18,r22
- 843 0162 AC01      		movw r20,r24
- 844 0164 60E0      		ldi r22,0
- 845 0166 70E0      		ldi r23,0
- 846 0168 8FEF      		ldi r24,lo8(-1)
- 847 016a 93E4      		ldi r25,lo8(67)
- 848               	.L23:
- 849 016c 0E94 0000 		call __subsf3
- 850 0170 20E0      		ldi r18,0
- 851 0172 30E0      		ldi r19,0
- 852 0174 40E0      		ldi r20,0
- 853 0176 5FE3      		ldi r21,lo8(63)
- 854 0178 0E94 0000 		call __mulsf3
- 855 017c 00C0      		rjmp .L20
- 856               	.L21:
- 130:main.c        ****       pin_lo('B', DRIVER1A);
- 858               	.LM104:
- 859 017e 82E4      		ldi r24,lo8(66)
- 860 0180 0E94 0000 		call pin_lo
- 131:main.c        ****       pin_lo('D', DRIVER1B);
- 862               	.LM105:
- 863 0184 64E0      		ldi r22,lo8(4)
- 864 0186 70E0      		ldi r23,0
- 865 0188 84E4      		ldi r24,lo8(68)
- 866 018a 0E94 0000 		call pin_lo
- 132:main.c        ****       pin_lo('B', DRIVER2A);
- 868               	.LM106:
- 869 018e 64E0      		ldi r22,lo8(4)
- 870 0190 70E0      		ldi r23,0
- 871 0192 82E4      		ldi r24,lo8(66)
- 872 0194 0E94 0000 		call pin_lo
- 133:main.c        ****       pin_lo('B', DRIVER2B);
- 874               	.LM107:
- 875 0198 65E0      		ldi r22,lo8(5)
- 876 019a 70E0      		ldi r23,0
- 877 019c 82E4      		ldi r24,lo8(66)
- 878 019e 0E94 0000 		call pin_lo
- 135:main.c        ****       convertedVerticalValue = 0.0;
- 880               	.LM108:
- 881 01a2 60E0      		ldi r22,0
- 882 01a4 70E0      		ldi r23,0
- 883 01a6 80E0      		ldi r24,0
- 884 01a8 90E0      		ldi r25,0
- 885               	.L20:
- 138:main.c        ****     OCR0A = (uint8_t) convertedVerticalValue;
- 887               	.LM109:
- 888 01aa 0E94 0000 		call __fixunssfsi
- 889 01ae 67BD      		out 0x27,r22
- 139:main.c        ****     OCR0B = (uint8_t) convertedVerticalValue;
- 891               	.LM110:
- 892 01b0 68BD      		out 0x28,r22
- 142:main.c        ****     convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;
- 894               	.LM111:
- 895 01b2 B701      		movw r22,r14
- 896 01b4 80E0      		ldi r24,0
- 897 01b6 90E0      		ldi r25,0
- 898 01b8 0E94 0000 		call __floatunsisf
- 899 01bc 21E7      		ldi r18,lo8(113)
- 900 01be 3DE3      		ldi r19,lo8(61)
- 901 01c0 4AEF      		ldi r20,lo8(-6)
- 902 01c2 5FE3      		ldi r21,lo8(63)
- 903 01c4 0E94 0000 		call __mulsf3
- 904 01c8 20E0      		ldi r18,0
- 905 01ca 30E0      		ldi r19,0
- 906 01cc 4AEF      		ldi r20,lo8(-6)
- 907 01ce 53E4      		ldi r21,lo8(67)
- 908 01d0 0E94 0000 		call __addsf3
- 143:main.c        ****     OCR1A = (uint16_t) convertedTopSliderValue;
- 910               	.LM112:
- 911 01d4 0E94 0000 		call __fixunssfsi
- 912 01d8 7093 8900 		sts 136+1,r23
- 913 01dc 6093 8800 		sts 136,r22
- 145:main.c        ****     convertedBottomSliderValue = (converterSlideValue * avgBottomSliderValue) + offsetSlideValue;
- 915               	.LM113:
- 916 01e0 B801      		movw r22,r16
- 917 01e2 80E0      		ldi r24,0
- 918 01e4 90E0      		ldi r25,0
- 919 01e6 0E94 0000 		call __floatunsisf
- 920 01ea 21E7      		ldi r18,lo8(113)
- 921 01ec 3DE3      		ldi r19,lo8(61)
- 922 01ee 4AEF      		ldi r20,lo8(-6)
- 923 01f0 5FE3      		ldi r21,lo8(63)
- 924 01f2 0E94 0000 		call __mulsf3
- 925 01f6 20E0      		ldi r18,0
- 926 01f8 30E0      		ldi r19,0
- 927 01fa 4AEF      		ldi r20,lo8(-6)
- 928 01fc 53E4      		ldi r21,lo8(67)
- 929 01fe 0E94 0000 		call __addsf3
- 146:main.c        ****     OCR1B = (uint16_t) convertedBottomSliderValue;
- 931               	.LM114:
- 932 0202 0E94 0000 		call __fixunssfsi
- 933 0206 7093 8B00 		sts 138+1,r23
- 934 020a 6093 8A00 		sts 138,r22
- 147:main.c        ****  }
- 936               	.LM115:
- 937 020e 00C0      		rjmp .L22
- 944               	.Lscope10:
- 946               		.stabd	78,0,0
- 947               		.text
- 949               	.Letext0:
- 950               		.ident	"GCC: (GNU) 4.7.2"
+ 768 01a6 812C      		mov r8,__zero_reg__
+ 769 01a8 912C      		mov r9,__zero_reg__
+ 770 01aa A12C      		mov r10,__zero_reg__
+ 771 01ac B12C      		mov r11,__zero_reg__
+ 772 01ae 00C0      		rjmp .L23
+ 773               	.L19:
+ 160:main.c        ****       pin_lo('B', DRIVER2A);
+ 775               	.LM93:
+ 776 01b0 64E0      		ldi r22,lo8(4)
+ 777 01b2 70E0      		ldi r23,0
+ 778 01b4 82E4      		ldi r24,lo8(66)
+ 779 01b6 0E94 0000 		call pin_lo
+ 161:main.c        ****       pin_hi('B', DRIVER2B);
+ 781               	.LM94:
+ 782 01ba 65E0      		ldi r22,lo8(5)
+ 783 01bc 70E0      		ldi r23,0
+ 784 01be 82E4      		ldi r24,lo8(66)
+ 785 01c0 0E94 0000 		call pin_hi
+ 163:main.c        ****       convertedRightValue = ((float)avgVerticalValue - 513.0)/2;
+ 787               	.LM95:
+ 788 01c4 382D      		mov r19,r8
+ 789 01c6 292D      		mov r18,r9
+ 790 01c8 8501      		movw r16,r10
+ 791 01ca 00C0      		rjmp .L24
+ 792               	.L28:
+ 164:main.c        ****     }else if(rightMotor < 461){   //backwards
+ 794               	.LM96:
+ 795 01cc 0D3C      		cpi r16,-51
+ 796 01ce 81E0      		ldi r24,1
+ 797 01d0 1807      		cpc r17,r24
+ 798 01d2 00F4      		brsh .L23
+ 799               	.L22:
+ 166:main.c        ****       pin_hi('B', DRIVER2A);
+ 801               	.LM97:
+ 802 01d4 64E0      		ldi r22,lo8(4)
+ 803 01d6 70E0      		ldi r23,0
+ 804 01d8 82E4      		ldi r24,lo8(66)
+ 805 01da 0E94 0000 		call pin_hi
+ 167:main.c        ****       pin_lo('B', DRIVER2B);
+ 807               	.LM98:
+ 808 01de 65E0      		ldi r22,lo8(5)
+ 809 01e0 70E0      		ldi r23,0
+ 810 01e2 82E4      		ldi r24,lo8(66)
+ 811 01e4 0E94 0000 		call pin_lo
+ 169:main.c        ****       convertedRightValue = (510.0 - (float)avgVerticalValue)/2;
+ 813               	.LM99:
+ 814 01e8 B801      		movw r22,r16
+ 815 01ea 80E0      		ldi r24,0
+ 816 01ec 90E0      		ldi r25,0
+ 817 01ee 0E94 0000 		call __floatunsisf
+ 818 01f2 9B01      		movw r18,r22
+ 819 01f4 AC01      		movw r20,r24
+ 820 01f6 60E0      		ldi r22,0
+ 821 01f8 70E0      		ldi r23,0
+ 822 01fa 8FEF      		ldi r24,lo8(-1)
+ 823 01fc 93E4      		ldi r25,lo8(67)
+ 824 01fe 0E94 0000 		call __subsf3
+ 825 0202 20E0      		ldi r18,0
+ 826 0204 30E0      		ldi r19,0
+ 827 0206 40E0      		ldi r20,0
+ 828 0208 5FE3      		ldi r21,lo8(63)
+ 829 020a 0E94 0000 		call __mulsf3
+ 830 020e 362F      		mov r19,r22
+ 831 0210 272F      		mov r18,r23
+ 832 0212 8C01      		movw r16,r24
+ 833 0214 00C0      		rjmp .L24
+ 834               	.L23:
+ 172:main.c        ****       pin_lo('B', DRIVER2A);
+ 836               	.LM100:
+ 837 0216 64E0      		ldi r22,lo8(4)
+ 838 0218 70E0      		ldi r23,0
+ 839 021a 82E4      		ldi r24,lo8(66)
+ 840 021c 0E94 0000 		call pin_lo
+ 173:main.c        ****       pin_lo('B', DRIVER2B);
+ 842               	.LM101:
+ 843 0220 65E0      		ldi r22,lo8(5)
+ 844 0222 70E0      		ldi r23,0
+ 845 0224 82E4      		ldi r24,lo8(66)
+ 846 0226 0E94 0000 		call pin_lo
+ 175:main.c        ****       convertedRightValue = 0.0;
+ 848               	.LM102:
+ 849 022a 30E0      		ldi r19,0
+ 850 022c 20E0      		ldi r18,0
+ 851 022e 00E0      		ldi r16,0
+ 852 0230 10E0      		ldi r17,0
+ 853               	.L24:
+ 179:main.c        ****     OCR0A = (uint8_t) convertedLeftValue;
+ 855               	.LM103:
+ 856 0232 682D      		mov r22,r8
+ 857 0234 792D      		mov r23,r9
+ 858 0236 8A2D      		mov r24,r10
+ 859 0238 9B2D      		mov r25,r11
+ 860 023a C855      		subi r28,lo8(-424)
+ 861 023c DE4F      		sbci r29,hi8(-424)
+ 862 023e 2883      		st Y,r18
+ 863 0240 C85A      		subi r28,lo8(424)
+ 864 0242 D140      		sbci r29,hi8(424)
+ 865 0244 C955      		subi r28,lo8(-423)
+ 866 0246 DE4F      		sbci r29,hi8(-423)
+ 867 0248 3883      		st Y,r19
+ 868 024a C75A      		subi r28,lo8(423)
+ 869 024c D140      		sbci r29,hi8(423)
+ 870 024e 0E94 0000 		call __fixunssfsi
+ 871 0252 67BD      		out 0x27,r22
+ 180:main.c        ****     OCR0B = (uint8_t) convertedRightValue;
+ 873               	.LM104:
+ 874 0254 C955      		subi r28,lo8(-423)
+ 875 0256 DE4F      		sbci r29,hi8(-423)
+ 876 0258 3881      		ld r19,Y
+ 877 025a C75A      		subi r28,lo8(423)
+ 878 025c D140      		sbci r29,hi8(423)
+ 879 025e C855      		subi r28,lo8(-424)
+ 880 0260 DE4F      		sbci r29,hi8(-424)
+ 881 0262 2881      		ld r18,Y
+ 882 0264 C85A      		subi r28,lo8(424)
+ 883 0266 D140      		sbci r29,hi8(424)
+ 884 0268 632F      		mov r22,r19
+ 885 026a 722F      		mov r23,r18
+ 886 026c 802F      		mov r24,r16
+ 887 026e 912F      		mov r25,r17
+ 888 0270 0E94 0000 		call __fixunssfsi
+ 889 0274 68BD      		out 0x28,r22
+ 211:main.c        ****     convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;
+ 891               	.LM105:
+ 892 0276 B701      		movw r22,r14
+ 893 0278 80E0      		ldi r24,0
+ 894 027a 90E0      		ldi r25,0
+ 895 027c 0E94 0000 		call __floatunsisf
+ 896 0280 21E7      		ldi r18,lo8(113)
+ 897 0282 3DE3      		ldi r19,lo8(61)
+ 898 0284 4AEF      		ldi r20,lo8(-6)
+ 899 0286 5FE3      		ldi r21,lo8(63)
+ 900 0288 0E94 0000 		call __mulsf3
+ 901 028c 20E0      		ldi r18,0
+ 902 028e 30E0      		ldi r19,0
+ 903 0290 4AEF      		ldi r20,lo8(-6)
+ 904 0292 53E4      		ldi r21,lo8(67)
+ 905 0294 0E94 0000 		call __addsf3
+ 212:main.c        ****     OCR1A = (uint16_t) convertedTopSliderValue;
+ 907               	.LM106:
+ 908 0298 0E94 0000 		call __fixunssfsi
+ 909 029c 7093 8900 		sts 136+1,r23
+ 910 02a0 6093 8800 		sts 136,r22
+ 214:main.c        ****     convertedBottomSliderValue = (converterSlideValue * avgBottomSliderValue) + offsetSlideValue;
+ 912               	.LM107:
+ 913 02a4 B601      		movw r22,r12
+ 914 02a6 80E0      		ldi r24,0
+ 915 02a8 90E0      		ldi r25,0
+ 916 02aa 0E94 0000 		call __floatunsisf
+ 917 02ae 21E7      		ldi r18,lo8(113)
+ 918 02b0 3DE3      		ldi r19,lo8(61)
+ 919 02b2 4AEF      		ldi r20,lo8(-6)
+ 920 02b4 5FE3      		ldi r21,lo8(63)
+ 921 02b6 0E94 0000 		call __mulsf3
+ 922 02ba 20E0      		ldi r18,0
+ 923 02bc 30E0      		ldi r19,0
+ 924 02be 4AEF      		ldi r20,lo8(-6)
+ 925 02c0 53E4      		ldi r21,lo8(67)
+ 926 02c2 0E94 0000 		call __addsf3
+ 215:main.c        ****     OCR1B = (uint16_t) convertedBottomSliderValue;
+ 928               	.LM108:
+ 929 02c6 0E94 0000 		call __fixunssfsi
+ 930 02ca 7093 8B00 		sts 138+1,r23
+ 931 02ce 6093 8A00 		sts 138,r22
+ 216:main.c        ****  }
+ 933               	.LM109:
+ 934 02d2 00C0      		rjmp .L25
+ 935               	.L18:
+ 138:main.c        ****     if(leftMotor > 561){   //forwards
+ 937               	.LM110:
+ 938 02d4 0233      		cpi r16,50
+ 939 02d6 82E0      		ldi r24,2
+ 940 02d8 1807      		cpc r17,r24
+ 941 02da 00F4      		brsh .+2
+ 942 02dc 00C0      		rjmp .L29
+ 943 02de 00C0      		rjmp .L26
+ 950               	.Lscope9:
+ 952               		.stabd	78,0,0
+ 953               		.text
+ 955               	.Letext0:
+ 956               		.ident	"GCC: (GNU) 4.7.2"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-     /tmp/ccWCgWQ8.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccWCgWQ8.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccWCgWQ8.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccWCgWQ8.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccWCgWQ8.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccWCgWQ8.s:91     .text:0000000000000000 initADC
-     /tmp/ccWCgWQ8.s:128    .text:000000000000001c readADC
-     /tmp/ccWCgWQ8.s:172    .text:0000000000000046 initValues
-     /tmp/ccWCgWQ8.s:217    .text:000000000000005a storeNewADC
-     /tmp/ccWCgWQ8.s:290    .text:000000000000009a getAverage
-     /tmp/ccWCgWQ8.s:348    .text:00000000000000c8 blinkTwice
-     /tmp/ccWCgWQ8.s:454    .text:0000000000000124 initTimer1Servo
-     /tmp/ccWCgWQ8.s:514    .text:000000000000015c initTimer0PWM
-     /tmp/ccWCgWQ8.s:551    .text:0000000000000176 initMotorDriverIO
-     /tmp/ccWCgWQ8.s:609    .text.startup:0000000000000000 main
+     /tmp/ccDcVBCP.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccDcVBCP.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccDcVBCP.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccDcVBCP.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccDcVBCP.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccDcVBCP.s:91     .text:0000000000000000 initADC
+     /tmp/ccDcVBCP.s:128    .text:000000000000001c readADC
+     /tmp/ccDcVBCP.s:172    .text:0000000000000046 initValues
+     /tmp/ccDcVBCP.s:217    .text:000000000000005a storeNewADC
+     /tmp/ccDcVBCP.s:290    .text:000000000000009a getAverage
+     /tmp/ccDcVBCP.s:348    .text:00000000000000c8 initTimer1Servo
+     /tmp/ccDcVBCP.s:406    .text:0000000000000100 initTimer0PWM
+     /tmp/ccDcVBCP.s:443    .text:000000000000011a initMotorDriverIO
+     /tmp/ccDcVBCP.s:501    .text.startup:0000000000000000 main
 
 UNDEFINED SYMBOLS
 __udivmodsi4
-toggle
 pin_lo
 __floatunsisf
 __subsf3
