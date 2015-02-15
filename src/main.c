@@ -107,62 +107,57 @@ int main(void) {
     storeNewADC(bottomSliderPointer, slideSize, 3);
     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
     
-    //change vert values if horizontal joystick press
-    
-    if(avgHorizontalValue > 531 || avgHorizontalValue < 431){
-      
+    /* **** Adjust Vertical value given Horizontal position **** */
+    //check if horizontal joystick is out of center position
+    if(avgHorizontalValue > 531 || avgHorizontalValue < 451){
       leftMotor = (int)(avgVerticalValue - (avgHorizontalValue-511)/2);
       rightMotor = (int)(avgVerticalValue + (avgHorizontalValue-511)/2);
       
-      //stay within bounds
-      if (leftMotor > 1023){
+      //keep values within bounds
+      if (leftMotor > 1023)
         leftMotor = 1023;
-      }
-      if (leftMotor < 0){
+      if (leftMotor < 0)
         leftMotor = 0;
-      }
-      if (rightMotor > 1023){
+      if (rightMotor > 1023)
         rightMotor = 1023;
-      }
-      if (rightMotor < 0){
+      if (rightMotor < 0)
         rightMotor = 0;
-      }
-      
+        
+    // if horizontal position in the center, do nothing to the vertical values
     }else{
       leftMotor = avgVerticalValue;
       rightMotor = avgVerticalValue;
     }
     
-    
-    //Compute PWM for motors
-    
-    if(leftMotor > 531){   //forwards
+    /* Convert Vertical Values to Control Digital Out lines and 8 bit PWM */
+    //LEFT MOTOR
+    if(leftMotor > 531){              //forwards
       //set direction bits
       pin_hi('B', DRIVER1A);
       pin_lo('D', DRIVER1B);
       //convert ADC to PWM (0-255)
       convertedLeftValue = ((float)leftMotor - 513.0)/2;
-    }else if(leftMotor < 431){   //backwards
+    }else if(leftMotor < 451){        //backwards
       //set direction bits
       pin_lo('B', DRIVER1A);
       pin_hi('D', DRIVER1B);
       //convert ADC to PWM (0-255)
       convertedLeftValue = (510.0 - (float)leftMotor)/2;
-    }else{    //center
+    }else{                            //center
       //set direction bits
       pin_lo('B', DRIVER1A);
       pin_lo('D', DRIVER1B);
       //set PWM to zero
       convertedLeftValue = 0.0;
     }
-    
+    // RIGHT MOTOR
     if(rightMotor > 531){   //forwards
       //set direction bits
       pin_lo('B', DRIVER2A);
       pin_hi('B', DRIVER2B);
       //convert ADC to PWM (0-255)
       convertedRightValue = ((float)rightMotor - 513.0)/2;
-    }else if(rightMotor < 431){   //backwards
+    }else if(rightMotor < 451){   //backwards
       //set direction bits
       pin_hi('B', DRIVER2A);
       pin_lo('B', DRIVER2B);
