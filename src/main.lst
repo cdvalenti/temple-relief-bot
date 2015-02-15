@@ -82,10 +82,10 @@
   71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
   72:main.c        ****   
   73:main.c        ****   //create avg value variables
-  74:main.c        ****   uint16_t avgVerticalValue;
-  75:main.c        ****   uint16_t avgHorizontalValue;
-  76:main.c        ****   uint16_t leftMotor;
-  77:main.c        ****   uint16_t rightMotor;
+  74:main.c        ****   int avgVerticalValue;
+  75:main.c        ****   int avgHorizontalValue;
+  76:main.c        ****   int leftMotor;
+  77:main.c        ****   int rightMotor;
   78:main.c        ****   uint16_t avgTopSliderValue;
   79:main.c        ****   uint16_t avgBottomSliderValue;
   80:main.c        ****   
@@ -120,9 +120,9 @@
  109:main.c        ****     
  110:main.c        ****     //change vert values if left right joystick press
  111:main.c        ****     
- 112:main.c        ****     if(avgHorizontalValue > 561 && avgHorizontalValue < 461){
- 113:main.c        ****       leftMotor = avgVerticalValue - (511 - avgHorizontalValue)/2;
- 114:main.c        ****       rightMotor = avgVerticalValue + (511 - avgHorizontalValue)/2;
+ 112:main.c        ****     if(avgHorizontalValue > 531 || avgHorizontalValue < 431){
+ 113:main.c        ****       leftMotor = (int)(avgVerticalValue - (avgHorizontalValue-511)/2);
+ 114:main.c        ****       rightMotor = (int)(avgVerticalValue + (avgHorizontalValue-511)/2);
  115:main.c        ****     }else{
  116:main.c        ****       leftMotor = avgVerticalValue;
  117:main.c        ****       rightMotor = avgVerticalValue;
@@ -137,27 +137,27 @@
  126:main.c        ****       leftMotor = 0;
  127:main.c        ****     }
  128:main.c        ****     if (rightMotor > 1023){
- 129:main.c        ****       leftMotor = 1023;
+ 129:main.c        ****       rightMotor = 1023;
  130:main.c        ****     }
  131:main.c        ****     if (rightMotor < 0){
- 132:main.c        ****       leftMotor = 0;
+ 132:main.c        ****       rightMotor = 0;
  133:main.c        ****     }
  134:main.c        ****     
  135:main.c        ****     
  136:main.c        ****     //Compute PWM for motors
  137:main.c        ****     
- 138:main.c        ****     if(leftMotor > 561){   //forwards
+ 138:main.c        ****     if(leftMotor > 531){   //forwards
  139:main.c        ****       //set direction bits
  140:main.c        ****       pin_hi('B', DRIVER1A);
  141:main.c        ****       pin_lo('D', DRIVER1B);
  142:main.c        ****       //convert ADC to PWM (0-255)
- 143:main.c        ****       convertedLeftValue = ((float)avgVerticalValue - 513.0)/2;
- 144:main.c        ****     }else if(leftMotor < 461){   //backwards
+ 143:main.c        ****       convertedLeftValue = ((float)leftMotor - 513.0)/2;
+ 144:main.c        ****     }else if(leftMotor < 431){   //backwards
  145:main.c        ****       //set direction bits
  146:main.c        ****       pin_lo('B', DRIVER1A);
  147:main.c        ****       pin_hi('D', DRIVER1B);
  148:main.c        ****       //convert ADC to PWM (0-255)
- 149:main.c        ****       convertedLeftValue = (510.0 - (float)avgVerticalValue)/2;
+ 149:main.c        ****       convertedLeftValue = (510.0 - (float)leftMotor)/2;
  150:main.c        ****     }else{    //center
  151:main.c        ****       //set direction bits
  152:main.c        ****       pin_lo('B', DRIVER1A);
@@ -166,18 +166,18 @@
  155:main.c        ****       convertedLeftValue = 0.0;
  156:main.c        ****     }
  157:main.c        ****     
- 158:main.c        ****     if(rightMotor > 561){   //forwards
+ 158:main.c        ****     if(rightMotor > 531){   //forwards
  159:main.c        ****       //set direction bits
  160:main.c        ****       pin_lo('B', DRIVER2A);
  161:main.c        ****       pin_hi('B', DRIVER2B);
  162:main.c        ****       //convert ADC to PWM (0-255)
- 163:main.c        ****       convertedRightValue = ((float)avgVerticalValue - 513.0)/2;
- 164:main.c        ****     }else if(rightMotor < 461){   //backwards
+ 163:main.c        ****       convertedRightValue = ((float)rightMotor - 513.0)/2;
+ 164:main.c        ****     }else if(rightMotor < 431){   //backwards
  165:main.c        ****       //set direction bits
  166:main.c        ****       pin_hi('B', DRIVER2A);
  167:main.c        ****       pin_lo('B', DRIVER2B);
  168:main.c        ****       //convert ADC to PWM (0-255)
- 169:main.c        ****       convertedRightValue = (510.0 - (float)avgVerticalValue)/2;
+ 169:main.c        ****       convertedRightValue = (510.0 - (float)rightMotor)/2;
  170:main.c        ****     }else{    //center
  171:main.c        ****       //set direction bits
  172:main.c        ****       pin_lo('B', DRIVER2A);
@@ -637,484 +637,581 @@
  487 0146 0C94 0000 		jmp pin_lo
  489               	.Lscope8:
  491               		.stabd	78,0,0
- 492               	.global	__floatunsisf
+ 492               	.global	__floatsisf
  493               	.global	__subsf3
  494               	.global	__mulsf3
  495               	.global	__fixunssfsi
- 496               	.global	__addsf3
- 497               		.section	.text.startup,"ax",@progbits
- 499               	.global	main
- 501               	main:
- 502               		.stabd	46,0,0
+ 496               	.global	__floatunsisf
+ 497               	.global	__addsf3
+ 498               		.section	.text.startup,"ax",@progbits
+ 500               	.global	main
+ 502               	main:
+ 503               		.stabd	46,0,0
   43:main.c        **** int main(void) {
- 504               	.LM57:
- 505               	.LFBB9:
- 506 0000 CF93      		push r28
- 507 0002 DF93      		push r29
- 508 0004 CDB7      		in r28,__SP_L__
- 509 0006 DEB7      		in r29,__SP_H__
- 510 0008 C85A      		subi r28,-88
- 511 000a D140      		sbci r29,1
- 512 000c 0FB6      		in __tmp_reg__,__SREG__
- 513 000e F894      		cli
- 514 0010 DEBF      		out __SP_H__,r29
- 515 0012 0FBE      		out __SREG__,__tmp_reg__
- 516 0014 CDBF      		out __SP_L__,r28
- 517               	/* prologue: function */
- 518               	/* frame size = 424 */
- 519               	/* stack size = 426 */
- 520               	.L__stack_usage = 426
+ 505               	.LM57:
+ 506               	.LFBB9:
+ 507 0000 CF93      		push r28
+ 508 0002 DF93      		push r29
+ 509 0004 CDB7      		in r28,__SP_L__
+ 510 0006 DEB7      		in r29,__SP_H__
+ 511 0008 C85A      		subi r28,-88
+ 512 000a D140      		sbci r29,1
+ 513 000c 0FB6      		in __tmp_reg__,__SREG__
+ 514 000e F894      		cli
+ 515 0010 DEBF      		out __SP_H__,r29
+ 516 0012 0FBE      		out __SREG__,__tmp_reg__
+ 517 0014 CDBF      		out __SP_L__,r28
+ 518               	/* prologue: function */
+ 519               	/* frame size = 424 */
+ 520               	/* stack size = 426 */
+ 521               	.L__stack_usage = 426
   46:main.c        ****   initADC();
- 522               	.LM58:
- 523 0016 0E94 0000 		call initADC
+ 523               	.LM58:
+ 524 0016 0E94 0000 		call initADC
   47:main.c        ****   initTimer1Servo();
- 525               	.LM59:
- 526 001a 0E94 0000 		call initTimer1Servo
+ 526               	.LM59:
+ 527 001a 0E94 0000 		call initTimer1Servo
   48:main.c        ****   initMotorDriverIO();
- 528               	.LM60:
- 529 001e 0E94 0000 		call initMotorDriverIO
+ 529               	.LM60:
+ 530 001e 0E94 0000 		call initMotorDriverIO
   49:main.c        ****   initTimer0PWM();
- 531               	.LM61:
- 532 0022 0E94 0000 		call initTimer0PWM
+ 532               	.LM61:
+ 533 0022 0E94 0000 		call initTimer0PWM
   68:main.c        ****   verticalPointer = &verticalValue[0];
- 534               	.LM62:
- 535 0026 5E01      		movw r10,r28
- 536 0028 83ED      		ldi r24,-45
- 537 002a A81A      		sub r10,r24
- 538 002c 8EEF      		ldi r24,-2
- 539 002e B80A      		sbc r11,r24
+ 535               	.LM62:
+ 536 0026 5E01      		movw r10,r28
+ 537 0028 83ED      		ldi r24,-45
+ 538 002a A81A      		sub r10,r24
+ 539 002c 8EEF      		ldi r24,-2
+ 540 002e B80A      		sbc r11,r24
   90:main.c        ****   initValues(verticalPointer, joySize, 511);
- 541               	.LM63:
- 542 0030 4FEF      		ldi r20,lo8(-1)
- 543 0032 51E0      		ldi r21,lo8(1)
- 544 0034 6EE1      		ldi r22,lo8(30)
- 545 0036 C501      		movw r24,r10
- 546 0038 0E94 0000 		call initValues
+ 542               	.LM63:
+ 543 0030 4FEF      		ldi r20,lo8(-1)
+ 544 0032 51E0      		ldi r21,lo8(1)
+ 545 0034 6EE1      		ldi r22,lo8(30)
+ 546 0036 C501      		movw r24,r10
+ 547 0038 0E94 0000 		call initValues
   69:main.c        ****   horizontalPointer = &horizontalValue[0];
- 548               	.LM64:
- 549 003c 6E01      		movw r12,r28
- 550 003e 87E9      		ldi r24,-105
- 551 0040 C81A      		sub r12,r24
- 552 0042 8EEF      		ldi r24,-2
- 553 0044 D80A      		sbc r13,r24
+ 549               	.LM64:
+ 550 003c 6E01      		movw r12,r28
+ 551 003e 87E9      		ldi r24,-105
+ 552 0040 C81A      		sub r12,r24
+ 553 0042 8EEF      		ldi r24,-2
+ 554 0044 D80A      		sbc r13,r24
   91:main.c        ****   initValues(horizontalPointer, joySize, 511);
- 555               	.LM65:
- 556 0046 4FEF      		ldi r20,lo8(-1)
- 557 0048 51E0      		ldi r21,lo8(1)
- 558 004a 6EE1      		ldi r22,lo8(30)
- 559 004c C601      		movw r24,r12
- 560 004e 0E94 0000 		call initValues
+ 556               	.LM65:
+ 557 0046 4FEF      		ldi r20,lo8(-1)
+ 558 0048 51E0      		ldi r21,lo8(1)
+ 559 004a 6EE1      		ldi r22,lo8(30)
+ 560 004c C601      		movw r24,r12
+ 561 004e 0E94 0000 		call initValues
   92:main.c        ****   initValues(topSliderPointer, slideSize, 0);
- 562               	.LM66:
- 563 0052 40E0      		ldi r20,0
- 564 0054 50E0      		ldi r21,0
- 565 0056 6BE4      		ldi r22,lo8(75)
- 566 0058 EE24      		clr r14
- 567 005a E394      		inc r14
- 568 005c F12C      		mov r15,__zero_reg__
- 569 005e EC0E      		add r14,r28
- 570 0060 FD1E      		adc r15,r29
- 571 0062 C701      		movw r24,r14
- 572 0064 0E94 0000 		call initValues
+ 563               	.LM66:
+ 564 0052 40E0      		ldi r20,0
+ 565 0054 50E0      		ldi r21,0
+ 566 0056 6BE4      		ldi r22,lo8(75)
+ 567 0058 EE24      		clr r14
+ 568 005a E394      		inc r14
+ 569 005c F12C      		mov r15,__zero_reg__
+ 570 005e EC0E      		add r14,r28
+ 571 0060 FD1E      		adc r15,r29
+ 572 0062 C701      		movw r24,r14
+ 573 0064 0E94 0000 		call initValues
   71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
- 574               	.LM67:
- 575 0068 8E01      		movw r16,r28
- 576 006a 0956      		subi r16,105
- 577 006c 1F4F      		sbci r17,-1
+ 575               	.LM67:
+ 576 0068 8E01      		movw r16,r28
+ 577 006a 0956      		subi r16,105
+ 578 006c 1F4F      		sbci r17,-1
   93:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
- 579               	.LM68:
- 580 006e 40E0      		ldi r20,0
- 581 0070 50E0      		ldi r21,0
- 582 0072 6BE4      		ldi r22,lo8(75)
- 583 0074 C801      		movw r24,r16
- 584 0076 0E94 0000 		call initValues
+ 580               	.LM68:
+ 581 006e 40E0      		ldi r20,0
+ 582 0070 50E0      		ldi r21,0
+ 583 0072 6BE4      		ldi r22,lo8(75)
+ 584 0074 C801      		movw r24,r16
+ 585 0076 0E94 0000 		call initValues
   68:main.c        ****   verticalPointer = &verticalValue[0];
- 586               	.LM69:
- 587 007a 7A2C      		mov r7,r10
- 588 007c 6B2C      		mov r6,r11
+ 587               	.LM69:
+ 588 007a CB55      		subi r28,lo8(-421)
+ 589 007c DE4F      		sbci r29,hi8(-421)
+ 590 007e A882      		st Y,r10
+ 591 0080 C55A      		subi r28,lo8(421)
+ 592 0082 D140      		sbci r29,hi8(421)
+ 593 0084 CA55      		subi r28,lo8(-422)
+ 594 0086 DE4F      		sbci r29,hi8(-422)
+ 595 0088 B882      		st Y,r11
+ 596 008a C65A      		subi r28,lo8(422)
+ 597 008c D140      		sbci r29,hi8(422)
   69:main.c        ****   horizontalPointer = &horizontalValue[0];
- 590               	.LM70:
- 591 007e CB55      		subi r28,lo8(-421)
- 592 0080 DE4F      		sbci r29,hi8(-421)
- 593 0082 C882      		st Y,r12
- 594 0084 C55A      		subi r28,lo8(421)
- 595 0086 D140      		sbci r29,hi8(421)
- 596 0088 CA55      		subi r28,lo8(-422)
- 597 008a DE4F      		sbci r29,hi8(-422)
- 598 008c D882      		st Y,r13
- 599 008e C65A      		subi r28,lo8(422)
- 600 0090 D140      		sbci r29,hi8(422)
+ 599               	.LM70:
+ 600 008e 9C2C      		mov r9,r12
+ 601 0090 8D2C      		mov r8,r13
  104:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
- 602               	.LM71:
- 603 0092 5E2C      		mov r5,r14
- 604 0094 4F2C      		mov r4,r15
+ 603               	.LM71:
+ 604 0092 7E2C      		mov r7,r14
+ 605 0094 6F2C      		mov r6,r15
   71:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
- 606               	.LM72:
- 607 0096 302E      		mov r3,r16
- 608 0098 212E      		mov r2,r17
- 609               	.L25:
+ 607               	.LM72:
+ 608 0096 502E      		mov r5,r16
+ 609 0098 412E      		mov r4,r17
+ 610               	.L31:
   98:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
- 611               	.LM73:
- 612 009a 40E0      		ldi r20,0
- 613 009c 6EE1      		ldi r22,lo8(30)
- 614 009e 872D      		mov r24,r7
- 615 00a0 962D      		mov r25,r6
- 616 00a2 0E94 0000 		call storeNewADC
+ 612               	.LM73:
+ 613 009a 40E0      		ldi r20,0
+ 614 009c 6EE1      		ldi r22,lo8(30)
+ 615 009e CB55      		subi r28,lo8(-421)
+ 616 00a0 DE4F      		sbci r29,hi8(-421)
+ 617 00a2 8881      		ld r24,Y
+ 618 00a4 C55A      		subi r28,lo8(421)
+ 619 00a6 D140      		sbci r29,hi8(421)
+ 620 00a8 CA55      		subi r28,lo8(-422)
+ 621 00aa DE4F      		sbci r29,hi8(-422)
+ 622 00ac 9881      		ld r25,Y
+ 623 00ae C65A      		subi r28,lo8(422)
+ 624 00b0 D140      		sbci r29,hi8(422)
+ 625 00b2 0E94 0000 		call storeNewADC
   99:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
- 618               	.LM74:
- 619 00a6 6EE1      		ldi r22,lo8(30)
- 620 00a8 872D      		mov r24,r7
- 621 00aa 962D      		mov r25,r6
- 622 00ac 0E94 0000 		call getAverage
- 623 00b0 8C01      		movw r16,r24
+ 627               	.LM74:
+ 628 00b6 6EE1      		ldi r22,lo8(30)
+ 629 00b8 CB55      		subi r28,lo8(-421)
+ 630 00ba DE4F      		sbci r29,hi8(-421)
+ 631 00bc 8881      		ld r24,Y
+ 632 00be C55A      		subi r28,lo8(421)
+ 633 00c0 D140      		sbci r29,hi8(421)
+ 634 00c2 CA55      		subi r28,lo8(-422)
+ 635 00c4 DE4F      		sbci r29,hi8(-422)
+ 636 00c6 9881      		ld r25,Y
+ 637 00c8 C65A      		subi r28,lo8(422)
+ 638 00ca D140      		sbci r29,hi8(422)
+ 639 00cc 0E94 0000 		call getAverage
+ 640 00d0 7C01      		movw r14,r24
  101:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
- 625               	.LM75:
- 626 00b2 41E0      		ldi r20,lo8(1)
- 627 00b4 6EE1      		ldi r22,lo8(30)
- 628 00b6 CB55      		subi r28,lo8(-421)
- 629 00b8 DE4F      		sbci r29,hi8(-421)
- 630 00ba 8881      		ld r24,Y
- 631 00bc C55A      		subi r28,lo8(421)
- 632 00be D140      		sbci r29,hi8(421)
- 633 00c0 CA55      		subi r28,lo8(-422)
- 634 00c2 DE4F      		sbci r29,hi8(-422)
- 635 00c4 9881      		ld r25,Y
- 636 00c6 C65A      		subi r28,lo8(422)
- 637 00c8 D140      		sbci r29,hi8(422)
- 638 00ca 0E94 0000 		call storeNewADC
+ 642               	.LM75:
+ 643 00d2 41E0      		ldi r20,lo8(1)
+ 644 00d4 6EE1      		ldi r22,lo8(30)
+ 645 00d6 892D      		mov r24,r9
+ 646 00d8 982D      		mov r25,r8
+ 647 00da 0E94 0000 		call storeNewADC
+ 102:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
+ 649               	.LM76:
+ 650 00de 6EE1      		ldi r22,lo8(30)
+ 651 00e0 892D      		mov r24,r9
+ 652 00e2 982D      		mov r25,r8
+ 653 00e4 0E94 0000 		call getAverage
+ 654 00e8 8C01      		movw r16,r24
  104:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
- 640               	.LM76:
- 641 00ce 42E0      		ldi r20,lo8(2)
- 642 00d0 6BE4      		ldi r22,lo8(75)
- 643 00d2 852D      		mov r24,r5
- 644 00d4 942D      		mov r25,r4
- 645 00d6 0E94 0000 		call storeNewADC
+ 656               	.LM77:
+ 657 00ea 42E0      		ldi r20,lo8(2)
+ 658 00ec 6BE4      		ldi r22,lo8(75)
+ 659 00ee 872D      		mov r24,r7
+ 660 00f0 962D      		mov r25,r6
+ 661 00f2 0E94 0000 		call storeNewADC
  105:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
- 647               	.LM77:
- 648 00da 6BE4      		ldi r22,lo8(75)
- 649 00dc 852D      		mov r24,r5
- 650 00de 942D      		mov r25,r4
- 651 00e0 0E94 0000 		call getAverage
- 652 00e4 7C01      		movw r14,r24
+ 663               	.LM78:
+ 664 00f6 6BE4      		ldi r22,lo8(75)
+ 665 00f8 872D      		mov r24,r7
+ 666 00fa 962D      		mov r25,r6
+ 667 00fc 0E94 0000 		call getAverage
+ 668 0100 5C01      		movw r10,r24
  107:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
- 654               	.LM78:
- 655 00e6 43E0      		ldi r20,lo8(3)
- 656 00e8 6BE4      		ldi r22,lo8(75)
- 657 00ea 832D      		mov r24,r3
- 658 00ec 922D      		mov r25,r2
- 659 00ee 0E94 0000 		call storeNewADC
+ 670               	.LM79:
+ 671 0102 43E0      		ldi r20,lo8(3)
+ 672 0104 6BE4      		ldi r22,lo8(75)
+ 673 0106 852D      		mov r24,r5
+ 674 0108 942D      		mov r25,r4
+ 675 010a 0E94 0000 		call storeNewADC
  108:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
- 661               	.LM79:
- 662 00f2 6BE4      		ldi r22,lo8(75)
- 663 00f4 832D      		mov r24,r3
- 664 00f6 922D      		mov r25,r2
- 665 00f8 0E94 0000 		call getAverage
- 666 00fc 6C01      		movw r12,r24
+ 677               	.LM80:
+ 678 010e 6BE4      		ldi r22,lo8(75)
+ 679 0110 852D      		mov r24,r5
+ 680 0112 942D      		mov r25,r4
+ 681 0114 0E94 0000 		call getAverage
+ 682 0118 6C01      		movw r12,r24
+ 112:main.c        ****     if(avgHorizontalValue > 531 || avgHorizontalValue < 431){
+ 684               	.LM81:
+ 685 011a C801      		movw r24,r16
+ 686 011c 8F5A      		subi r24,-81
+ 687 011e 9140      		sbci r25,1
+ 688 0120 8536      		cpi r24,101
+ 689 0122 9105      		cpc r25,__zero_reg__
+ 690 0124 00F0      		brlo .L32
+ 113:main.c        ****       leftMotor = (int)(avgVerticalValue - (avgHorizontalValue-511)/2);
+ 692               	.LM82:
+ 693 0126 0F5F      		subi r16,-1
+ 694 0128 1140      		sbci r17,1
+ 695 012a C801      		movw r24,r16
+ 696 012c 17FD      		sbrc r17,7
+ 697 012e 0196      		adiw r24,1
+ 698               	.L19:
+ 699 0130 9595      		asr r25
+ 700 0132 8795      		ror r24
+ 701 0134 1701      		movw r2,r14
+ 702 0136 281A      		sub r2,r24
+ 703 0138 390A      		sbc r3,r25
+ 114:main.c        ****       rightMotor = (int)(avgVerticalValue + (avgHorizontalValue-511)/2);
+ 705               	.LM83:
+ 706 013a 17FF      		sbrs r17,7
+ 707 013c 00C0      		rjmp .L20
+ 708 013e 0F5F      		subi r16,-1
+ 709 0140 1F4F      		sbci r17,-1
+ 710               	.L20:
+ 711 0142 1595      		asr r17
+ 712 0144 0795      		ror r16
+ 713 0146 0E0D      		add r16,r14
+ 714 0148 1F1D      		adc r17,r15
+ 715 014a 00C0      		rjmp .L18
+ 716               	.L32:
+ 117:main.c        ****       rightMotor = avgVerticalValue;
+ 718               	.LM84:
+ 719 014c 8701      		movw r16,r14
+ 116:main.c        ****       leftMotor = avgVerticalValue;
+ 721               	.LM85:
+ 722 014e 1701      		movw r2,r14
+ 723               	.L18:
  122:main.c        ****     if (leftMotor > 1023){
- 668               	.LM80:
- 669 00fe 0115      		cp r16,__zero_reg__
- 670 0100 84E0      		ldi r24,4
- 671 0102 1807      		cpc r17,r24
- 672 0104 00F4      		brsh .+2
- 673 0106 00C0      		rjmp .L18
- 674               	.L26:
+ 725               	.LM86:
+ 726 0150 2114      		cp r2,__zero_reg__
+ 727 0152 84E0      		ldi r24,4
+ 728 0154 3806      		cpc r3,r24
+ 729 0156 04F4      		brge .L33
+ 125:main.c        ****     if (leftMotor < 0){
+ 731               	.LM87:
+ 732 0158 37FC      		sbrc r3,7
+ 733 015a 00C0      		rjmp .L34
+ 734 015c 00C0      		rjmp .L22
+ 735               	.L33:
+ 123:main.c        ****       leftMotor = 1023;
+ 737               	.LM88:
+ 738 015e 2224      		clr r2
+ 739 0160 2A94      		dec r2
+ 740 0162 33E0      		ldi r19,lo8(3)
+ 741 0164 332E      		mov r3,r19
+ 742 0166 00C0      		rjmp .L22
+ 743               	.L34:
+ 126:main.c        ****       leftMotor = 0;
+ 745               	.LM89:
+ 746 0168 212C      		mov r2,__zero_reg__
+ 747 016a 312C      		mov r3,__zero_reg__
+ 748               	.L22:
+ 128:main.c        ****     if (rightMotor > 1023){
+ 750               	.LM90:
+ 751 016c 0115      		cp r16,__zero_reg__
+ 752 016e 84E0      		ldi r24,4
+ 753 0170 1807      		cpc r17,r24
+ 754 0172 04F4      		brge .L35
+ 131:main.c        ****     if (rightMotor < 0){
+ 756               	.LM91:
+ 757 0174 17FD      		sbrc r17,7
+ 758 0176 00C0      		rjmp .L36
+ 759 0178 00C0      		rjmp .L24
+ 760               	.L35:
+ 129:main.c        ****       rightMotor = 1023;
+ 762               	.LM92:
+ 763 017a 0FEF      		ldi r16,lo8(-1)
+ 764 017c 13E0      		ldi r17,lo8(3)
+ 765 017e 00C0      		rjmp .L24
+ 766               	.L36:
+ 132:main.c        ****       rightMotor = 0;
+ 768               	.LM93:
+ 769 0180 00E0      		ldi r16,0
+ 770 0182 10E0      		ldi r17,0
+ 771               	.L24:
  140:main.c        ****       pin_hi('B', DRIVER1A);
- 676               	.LM81:
- 677 0108 60E0      		ldi r22,0
- 678 010a 70E0      		ldi r23,0
- 679 010c 82E4      		ldi r24,lo8(66)
- 680 010e 0E94 0000 		call pin_hi
+ 773               	.LM94:
+ 774 0184 60E0      		ldi r22,0
+ 775 0186 70E0      		ldi r23,0
+ 138:main.c        ****     if(leftMotor > 531){   //forwards
+ 777               	.LM95:
+ 778 0188 84E1      		ldi r24,20
+ 779 018a 2816      		cp r2,r24
+ 780 018c 82E0      		ldi r24,2
+ 781 018e 3806      		cpc r3,r24
+ 782 0190 04F0      		brlt .L25
+ 140:main.c        ****       pin_hi('B', DRIVER1A);
+ 784               	.LM96:
+ 785 0192 82E4      		ldi r24,lo8(66)
+ 786 0194 0E94 0000 		call pin_hi
  141:main.c        ****       pin_lo('D', DRIVER1B);
- 682               	.LM82:
- 683 0112 64E0      		ldi r22,lo8(4)
- 684 0114 70E0      		ldi r23,0
- 685 0116 84E4      		ldi r24,lo8(68)
- 686 0118 0E94 0000 		call pin_lo
- 143:main.c        ****       convertedLeftValue = ((float)avgVerticalValue - 513.0)/2;
- 688               	.LM83:
- 689 011c B801      		movw r22,r16
- 690 011e 80E0      		ldi r24,0
- 691 0120 90E0      		ldi r25,0
- 692 0122 0E94 0000 		call __floatunsisf
- 693 0126 20E0      		ldi r18,0
- 694 0128 30E4      		ldi r19,lo8(64)
- 695 012a 40E0      		ldi r20,0
- 696 012c 54E4      		ldi r21,lo8(68)
- 697 012e 0E94 0000 		call __subsf3
- 698 0132 20E0      		ldi r18,0
- 699 0134 30E0      		ldi r19,0
- 700 0136 40E0      		ldi r20,0
- 701 0138 5FE3      		ldi r21,lo8(63)
- 702 013a 0E94 0000 		call __mulsf3
- 703 013e 4B01      		movw r8,r22
- 704 0140 5C01      		movw r10,r24
- 158:main.c        ****     if(rightMotor > 561){   //forwards
- 706               	.LM84:
- 707 0142 0233      		cpi r16,50
- 708 0144 82E0      		ldi r24,2
- 709 0146 1807      		cpc r17,r24
- 710 0148 00F4      		brsh .+2
- 711 014a 00C0      		rjmp .L28
- 712 014c 00C0      		rjmp .L19
- 713               	.L29:
+ 788               	.LM97:
+ 789 0198 64E0      		ldi r22,lo8(4)
+ 790 019a 70E0      		ldi r23,0
+ 791 019c 84E4      		ldi r24,lo8(68)
+ 792 019e 0E94 0000 		call pin_lo
+ 143:main.c        ****       convertedLeftValue = ((float)leftMotor - 513.0)/2;
+ 794               	.LM98:
+ 795 01a2 B101      		movw r22,r2
+ 796 01a4 8827      		clr r24
+ 797 01a6 77FD      		sbrc r23,7
+ 798 01a8 8095      		com r24
+ 799 01aa 982F      		mov r25,r24
+ 800 01ac 0E94 0000 		call __floatsisf
+ 801 01b0 20E0      		ldi r18,0
+ 802 01b2 30E4      		ldi r19,lo8(64)
+ 803 01b4 40E0      		ldi r20,0
+ 804 01b6 54E4      		ldi r21,lo8(68)
+ 805 01b8 00C0      		rjmp .L37
+ 806               	.L25:
+ 144:main.c        ****     }else if(leftMotor < 431){   //backwards
+ 808               	.LM99:
+ 809 01ba 8FEA      		ldi r24,-81
+ 810 01bc 2816      		cp r2,r24
+ 811 01be 81E0      		ldi r24,1
+ 812 01c0 3806      		cpc r3,r24
+ 813 01c2 04F4      		brge .L27
  146:main.c        ****       pin_lo('B', DRIVER1A);
- 715               	.LM85:
- 716 014e 60E0      		ldi r22,0
- 717 0150 70E0      		ldi r23,0
- 144:main.c        ****     }else if(leftMotor < 461){   //backwards
- 719               	.LM86:
- 720 0152 0D3C      		cpi r16,-51
- 721 0154 81E0      		ldi r24,1
- 722 0156 1807      		cpc r17,r24
- 723 0158 00F4      		brsh .L21
- 146:main.c        ****       pin_lo('B', DRIVER1A);
- 725               	.LM87:
- 726 015a 82E4      		ldi r24,lo8(66)
- 727 015c 0E94 0000 		call pin_lo
+ 815               	.LM100:
+ 816 01c4 82E4      		ldi r24,lo8(66)
+ 817 01c6 0E94 0000 		call pin_lo
  147:main.c        ****       pin_hi('D', DRIVER1B);
- 729               	.LM88:
- 730 0160 64E0      		ldi r22,lo8(4)
- 731 0162 70E0      		ldi r23,0
- 732 0164 84E4      		ldi r24,lo8(68)
- 733 0166 0E94 0000 		call pin_hi
- 149:main.c        ****       convertedLeftValue = (510.0 - (float)avgVerticalValue)/2;
- 735               	.LM89:
- 736 016a B801      		movw r22,r16
- 737 016c 80E0      		ldi r24,0
- 738 016e 90E0      		ldi r25,0
- 739 0170 0E94 0000 		call __floatunsisf
- 740 0174 9B01      		movw r18,r22
- 741 0176 AC01      		movw r20,r24
- 742 0178 60E0      		ldi r22,0
- 743 017a 70E0      		ldi r23,0
- 744 017c 8FEF      		ldi r24,lo8(-1)
- 745 017e 93E4      		ldi r25,lo8(67)
- 746 0180 0E94 0000 		call __subsf3
- 747 0184 20E0      		ldi r18,0
- 748 0186 30E0      		ldi r19,0
- 749 0188 40E0      		ldi r20,0
- 750 018a 5FE3      		ldi r21,lo8(63)
- 751 018c 0E94 0000 		call __mulsf3
- 752 0190 4B01      		movw r8,r22
- 753 0192 5C01      		movw r10,r24
- 754 0194 00C0      		rjmp .L22
- 755               	.L21:
+ 819               	.LM101:
+ 820 01ca 64E0      		ldi r22,lo8(4)
+ 821 01cc 70E0      		ldi r23,0
+ 822 01ce 84E4      		ldi r24,lo8(68)
+ 823 01d0 0E94 0000 		call pin_hi
+ 149:main.c        ****       convertedLeftValue = (510.0 - (float)leftMotor)/2;
+ 825               	.LM102:
+ 826 01d4 B101      		movw r22,r2
+ 827 01d6 8827      		clr r24
+ 828 01d8 77FD      		sbrc r23,7
+ 829 01da 8095      		com r24
+ 830 01dc 982F      		mov r25,r24
+ 831 01de 0E94 0000 		call __floatsisf
+ 832 01e2 9B01      		movw r18,r22
+ 833 01e4 AC01      		movw r20,r24
+ 834 01e6 60E0      		ldi r22,0
+ 835 01e8 70E0      		ldi r23,0
+ 836 01ea 8FEF      		ldi r24,lo8(-1)
+ 837 01ec 93E4      		ldi r25,lo8(67)
+ 838               	.L37:
+ 839 01ee 0E94 0000 		call __subsf3
+ 840 01f2 20E0      		ldi r18,0
+ 841 01f4 30E0      		ldi r19,0
+ 842 01f6 40E0      		ldi r20,0
+ 843 01f8 5FE3      		ldi r21,lo8(63)
+ 844 01fa 0E94 0000 		call __mulsf3
+ 845 01fe 1B01      		movw r2,r22
+ 846 0200 7C01      		movw r14,r24
+ 847 0202 00C0      		rjmp .L26
+ 848               	.L27:
  152:main.c        ****       pin_lo('B', DRIVER1A);
- 757               	.LM90:
- 758 0196 82E4      		ldi r24,lo8(66)
- 759 0198 0E94 0000 		call pin_lo
+ 850               	.LM103:
+ 851 0204 82E4      		ldi r24,lo8(66)
+ 852 0206 0E94 0000 		call pin_lo
  153:main.c        ****       pin_lo('D', DRIVER1B);
- 761               	.LM91:
- 762 019c 64E0      		ldi r22,lo8(4)
- 763 019e 70E0      		ldi r23,0
- 764 01a0 84E4      		ldi r24,lo8(68)
- 765 01a2 0E94 0000 		call pin_lo
+ 854               	.LM104:
+ 855 020a 64E0      		ldi r22,lo8(4)
+ 856 020c 70E0      		ldi r23,0
+ 857 020e 84E4      		ldi r24,lo8(68)
+ 858 0210 0E94 0000 		call pin_lo
  155:main.c        ****       convertedLeftValue = 0.0;
- 767               	.LM92:
- 768 01a6 812C      		mov r8,__zero_reg__
- 769 01a8 912C      		mov r9,__zero_reg__
- 770 01aa A12C      		mov r10,__zero_reg__
- 771 01ac B12C      		mov r11,__zero_reg__
- 772 01ae 00C0      		rjmp .L23
- 773               	.L19:
+ 860               	.LM105:
+ 861 0214 212C      		mov r2,__zero_reg__
+ 862 0216 312C      		mov r3,__zero_reg__
+ 863 0218 E12C      		mov r14,__zero_reg__
+ 864 021a F12C      		mov r15,__zero_reg__
+ 865               	.L26:
  160:main.c        ****       pin_lo('B', DRIVER2A);
- 775               	.LM93:
- 776 01b0 64E0      		ldi r22,lo8(4)
- 777 01b2 70E0      		ldi r23,0
- 778 01b4 82E4      		ldi r24,lo8(66)
- 779 01b6 0E94 0000 		call pin_lo
+ 867               	.LM106:
+ 868 021c 64E0      		ldi r22,lo8(4)
+ 869 021e 70E0      		ldi r23,0
+ 158:main.c        ****     if(rightMotor > 531){   //forwards
+ 871               	.LM107:
+ 872 0220 0431      		cpi r16,20
+ 873 0222 82E0      		ldi r24,2
+ 874 0224 1807      		cpc r17,r24
+ 875 0226 04F0      		brlt .L28
+ 160:main.c        ****       pin_lo('B', DRIVER2A);
+ 877               	.LM108:
+ 878 0228 82E4      		ldi r24,lo8(66)
+ 879 022a 0E94 0000 		call pin_lo
  161:main.c        ****       pin_hi('B', DRIVER2B);
- 781               	.LM94:
- 782 01ba 65E0      		ldi r22,lo8(5)
- 783 01bc 70E0      		ldi r23,0
- 784 01be 82E4      		ldi r24,lo8(66)
- 785 01c0 0E94 0000 		call pin_hi
- 163:main.c        ****       convertedRightValue = ((float)avgVerticalValue - 513.0)/2;
- 787               	.LM95:
- 788 01c4 382D      		mov r19,r8
- 789 01c6 292D      		mov r18,r9
- 790 01c8 8501      		movw r16,r10
- 791 01ca 00C0      		rjmp .L24
- 792               	.L28:
- 164:main.c        ****     }else if(rightMotor < 461){   //backwards
- 794               	.LM96:
- 795 01cc 0D3C      		cpi r16,-51
- 796 01ce 81E0      		ldi r24,1
- 797 01d0 1807      		cpc r17,r24
- 798 01d2 00F4      		brsh .L23
- 799               	.L22:
+ 881               	.LM109:
+ 882 022e 65E0      		ldi r22,lo8(5)
+ 883 0230 70E0      		ldi r23,0
+ 884 0232 82E4      		ldi r24,lo8(66)
+ 885 0234 0E94 0000 		call pin_hi
+ 163:main.c        ****       convertedRightValue = ((float)rightMotor - 513.0)/2;
+ 887               	.LM110:
+ 888 0238 B801      		movw r22,r16
+ 889 023a 8827      		clr r24
+ 890 023c 77FD      		sbrc r23,7
+ 891 023e 8095      		com r24
+ 892 0240 982F      		mov r25,r24
+ 893 0242 0E94 0000 		call __floatsisf
+ 894 0246 20E0      		ldi r18,0
+ 895 0248 30E4      		ldi r19,lo8(64)
+ 896 024a 40E0      		ldi r20,0
+ 897 024c 54E4      		ldi r21,lo8(68)
+ 898 024e 00C0      		rjmp .L38
+ 899               	.L28:
+ 164:main.c        ****     }else if(rightMotor < 431){   //backwards
+ 901               	.LM111:
+ 902 0250 0F3A      		cpi r16,-81
+ 903 0252 81E0      		ldi r24,1
+ 904 0254 1807      		cpc r17,r24
+ 905 0256 04F4      		brge .L30
  166:main.c        ****       pin_hi('B', DRIVER2A);
- 801               	.LM97:
- 802 01d4 64E0      		ldi r22,lo8(4)
- 803 01d6 70E0      		ldi r23,0
- 804 01d8 82E4      		ldi r24,lo8(66)
- 805 01da 0E94 0000 		call pin_hi
+ 907               	.LM112:
+ 908 0258 82E4      		ldi r24,lo8(66)
+ 909 025a 0E94 0000 		call pin_hi
  167:main.c        ****       pin_lo('B', DRIVER2B);
- 807               	.LM98:
- 808 01de 65E0      		ldi r22,lo8(5)
- 809 01e0 70E0      		ldi r23,0
- 810 01e2 82E4      		ldi r24,lo8(66)
- 811 01e4 0E94 0000 		call pin_lo
- 169:main.c        ****       convertedRightValue = (510.0 - (float)avgVerticalValue)/2;
- 813               	.LM99:
- 814 01e8 B801      		movw r22,r16
- 815 01ea 80E0      		ldi r24,0
- 816 01ec 90E0      		ldi r25,0
- 817 01ee 0E94 0000 		call __floatunsisf
- 818 01f2 9B01      		movw r18,r22
- 819 01f4 AC01      		movw r20,r24
- 820 01f6 60E0      		ldi r22,0
- 821 01f8 70E0      		ldi r23,0
- 822 01fa 8FEF      		ldi r24,lo8(-1)
- 823 01fc 93E4      		ldi r25,lo8(67)
- 824 01fe 0E94 0000 		call __subsf3
- 825 0202 20E0      		ldi r18,0
- 826 0204 30E0      		ldi r19,0
- 827 0206 40E0      		ldi r20,0
- 828 0208 5FE3      		ldi r21,lo8(63)
- 829 020a 0E94 0000 		call __mulsf3
- 830 020e 362F      		mov r19,r22
- 831 0210 272F      		mov r18,r23
- 832 0212 8C01      		movw r16,r24
- 833 0214 00C0      		rjmp .L24
- 834               	.L23:
+ 911               	.LM113:
+ 912 025e 65E0      		ldi r22,lo8(5)
+ 913 0260 70E0      		ldi r23,0
+ 914 0262 82E4      		ldi r24,lo8(66)
+ 915 0264 0E94 0000 		call pin_lo
+ 169:main.c        ****       convertedRightValue = (510.0 - (float)rightMotor)/2;
+ 917               	.LM114:
+ 918 0268 B801      		movw r22,r16
+ 919 026a 8827      		clr r24
+ 920 026c 77FD      		sbrc r23,7
+ 921 026e 8095      		com r24
+ 922 0270 982F      		mov r25,r24
+ 923 0272 0E94 0000 		call __floatsisf
+ 924 0276 9B01      		movw r18,r22
+ 925 0278 AC01      		movw r20,r24
+ 926 027a 60E0      		ldi r22,0
+ 927 027c 70E0      		ldi r23,0
+ 928 027e 8FEF      		ldi r24,lo8(-1)
+ 929 0280 93E4      		ldi r25,lo8(67)
+ 930               	.L38:
+ 931 0282 0E94 0000 		call __subsf3
+ 932 0286 20E0      		ldi r18,0
+ 933 0288 30E0      		ldi r19,0
+ 934 028a 40E0      		ldi r20,0
+ 935 028c 5FE3      		ldi r21,lo8(63)
+ 936 028e 0E94 0000 		call __mulsf3
+ 937 0292 362F      		mov r19,r22
+ 938 0294 272F      		mov r18,r23
+ 939 0296 8C01      		movw r16,r24
+ 940 0298 00C0      		rjmp .L29
+ 941               	.L30:
  172:main.c        ****       pin_lo('B', DRIVER2A);
- 836               	.LM100:
- 837 0216 64E0      		ldi r22,lo8(4)
- 838 0218 70E0      		ldi r23,0
- 839 021a 82E4      		ldi r24,lo8(66)
- 840 021c 0E94 0000 		call pin_lo
+ 943               	.LM115:
+ 944 029a 82E4      		ldi r24,lo8(66)
+ 945 029c 0E94 0000 		call pin_lo
  173:main.c        ****       pin_lo('B', DRIVER2B);
- 842               	.LM101:
- 843 0220 65E0      		ldi r22,lo8(5)
- 844 0222 70E0      		ldi r23,0
- 845 0224 82E4      		ldi r24,lo8(66)
- 846 0226 0E94 0000 		call pin_lo
+ 947               	.LM116:
+ 948 02a0 65E0      		ldi r22,lo8(5)
+ 949 02a2 70E0      		ldi r23,0
+ 950 02a4 82E4      		ldi r24,lo8(66)
+ 951 02a6 0E94 0000 		call pin_lo
  175:main.c        ****       convertedRightValue = 0.0;
- 848               	.LM102:
- 849 022a 30E0      		ldi r19,0
- 850 022c 20E0      		ldi r18,0
- 851 022e 00E0      		ldi r16,0
- 852 0230 10E0      		ldi r17,0
- 853               	.L24:
+ 953               	.LM117:
+ 954 02aa 30E0      		ldi r19,0
+ 955 02ac 20E0      		ldi r18,0
+ 956 02ae 00E0      		ldi r16,0
+ 957 02b0 10E0      		ldi r17,0
+ 958               	.L29:
  179:main.c        ****     OCR0A = (uint8_t) convertedLeftValue;
- 855               	.LM103:
- 856 0232 682D      		mov r22,r8
- 857 0234 792D      		mov r23,r9
- 858 0236 8A2D      		mov r24,r10
- 859 0238 9B2D      		mov r25,r11
- 860 023a C855      		subi r28,lo8(-424)
- 861 023c DE4F      		sbci r29,hi8(-424)
- 862 023e 2883      		st Y,r18
- 863 0240 C85A      		subi r28,lo8(424)
- 864 0242 D140      		sbci r29,hi8(424)
- 865 0244 C955      		subi r28,lo8(-423)
- 866 0246 DE4F      		sbci r29,hi8(-423)
- 867 0248 3883      		st Y,r19
- 868 024a C75A      		subi r28,lo8(423)
- 869 024c D140      		sbci r29,hi8(423)
- 870 024e 0E94 0000 		call __fixunssfsi
- 871 0252 67BD      		out 0x27,r22
+ 960               	.LM118:
+ 961 02b2 622D      		mov r22,r2
+ 962 02b4 732D      		mov r23,r3
+ 963 02b6 8E2D      		mov r24,r14
+ 964 02b8 9F2D      		mov r25,r15
+ 965 02ba C855      		subi r28,lo8(-424)
+ 966 02bc DE4F      		sbci r29,hi8(-424)
+ 967 02be 2883      		st Y,r18
+ 968 02c0 C85A      		subi r28,lo8(424)
+ 969 02c2 D140      		sbci r29,hi8(424)
+ 970 02c4 C955      		subi r28,lo8(-423)
+ 971 02c6 DE4F      		sbci r29,hi8(-423)
+ 972 02c8 3883      		st Y,r19
+ 973 02ca C75A      		subi r28,lo8(423)
+ 974 02cc D140      		sbci r29,hi8(423)
+ 975 02ce 0E94 0000 		call __fixunssfsi
+ 976 02d2 67BD      		out 0x27,r22
  180:main.c        ****     OCR0B = (uint8_t) convertedRightValue;
- 873               	.LM104:
- 874 0254 C955      		subi r28,lo8(-423)
- 875 0256 DE4F      		sbci r29,hi8(-423)
- 876 0258 3881      		ld r19,Y
- 877 025a C75A      		subi r28,lo8(423)
- 878 025c D140      		sbci r29,hi8(423)
- 879 025e C855      		subi r28,lo8(-424)
- 880 0260 DE4F      		sbci r29,hi8(-424)
- 881 0262 2881      		ld r18,Y
- 882 0264 C85A      		subi r28,lo8(424)
- 883 0266 D140      		sbci r29,hi8(424)
- 884 0268 632F      		mov r22,r19
- 885 026a 722F      		mov r23,r18
- 886 026c 802F      		mov r24,r16
- 887 026e 912F      		mov r25,r17
- 888 0270 0E94 0000 		call __fixunssfsi
- 889 0274 68BD      		out 0x28,r22
+ 978               	.LM119:
+ 979 02d4 C955      		subi r28,lo8(-423)
+ 980 02d6 DE4F      		sbci r29,hi8(-423)
+ 981 02d8 3881      		ld r19,Y
+ 982 02da C75A      		subi r28,lo8(423)
+ 983 02dc D140      		sbci r29,hi8(423)
+ 984 02de C855      		subi r28,lo8(-424)
+ 985 02e0 DE4F      		sbci r29,hi8(-424)
+ 986 02e2 2881      		ld r18,Y
+ 987 02e4 C85A      		subi r28,lo8(424)
+ 988 02e6 D140      		sbci r29,hi8(424)
+ 989 02e8 632F      		mov r22,r19
+ 990 02ea 722F      		mov r23,r18
+ 991 02ec 802F      		mov r24,r16
+ 992 02ee 912F      		mov r25,r17
+ 993 02f0 0E94 0000 		call __fixunssfsi
+ 994 02f4 68BD      		out 0x28,r22
  211:main.c        ****     convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;
- 891               	.LM105:
- 892 0276 B701      		movw r22,r14
- 893 0278 80E0      		ldi r24,0
- 894 027a 90E0      		ldi r25,0
- 895 027c 0E94 0000 		call __floatunsisf
- 896 0280 21E7      		ldi r18,lo8(113)
- 897 0282 3DE3      		ldi r19,lo8(61)
- 898 0284 4AEF      		ldi r20,lo8(-6)
- 899 0286 5FE3      		ldi r21,lo8(63)
- 900 0288 0E94 0000 		call __mulsf3
- 901 028c 20E0      		ldi r18,0
- 902 028e 30E0      		ldi r19,0
- 903 0290 4AEF      		ldi r20,lo8(-6)
- 904 0292 53E4      		ldi r21,lo8(67)
- 905 0294 0E94 0000 		call __addsf3
+ 996               	.LM120:
+ 997 02f6 B501      		movw r22,r10
+ 998 02f8 80E0      		ldi r24,0
+ 999 02fa 90E0      		ldi r25,0
+ 1000 02fc 0E94 0000 		call __floatunsisf
+ 1001 0300 21E7      		ldi r18,lo8(113)
+ 1002 0302 3DE3      		ldi r19,lo8(61)
+ 1003 0304 4AEF      		ldi r20,lo8(-6)
+ 1004 0306 5FE3      		ldi r21,lo8(63)
+ 1005 0308 0E94 0000 		call __mulsf3
+ 1006 030c 20E0      		ldi r18,0
+ 1007 030e 30E0      		ldi r19,0
+ 1008 0310 4AEF      		ldi r20,lo8(-6)
+ 1009 0312 53E4      		ldi r21,lo8(67)
+ 1010 0314 0E94 0000 		call __addsf3
  212:main.c        ****     OCR1A = (uint16_t) convertedTopSliderValue;
- 907               	.LM106:
- 908 0298 0E94 0000 		call __fixunssfsi
- 909 029c 7093 8900 		sts 136+1,r23
- 910 02a0 6093 8800 		sts 136,r22
+ 1012               	.LM121:
+ 1013 0318 0E94 0000 		call __fixunssfsi
+ 1014 031c 7093 8900 		sts 136+1,r23
+ 1015 0320 6093 8800 		sts 136,r22
  214:main.c        ****     convertedBottomSliderValue = (converterSlideValue * avgBottomSliderValue) + offsetSlideValue;
- 912               	.LM107:
- 913 02a4 B601      		movw r22,r12
- 914 02a6 80E0      		ldi r24,0
- 915 02a8 90E0      		ldi r25,0
- 916 02aa 0E94 0000 		call __floatunsisf
- 917 02ae 21E7      		ldi r18,lo8(113)
- 918 02b0 3DE3      		ldi r19,lo8(61)
- 919 02b2 4AEF      		ldi r20,lo8(-6)
- 920 02b4 5FE3      		ldi r21,lo8(63)
- 921 02b6 0E94 0000 		call __mulsf3
- 922 02ba 20E0      		ldi r18,0
- 923 02bc 30E0      		ldi r19,0
- 924 02be 4AEF      		ldi r20,lo8(-6)
- 925 02c0 53E4      		ldi r21,lo8(67)
- 926 02c2 0E94 0000 		call __addsf3
+ 1017               	.LM122:
+ 1018 0324 B601      		movw r22,r12
+ 1019 0326 80E0      		ldi r24,0
+ 1020 0328 90E0      		ldi r25,0
+ 1021 032a 0E94 0000 		call __floatunsisf
+ 1022 032e 21E7      		ldi r18,lo8(113)
+ 1023 0330 3DE3      		ldi r19,lo8(61)
+ 1024 0332 4AEF      		ldi r20,lo8(-6)
+ 1025 0334 5FE3      		ldi r21,lo8(63)
+ 1026 0336 0E94 0000 		call __mulsf3
+ 1027 033a 20E0      		ldi r18,0
+ 1028 033c 30E0      		ldi r19,0
+ 1029 033e 4AEF      		ldi r20,lo8(-6)
+ 1030 0340 53E4      		ldi r21,lo8(67)
+ 1031 0342 0E94 0000 		call __addsf3
  215:main.c        ****     OCR1B = (uint16_t) convertedBottomSliderValue;
- 928               	.LM108:
- 929 02c6 0E94 0000 		call __fixunssfsi
- 930 02ca 7093 8B00 		sts 138+1,r23
- 931 02ce 6093 8A00 		sts 138,r22
+ 1033               	.LM123:
+ 1034 0346 0E94 0000 		call __fixunssfsi
+ 1035 034a 7093 8B00 		sts 138+1,r23
+ 1036 034e 6093 8A00 		sts 138,r22
  216:main.c        ****  }
- 933               	.LM109:
- 934 02d2 00C0      		rjmp .L25
- 935               	.L18:
- 138:main.c        ****     if(leftMotor > 561){   //forwards
- 937               	.LM110:
- 938 02d4 0233      		cpi r16,50
- 939 02d6 82E0      		ldi r24,2
- 940 02d8 1807      		cpc r17,r24
- 941 02da 00F4      		brsh .+2
- 942 02dc 00C0      		rjmp .L29
- 943 02de 00C0      		rjmp .L26
- 950               	.Lscope9:
- 952               		.stabd	78,0,0
- 953               		.text
- 955               	.Letext0:
- 956               		.ident	"GCC: (GNU) 4.7.2"
+ 1038               	.LM124:
+ 1039 0352 00C0      		rjmp .L31
+ 1048               	.Lscope9:
+ 1050               		.stabd	78,0,0
+ 1051               		.text
+ 1053               	.Letext0:
+ 1054               		.ident	"GCC: (GNU) 4.7.2"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-     /tmp/ccDcVBCP.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccDcVBCP.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccDcVBCP.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccDcVBCP.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccDcVBCP.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccDcVBCP.s:91     .text:0000000000000000 initADC
-     /tmp/ccDcVBCP.s:128    .text:000000000000001c readADC
-     /tmp/ccDcVBCP.s:172    .text:0000000000000046 initValues
-     /tmp/ccDcVBCP.s:217    .text:000000000000005a storeNewADC
-     /tmp/ccDcVBCP.s:290    .text:000000000000009a getAverage
-     /tmp/ccDcVBCP.s:348    .text:00000000000000c8 initTimer1Servo
-     /tmp/ccDcVBCP.s:406    .text:0000000000000100 initTimer0PWM
-     /tmp/ccDcVBCP.s:443    .text:000000000000011a initMotorDriverIO
-     /tmp/ccDcVBCP.s:501    .text.startup:0000000000000000 main
+     /tmp/cczdeooR.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cczdeooR.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cczdeooR.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cczdeooR.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cczdeooR.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cczdeooR.s:91     .text:0000000000000000 initADC
+     /tmp/cczdeooR.s:128    .text:000000000000001c readADC
+     /tmp/cczdeooR.s:172    .text:0000000000000046 initValues
+     /tmp/cczdeooR.s:217    .text:000000000000005a storeNewADC
+     /tmp/cczdeooR.s:290    .text:000000000000009a getAverage
+     /tmp/cczdeooR.s:348    .text:00000000000000c8 initTimer1Servo
+     /tmp/cczdeooR.s:406    .text:0000000000000100 initTimer0PWM
+     /tmp/cczdeooR.s:443    .text:000000000000011a initMotorDriverIO
+     /tmp/cczdeooR.s:502    .text.startup:0000000000000000 main
 
 UNDEFINED SYMBOLS
 __udivmodsi4
 pin_lo
-__floatunsisf
+__floatsisf
 __subsf3
 __mulsf3
 __fixunssfsi
+__floatunsisf
 __addsf3
 pin_hi
