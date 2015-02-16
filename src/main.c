@@ -289,14 +289,14 @@ uint8_t computeRightMotorPWM(int vValue, int hValue){
   /* 2. Convert Value to control digital out lines and 8 bit PWM */
   if(rightMotor > 531){              //forwards
     //set direction bits
-    pin_hi('B', DRIVER2A);
-    pin_lo('B', DRIVER2B);
+    pin_lo('B', DRIVER2A);
+    pin_hi('B', DRIVER2B);
     //convert ADC to PWM (0-255)
     rightMotor = (rightMotor - 513.0)/2;
   }else if(rightMotor < 451){        //backwards
     //set direction bits
-    pin_lo('B', DRIVER2A);
-    pin_hi('B', DRIVER2B);
+    pin_hi('B', DRIVER2A);
+    pin_lo('B', DRIVER2B);
     //convert ADC to PWM (0-255)
     rightMotor = (510.0 - (float)rightMotor)/2;
   }else{                            //center

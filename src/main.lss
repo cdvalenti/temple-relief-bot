@@ -603,16 +603,16 @@ uint8_t computeRightMotorPWM(int vValue, int hValue){
   /* 2. Convert Value to control digital out lines and 8 bit PWM */
   if(rightMotor > 531){              //forwards
     //set direction bits
-    pin_hi('B', DRIVER2A);
+    pin_lo('B', DRIVER2A);
  2f2:	64 e0       	ldi	r22, 0x04	; 4
  2f4:	70 e0       	ldi	r23, 0x00	; 0
  2f6:	82 e4       	ldi	r24, 0x42	; 66
- 2f8:	0e 94 f1 01 	call	0x3e2	; 0x3e2 <pin_hi>
-    pin_lo('B', DRIVER2B);
+ 2f8:	0e 94 1a 02 	call	0x434	; 0x434 <pin_lo>
+    pin_hi('B', DRIVER2B);
  2fc:	65 e0       	ldi	r22, 0x05	; 5
  2fe:	70 e0       	ldi	r23, 0x00	; 0
  300:	82 e4       	ldi	r24, 0x42	; 66
- 302:	0e 94 1a 02 	call	0x434	; 0x434 <pin_lo>
+ 302:	0e 94 f1 01 	call	0x3e2	; 0x3e2 <pin_hi>
     //convert ADC to PWM (0-255)
     rightMotor = (rightMotor - 513.0)/2;
  306:	be 01       	movw	r22, r28
@@ -640,21 +640,21 @@ uint8_t computeRightMotorPWM(int vValue, int hValue){
       rightMotor = 0;
  328:	c0 e0       	ldi	r28, 0x00	; 0
  32a:	d0 e0       	ldi	r29, 0x00	; 0
-    pin_lo('B', DRIVER2B);
+    pin_hi('B', DRIVER2B);
     //convert ADC to PWM (0-255)
     rightMotor = (rightMotor - 513.0)/2;
   }else if(rightMotor < 451){        //backwards
     //set direction bits
-    pin_lo('B', DRIVER2A);
+    pin_hi('B', DRIVER2A);
  32c:	64 e0       	ldi	r22, 0x04	; 4
  32e:	70 e0       	ldi	r23, 0x00	; 0
  330:	82 e4       	ldi	r24, 0x42	; 66
- 332:	0e 94 1a 02 	call	0x434	; 0x434 <pin_lo>
-    pin_hi('B', DRIVER2B);
+ 332:	0e 94 f1 01 	call	0x3e2	; 0x3e2 <pin_hi>
+    pin_lo('B', DRIVER2B);
  336:	65 e0       	ldi	r22, 0x05	; 5
  338:	70 e0       	ldi	r23, 0x00	; 0
  33a:	82 e4       	ldi	r24, 0x42	; 66
- 33c:	0e 94 f1 01 	call	0x3e2	; 0x3e2 <pin_hi>
+ 33c:	0e 94 1a 02 	call	0x434	; 0x434 <pin_lo>
     //convert ADC to PWM (0-255)
     rightMotor = (510.0 - (float)rightMotor)/2;
  340:	be 01       	movw	r22, r28

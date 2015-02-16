@@ -807,18 +807,18 @@
  732 0270 D3E0      		ldi r29,lo8(3)
  733               	.L32:
  291:main.c        ****     //set direction bits
- 292:main.c        ****     pin_hi('B', DRIVER2A);
+ 292:main.c        ****     pin_lo('B', DRIVER2A);
  735               	.LM85:
  736 0272 64E0      		ldi r22,lo8(4)
  737 0274 70E0      		ldi r23,0
  738 0276 82E4      		ldi r24,lo8(66)
- 739 0278 0E94 0000 		call pin_hi
- 293:main.c        ****     pin_lo('B', DRIVER2B);
+ 739 0278 0E94 0000 		call pin_lo
+ 293:main.c        ****     pin_hi('B', DRIVER2B);
  741               	.LM86:
  742 027c 65E0      		ldi r22,lo8(5)
  743 027e 70E0      		ldi r23,0
  744 0280 82E4      		ldi r24,lo8(66)
- 745 0282 0E94 0000 		call pin_lo
+ 745 0282 0E94 0000 		call pin_hi
  294:main.c        ****     //convert ADC to PWM (0-255)
  295:main.c        ****     rightMotor = (rightMotor - 513.0)/2;
  747               	.LM87:
@@ -848,18 +848,18 @@
  771 02aa D0E0      		ldi r29,0
  772               	.L33:
  297:main.c        ****     //set direction bits
- 298:main.c        ****     pin_lo('B', DRIVER2A);
+ 298:main.c        ****     pin_hi('B', DRIVER2A);
  774               	.LM90:
  775 02ac 64E0      		ldi r22,lo8(4)
  776 02ae 70E0      		ldi r23,0
  777 02b0 82E4      		ldi r24,lo8(66)
- 778 02b2 0E94 0000 		call pin_lo
- 299:main.c        ****     pin_hi('B', DRIVER2B);
+ 778 02b2 0E94 0000 		call pin_hi
+ 299:main.c        ****     pin_lo('B', DRIVER2B);
  780               	.LM91:
  781 02b6 65E0      		ldi r22,lo8(5)
  782 02b8 70E0      		ldi r23,0
  783 02ba 82E4      		ldi r24,lo8(66)
- 784 02bc 0E94 0000 		call pin_hi
+ 784 02bc 0E94 0000 		call pin_lo
  300:main.c        ****     //convert ADC to PWM (0-255)
  301:main.c        ****     rightMotor = (510.0 - (float)rightMotor)/2;
  786               	.LM92:
@@ -1130,22 +1130,22 @@
  1055               		.ident	"GCC: (GNU) 4.7.2"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-     /tmp/ccqTYmeZ.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccqTYmeZ.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccqTYmeZ.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccqTYmeZ.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccqTYmeZ.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccqTYmeZ.s:91     .text:0000000000000000 initADC
-     /tmp/ccqTYmeZ.s:128    .text:000000000000001c readADC
-     /tmp/ccqTYmeZ.s:172    .text:0000000000000046 initValues
-     /tmp/ccqTYmeZ.s:217    .text:000000000000005a storeNewADC
-     /tmp/ccqTYmeZ.s:290    .text:000000000000009a getAverage
-     /tmp/ccqTYmeZ.s:348    .text:00000000000000c8 initTimer1Servo
-     /tmp/ccqTYmeZ.s:406    .text:0000000000000100 initTimer0PWM
-     /tmp/ccqTYmeZ.s:443    .text:000000000000011a initMotorDriverIO
-     /tmp/ccqTYmeZ.s:501    .text:000000000000014a computeLeftMotorPWM
-     /tmp/ccqTYmeZ.s:672    .text:000000000000022e computeRightMotorPWM
-     /tmp/ccqTYmeZ.s:844    .text.startup:0000000000000000 main
+     /tmp/cc3R7Iys.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cc3R7Iys.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cc3R7Iys.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cc3R7Iys.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cc3R7Iys.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cc3R7Iys.s:91     .text:0000000000000000 initADC
+     /tmp/cc3R7Iys.s:128    .text:000000000000001c readADC
+     /tmp/cc3R7Iys.s:172    .text:0000000000000046 initValues
+     /tmp/cc3R7Iys.s:217    .text:000000000000005a storeNewADC
+     /tmp/cc3R7Iys.s:290    .text:000000000000009a getAverage
+     /tmp/cc3R7Iys.s:348    .text:00000000000000c8 initTimer1Servo
+     /tmp/cc3R7Iys.s:406    .text:0000000000000100 initTimer0PWM
+     /tmp/cc3R7Iys.s:443    .text:000000000000011a initMotorDriverIO
+     /tmp/cc3R7Iys.s:501    .text:000000000000014a computeLeftMotorPWM
+     /tmp/cc3R7Iys.s:672    .text:000000000000022e computeRightMotorPWM
+     /tmp/cc3R7Iys.s:844    .text.startup:0000000000000000 main
 
 UNDEFINED SYMBOLS
 __udivmodsi4
