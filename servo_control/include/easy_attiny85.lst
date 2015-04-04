@@ -1,0 +1,231 @@
+   1               		.file	"easy_attiny85.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 106               	.global	toggle
+ 108               	toggle:
+ 109               		.stabd	46,0,0
+   1:include/easy_attiny85.c **** #include <include/easy_attiny85.h>
+   2:include/easy_attiny85.c **** 
+   3:include/easy_attiny85.c **** void toggle(char port, int bit)
+   4:include/easy_attiny85.c **** {
+ 111               	.LM0:
+ 112               	.LFBB1:
+ 113               	/* prologue: function */
+ 114               	/* frame size = 0 */
+ 115               	/* stack size = 0 */
+ 116               	.L__stack_usage = 0
+   5:include/easy_attiny85.c ****     if(port == 'A'){
+   6:include/easy_attiny85.c ****       //PORTA ^= (1<<bit);
+   7:include/easy_attiny85.c ****     }else if (port == 'B'){
+ 118               	.LM1:
+ 119 0000 8234      		cpi r24,lo8(66)
+ 120 0002 01F4      		brne .L1
+   8:include/easy_attiny85.c ****       PORTB ^= (1<<bit);
+ 122               	.LM2:
+ 123 0004 28B3      		in r18,0x18
+ 124 0006 81E0      		ldi r24,lo8(1)
+ 125 0008 90E0      		ldi r25,0
+ 126 000a 062E      		mov r0,r22
+ 127 000c 00C0      		rjmp 2f
+ 128               		1:
+ 129 000e 880F      		lsl r24
+ 130               		2:
+ 131 0010 0A94      		dec r0
+ 132 0012 02F4      		brpl 1b
+ 133 0014 2827      		eor r18,r24
+ 134 0016 28BB      		out 0x18,r18
+ 135               	.L1:
+ 136 0018 0895      		ret
+ 138               	.Lscope1:
+ 140               		.stabd	78,0,0
+ 143               	.global	pin_hi
+ 145               	pin_hi:
+ 146               		.stabd	46,0,0
+   9:include/easy_attiny85.c ****     }else if (port == 'C'){
+  10:include/easy_attiny85.c ****       //PORTC ^= (1<<bit);
+  11:include/easy_attiny85.c ****     }else if (port == 'D'){
+  12:include/easy_attiny85.c ****       //PORTD ^= (1<<bit);
+  13:include/easy_attiny85.c ****     }
+  14:include/easy_attiny85.c **** }
+  15:include/easy_attiny85.c **** 
+  16:include/easy_attiny85.c **** void pin_hi(char port, int bit)
+  17:include/easy_attiny85.c **** {
+ 148               	.LM3:
+ 149               	.LFBB2:
+ 150               	/* prologue: function */
+ 151               	/* frame size = 0 */
+ 152               	/* stack size = 0 */
+ 153               	.L__stack_usage = 0
+  18:include/easy_attiny85.c ****     if(port == 'A'){
+  19:include/easy_attiny85.c ****       //PORTA |= (1<<bit);
+  20:include/easy_attiny85.c ****     }else if (port == 'B'){
+ 155               	.LM4:
+ 156 001a 8234      		cpi r24,lo8(66)
+ 157 001c 01F4      		brne .L4
+  21:include/easy_attiny85.c ****       PORTB |= (1<<bit);
+ 159               	.LM5:
+ 160 001e 28B3      		in r18,0x18
+ 161 0020 81E0      		ldi r24,lo8(1)
+ 162 0022 90E0      		ldi r25,0
+ 163 0024 062E      		mov r0,r22
+ 164 0026 00C0      		rjmp 2f
+ 165               		1:
+ 166 0028 880F      		lsl r24
+ 167               		2:
+ 168 002a 0A94      		dec r0
+ 169 002c 02F4      		brpl 1b
+ 170 002e 282B      		or r18,r24
+ 171 0030 28BB      		out 0x18,r18
+ 172               	.L4:
+ 173 0032 0895      		ret
+ 175               	.Lscope2:
+ 177               		.stabd	78,0,0
+ 180               	.global	pin_lo
+ 182               	pin_lo:
+ 183               		.stabd	46,0,0
+  22:include/easy_attiny85.c ****     }else if (port == 'C'){
+  23:include/easy_attiny85.c ****       //PORTC |= (1<<bit);
+  24:include/easy_attiny85.c ****     }else if (port == 'D'){
+  25:include/easy_attiny85.c ****       //PORTD |= (1<<bit);
+  26:include/easy_attiny85.c ****     }
+  27:include/easy_attiny85.c **** }
+  28:include/easy_attiny85.c **** 
+  29:include/easy_attiny85.c **** void pin_lo(char port, int bit)
+  30:include/easy_attiny85.c **** {
+ 185               	.LM6:
+ 186               	.LFBB3:
+ 187               	/* prologue: function */
+ 188               	/* frame size = 0 */
+ 189               	/* stack size = 0 */
+ 190               	.L__stack_usage = 0
+  31:include/easy_attiny85.c ****     if(port == 'A'){
+  32:include/easy_attiny85.c ****       //PORTA &= ~(1<<bit);
+  33:include/easy_attiny85.c ****     }else if (port == 'B'){
+ 192               	.LM7:
+ 193 0034 8234      		cpi r24,lo8(66)
+ 194 0036 01F4      		brne .L6
+  34:include/easy_attiny85.c ****       PORTB &= ~(1<<bit);
+ 196               	.LM8:
+ 197 0038 28B3      		in r18,0x18
+ 198 003a 81E0      		ldi r24,lo8(1)
+ 199 003c 90E0      		ldi r25,0
+ 200 003e 062E      		mov r0,r22
+ 201 0040 00C0      		rjmp 2f
+ 202               		1:
+ 203 0042 880F      		lsl r24
+ 204               		2:
+ 205 0044 0A94      		dec r0
+ 206 0046 02F4      		brpl 1b
+ 207 0048 8095      		com r24
+ 208 004a 8223      		and r24,r18
+ 209 004c 88BB      		out 0x18,r24
+ 210               	.L6:
+ 211 004e 0895      		ret
+ 213               	.Lscope3:
+ 215               		.stabd	78,0,0
+ 218               	.global	set_as_input
+ 220               	set_as_input:
+ 221               		.stabd	46,0,0
+  35:include/easy_attiny85.c ****     }else if (port == 'C'){
+  36:include/easy_attiny85.c ****       //PORTC &= ~(1<<bit);
+  37:include/easy_attiny85.c ****     }else if (port == 'D'){
+  38:include/easy_attiny85.c ****       //PORTD &= ~(1<<bit);
+  39:include/easy_attiny85.c ****     }
+  40:include/easy_attiny85.c **** }
+  41:include/easy_attiny85.c **** 
+  42:include/easy_attiny85.c **** void set_as_input(char port, int bit)
+  43:include/easy_attiny85.c **** {
+ 223               	.LM9:
+ 224               	.LFBB4:
+ 225               	/* prologue: function */
+ 226               	/* frame size = 0 */
+ 227               	/* stack size = 0 */
+ 228               	.L__stack_usage = 0
+  44:include/easy_attiny85.c ****     if(port == 'A'){
+  45:include/easy_attiny85.c ****       //DDRA &= ~(1<<bit);
+  46:include/easy_attiny85.c ****     }else if (port == 'B'){
+ 230               	.LM10:
+ 231 0050 8234      		cpi r24,lo8(66)
+ 232 0052 01F4      		brne .L8
+  47:include/easy_attiny85.c ****       DDRB &= ~(1<<bit);
+ 234               	.LM11:
+ 235 0054 27B3      		in r18,0x17
+ 236 0056 81E0      		ldi r24,lo8(1)
+ 237 0058 90E0      		ldi r25,0
+ 238 005a 062E      		mov r0,r22
+ 239 005c 00C0      		rjmp 2f
+ 240               		1:
+ 241 005e 880F      		lsl r24
+ 242               		2:
+ 243 0060 0A94      		dec r0
+ 244 0062 02F4      		brpl 1b
+ 245 0064 8095      		com r24
+ 246 0066 8223      		and r24,r18
+ 247 0068 87BB      		out 0x17,r24
+ 248               	.L8:
+ 249 006a 0895      		ret
+ 251               	.Lscope4:
+ 253               		.stabd	78,0,0
+ 256               	.global	set_as_output
+ 258               	set_as_output:
+ 259               		.stabd	46,0,0
+  48:include/easy_attiny85.c ****     }else if (port == 'C'){
+  49:include/easy_attiny85.c ****       //DDRC &= ~(1<<bit);
+  50:include/easy_attiny85.c ****     }else if (port == 'D'){
+  51:include/easy_attiny85.c ****       //DDRD &= ~(1<<bit);
+  52:include/easy_attiny85.c ****     }
+  53:include/easy_attiny85.c **** }
+  54:include/easy_attiny85.c **** 
+  55:include/easy_attiny85.c **** void set_as_output(char port, int bit)
+  56:include/easy_attiny85.c **** {
+ 261               	.LM12:
+ 262               	.LFBB5:
+ 263               	/* prologue: function */
+ 264               	/* frame size = 0 */
+ 265               	/* stack size = 0 */
+ 266               	.L__stack_usage = 0
+  57:include/easy_attiny85.c ****     if(port == 'A'){
+  58:include/easy_attiny85.c ****       //DDRA |= (1<<bit);
+  59:include/easy_attiny85.c ****     }else if (port == 'B'){
+ 268               	.LM13:
+ 269 006c 8234      		cpi r24,lo8(66)
+ 270 006e 01F4      		brne .L10
+  60:include/easy_attiny85.c ****       DDRB |= (1<<bit);
+ 272               	.LM14:
+ 273 0070 27B3      		in r18,0x17
+ 274 0072 81E0      		ldi r24,lo8(1)
+ 275 0074 90E0      		ldi r25,0
+ 276 0076 062E      		mov r0,r22
+ 277 0078 00C0      		rjmp 2f
+ 278               		1:
+ 279 007a 880F      		lsl r24
+ 280               		2:
+ 281 007c 0A94      		dec r0
+ 282 007e 02F4      		brpl 1b
+ 283 0080 282B      		or r18,r24
+ 284 0082 27BB      		out 0x17,r18
+ 285               	.L10:
+ 286 0084 0895      		ret
+ 288               	.Lscope5:
+ 290               		.stabd	78,0,0
+ 292               	.Letext0:
+ 293               		.ident	"GCC: (GNU) 4.8.2"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 easy_attiny85.c
+     /tmp/ccU1O74A.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccU1O74A.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccU1O74A.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccU1O74A.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccU1O74A.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccU1O74A.s:108    .text:0000000000000000 toggle
+     /tmp/ccU1O74A.s:145    .text:000000000000001a pin_hi
+     /tmp/ccU1O74A.s:182    .text:0000000000000034 pin_lo
+     /tmp/ccU1O74A.s:220    .text:0000000000000050 set_as_input
+     /tmp/ccU1O74A.s:258    .text:000000000000006c set_as_output
+
+NO UNDEFINED SYMBOLS
