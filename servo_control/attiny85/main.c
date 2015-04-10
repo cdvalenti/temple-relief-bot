@@ -39,13 +39,18 @@
  *    repeat
  * 
  *    ADD PID control if needed
- *    Need to: use time lib to determine dt, and start saving error values
+ *    Need to: determine dt, and start saving error values
+ *    ATTINY84: use 8 bit timer for output pwm, use 16 bit timer to determine dt of loop 
  *    http://www.phidgets.com/docs/DC_Motor_-_PID_Control
- *    Test on an atmega328p first bc of fuse bits here
+ *    
+ *    04/07/2015:
+ *    NEED TO CLONE THIS FOR ATTINY84
+ *    
  */
 
 //declare volatile global variable that can be accessed by both the ISRs and main
-volatile long encoder_count;
+volatile long encoder_count = 0;
+volatile uint8_t last_encoded = 0;
 
 //function declarations
 void initADC(void);
@@ -57,38 +62,25 @@ void initMotorDriverIO(void);
 void initTimer0PWM(void);
 void initPCInterrupts(void);
 
-ISR(PCINT1_vect) {
-  
-  if(bit_is_set(PINB, ENCODER_A)){
-    if(bit_is_set(PINB, ENCODER_B)){
-      encoder_count--;
-    }else{
-      encoder_count++;
-    }
-  }else{
-    if(bit_is_set(PINB, ENCODER_B)){
-      encoder_count++;
-    }else{
-      encoder_count--;
-    }
-  }
-}
+ISR(PCINT0_vect) {
 
-ISR(PCINT2_vect) {
- 
- if(bit_is_set(PINB, ENCODER_B)){
-    if(bit_is_set(PINB, ENCODER_A)){
+  uint8_t MSB = bit_is_set(PINB,ENCODER_A); //MSB = most significant bit
+  uint8_t LSB = bit_is_set(PINB,ENCODER_B); //LSB = least significant bit
+
+  uint8_t encoded = (MSB << 1) | LSB; //converting the 2 pin value to single number
+  uint8_t sum  = (last_encoded << 2) | encoded; //adding it to the previous encoded value
+
+  if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011){
       encoder_count++;
-    }else{
-      encoder_count--;
-    }
-  }else{
-    if(bit_is_set(PINB, ENCODER_A)){
-      encoder_count--;
-    }else{
-      encoder_count++;
-    }
   }
+  
+  if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000){
+      encoder_count--;
+  }
+
+  last_encoded = encoded; //store this value for next time
+  
+  return;
 }
 
 int main(void) {
@@ -100,13 +92,13 @@ int main(void) {
   initPCInterrupts();
   
   //gearmotor characteristics
-  int cpr = 8400;
+  float cpr = 8400.0;
   float chain_ratio = 16*(12.0/9.0);
-  int range_of_motion = 180;
-  long max_desired_count = (cpr*chain_ratio)*(range_of_motion/360.0);
+  float range_of_motion = 180.0;
+  float max_desired_count = (cpr*chain_ratio)*(range_of_motion/360.0);
   float ADC_multiplier = max_desired_count/1023.0;
-  float slowdown_count = 2100;
-  int target_buffer = 250;
+  float slowdown_count = 2100.0;
+  float target_buffer = 250.0;
 
   //set up moving average array and init values to zero
   uint8_t arraySize = 32;
@@ -116,7 +108,7 @@ int main(void) {
   initValues(ADC_pointer, arraySize, 0);
   
   //avg value variable
-  int ADC_avg;
+  uint16_t ADC_avg;
   
   //positon variables
   long desired_count;
@@ -127,12 +119,13 @@ int main(void) {
   
   while(1) { 
     
+    
     // Read ADC
     storeNewADC(ADC_pointer, arraySize, ADC_CHANNEL);
     ADC_avg = getAverage(ADC_pointer, arraySize);
-
+    
     // Convert ADC to desired encoder count
-    desired_count = ADC_avg * ADC_multiplier;
+    desired_count = (float)ADC_avg * ADC_multiplier;
     
     //update local variable
     cli();
@@ -148,7 +141,7 @@ int main(void) {
       pin_hi('B', DRIVER_A);
       pin_lo('B', DRIVER_B);
     }else if(count_error<=slowdown_count && count_error>target_buffer){
-      OCR0A = 255 * (count_error/slowdown_count);
+      OCR0A = 255 * (count_error/(float)slowdown_count);
       pin_hi('B', DRIVER_A);
       pin_lo('B', DRIVER_B);
     }else if(count_error<=target_buffer && count_error>=-target_buffer){
@@ -156,7 +149,7 @@ int main(void) {
       pin_hi('B', DRIVER_A);
       pin_lo('B', DRIVER_B);
     }else if(count_error<-target_buffer && count_error>=-slowdown_count){
-      OCR0A = 255 * -(count_error/slowdown_count);
+      OCR0A = 255 * -(count_error/(float)slowdown_count);
       pin_hi('B', DRIVER_B);
       pin_lo('B', DRIVER_A);
     }else if(count_error < -slowdown_count){
@@ -164,6 +157,7 @@ int main(void) {
       pin_hi('B', DRIVER_B);
       pin_lo('B', DRIVER_A);
     }
+    
  }
  
  return(0);
@@ -263,8 +257,8 @@ void initMotorDriverIO(void){
 void initPCInterrupts(void){
   DDRB &= ~(1<<ENCODER_A);
   DDRB &= ~(1<<ENCODER_B);
-  PORTB |= (1<<ENCODER_A);
-  PORTB |= (1<<ENCODER_B);
+  //PORTB |= (1<<ENCODER_A);
+  //PORTB |= (1<<ENCODER_B);
   GIMSK |= (1<<PCIE);
   PCMSK |= (1<<PCINT1) | (1<<PCINT2);
   sei();

@@ -1,0 +1,903 @@
+   1               		.file	"main.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   9               		.text
+  10               	.Ltext0:
+ 123               	.global	__vector_2
+ 125               	__vector_2:
+ 126               		.stabd	46,0,0
+   1:main.c        **** #define MCU 'atmega84'
+   2:main.c        **** #define F_CPU 1000000UL
+   3:main.c        **** 
+   4:main.c        **** #include "include/macros.h"
+   5:main.c        **** #include <avr/io.h>
+   6:main.c        **** #include <avr/interrupt.h>
+   7:main.c        **** #include <stdio.h>
+   8:main.c        **** #include <stdlib.h>
+   9:main.c        **** 
+  10:main.c        **** #define ENCODER_A     PA1   //PCINT1
+  11:main.c        **** #define ENCODER_B     PA2   //PCINT2
+  12:main.c        **** #define ENCODER_PIN   PINA
+  13:main.c        **** #define ENCODER_DDR   DDRA
+  14:main.c        **** #define ADC_IN        PA0   //ADC0
+  15:main.c        **** #define ADC_CHANNEL   0
+  16:main.c        **** #define DRIVER_PWM    PB2
+  17:main.c        **** #define DRIVER_A      PB1
+  18:main.c        **** #define DRIVER_B      PB0
+  19:main.c        **** #define DRIVER_PORT   PORTB
+  20:main.c        **** #define DRIVER_DDR    DDRB
+  21:main.c        **** 
+  22:main.c        **** //global variables for position update
+  23:main.c        **** volatile long encoderValue = 0;
+  24:main.c        **** volatile uint8_t seqstore = 0;
+  25:main.c        **** volatile uint8_t pinpair = 0;
+  26:main.c        **** 
+  27:main.c        **** //function declarations
+  28:main.c        **** void initADC(void);
+  29:main.c        **** uint16_t readADC(uint8_t channel);
+  30:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value);
+  31:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel);
+  32:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size);
+  33:main.c        **** void initMotorDriverIO(void);
+  34:main.c        **** void initTimer0PWM(void);
+  35:main.c        **** void initPCInterrupts(void);
+  36:main.c        **** 
+  37:main.c        **** ISR(PCINT0_vect) {
+ 128               	.LM0:
+ 129               	.LFBB1:
+ 130 0000 1F92      		push r1
+ 131 0002 0F92      		push r0
+ 132 0004 0FB6      		in r0,__SREG__
+ 133 0006 0F92      		push r0
+ 134 0008 1124      		clr __zero_reg__
+ 135 000a 8F93      		push r24
+ 136 000c 9F93      		push r25
+ 137 000e AF93      		push r26
+ 138 0010 BF93      		push r27
+ 139               	/* prologue: Signal */
+ 140               	/* frame size = 0 */
+ 141               	/* stack size = 7 */
+ 142               	.L__stack_usage = 7
+  38:main.c        ****   
+  39:main.c        ****   //variables to store encoder states
+  40:main.c        ****   uint8_t MSB;
+  41:main.c        ****   uint8_t LSB;
+  42:main.c        ****   
+  43:main.c        ****   //find state of encoder a
+  44:main.c        ****   if(bit_is_set(ENCODER_PIN,ENCODER_A)){
+ 144               	.LM1:
+ 145 0012 89B3      		in r24,0x19
+  45:main.c        ****     MSB=1;
+  46:main.c        ****   }else{
+  47:main.c        ****     MSB=0;
+  48:main.c        ****   }
+  49:main.c        ****   
+  50:main.c        ****   //find state of encoder b
+  51:main.c        ****   if(bit_is_set(ENCODER_PIN,ENCODER_B)){
+ 147               	.LM2:
+ 148 0014 99B3      		in r25,0x19
+  52:main.c        ****     LSB=1;
+  53:main.c        ****   }else{
+  54:main.c        ****     LSB=0;
+  55:main.c        ****   }
+  56:main.c        ****   
+  57:main.c        ****   //this instance pair
+  58:main.c        ****   pinpair = (MSB << 1) | LSB;
+ 150               	.LM3:
+ 151 0016 8270      		andi r24,lo8(2)
+  51:main.c        ****   if(bit_is_set(ENCODER_PIN,ENCODER_B)){
+ 153               	.LM4:
+ 154 0018 92FB      		bst r25,2
+ 155 001a 9927      		clr r25
+ 156 001c 90F9      		bld r25,0
+ 158               	.LM5:
+ 159 001e 892B      		or r24,r25
+ 160 0020 8093 0000 		sts pinpair,r24
+  59:main.c        ****   
+  60:main.c        ****   seqstore = seqstore << 2; //shift the next sequence step
+ 162               	.LM6:
+ 163 0024 8091 0000 		lds r24,seqstore
+ 164 0028 880F      		lsl r24
+ 165 002a 880F      		lsl r24
+ 166 002c 8093 0000 		sts seqstore,r24
+  61:main.c        ****   seqstore |= pinpair;
+ 168               	.LM7:
+ 169 0030 9091 0000 		lds r25,seqstore
+ 170 0034 8091 0000 		lds r24,pinpair
+ 171 0038 892B      		or r24,r25
+ 172 003a 8093 0000 		sts seqstore,r24
+  62:main.c        ****   
+  63:main.c        ****   if (seqstore == 0b10000111){
+ 174               	.LM8:
+ 175 003e 8091 0000 		lds r24,seqstore
+ 176 0042 8738      		cpi r24,lo8(-121)
+ 177 0044 01F4      		brne .L2
+  64:main.c        ****      encoderValue++; //this is the seq ccw: (11) 10 00 01 11
+ 179               	.LM9:
+ 180 0046 8091 0000 		lds r24,encoderValue
+ 181 004a 9091 0000 		lds r25,encoderValue+1
+ 182 004e A091 0000 		lds r26,encoderValue+2
+ 183 0052 B091 0000 		lds r27,encoderValue+3
+ 184 0056 0196      		adiw r24,1
+ 185 0058 A11D      		adc r26,__zero_reg__
+ 186 005a B11D      		adc r27,__zero_reg__
+ 187 005c 8093 0000 		sts encoderValue,r24
+ 188 0060 9093 0000 		sts encoderValue+1,r25
+ 189 0064 A093 0000 		sts encoderValue+2,r26
+ 190 0068 B093 0000 		sts encoderValue+3,r27
+ 191               	.L2:
+  65:main.c        ****   }
+  66:main.c        ****   if (seqstore == 0b01001011){
+ 193               	.LM10:
+ 194 006c 8091 0000 		lds r24,seqstore
+ 195 0070 8B34      		cpi r24,lo8(75)
+ 196 0072 01F4      		brne .L1
+  67:main.c        ****      encoderValue--; //this is the seq cw:  (11) 01 00 10 11
+ 198               	.LM11:
+ 199 0074 8091 0000 		lds r24,encoderValue
+ 200 0078 9091 0000 		lds r25,encoderValue+1
+ 201 007c A091 0000 		lds r26,encoderValue+2
+ 202 0080 B091 0000 		lds r27,encoderValue+3
+ 203 0084 0197      		sbiw r24,1
+ 204 0086 A109      		sbc r26,__zero_reg__
+ 205 0088 B109      		sbc r27,__zero_reg__
+ 206 008a 8093 0000 		sts encoderValue,r24
+ 207 008e 9093 0000 		sts encoderValue+1,r25
+ 208 0092 A093 0000 		sts encoderValue+2,r26
+ 209 0096 B093 0000 		sts encoderValue+3,r27
+ 210               	.L1:
+ 211               	/* epilogue start */
+  68:main.c        ****   }
+  69:main.c        ****   
+  70:main.c        ****   return;
+  71:main.c        **** }
+ 213               	.LM12:
+ 214 009a BF91      		pop r27
+ 215 009c AF91      		pop r26
+ 216 009e 9F91      		pop r25
+ 217 00a0 8F91      		pop r24
+ 218 00a2 0F90      		pop r0
+ 219 00a4 0FBE      		out __SREG__,r0
+ 220 00a6 0F90      		pop r0
+ 221 00a8 1F90      		pop r1
+ 222 00aa 1895      		reti
+ 224               	.Lscope1:
+ 226               		.stabd	78,0,0
+ 228               	.global	initADC
+ 230               	initADC:
+ 231               		.stabd	46,0,0
+  72:main.c        **** 
+  73:main.c        **** int main(void) {
+  74:main.c        ****   
+  75:main.c        ****   //initialize functions (ADC, PWM, I/O)
+  76:main.c        ****   initADC();
+  77:main.c        ****   initMotorDriverIO();
+  78:main.c        ****   initTimer0PWM();
+  79:main.c        ****   initPCInterrupts();
+  80:main.c        ****   
+  81:main.c        ****   //gearmotor characteristics
+  82:main.c        ****   float cpr = 8400.0/4;
+  83:main.c        ****   float chain_ratio = (16.0)*(12.0/9.0)*(12.0/9.0);
+  84:main.c        ****   float range_of_motion = 180.0;
+  85:main.c        ****   float max_desired_count = (cpr*chain_ratio)*(range_of_motion/360.0);
+  86:main.c        ****   float ADC_multiplier = max_desired_count/1023.0;
+  87:main.c        ****   float slowdown_count = 750.0;
+  88:main.c        ****   float target_buffer = 50.0;
+  89:main.c        **** 
+  90:main.c        ****   //set up moving average array and init values to zero
+  91:main.c        ****   uint8_t arraySize = 32;
+  92:main.c        ****   uint16_t ADC_values [arraySize];
+  93:main.c        ****   uint16_t * ADC_pointer;
+  94:main.c        ****   ADC_pointer = &ADC_values[0];
+  95:main.c        ****   initValues(ADC_pointer, arraySize, 0);
+  96:main.c        ****   
+  97:main.c        ****   //avg value variable
+  98:main.c        ****   uint16_t ADC_avg;
+  99:main.c        ****   
+ 100:main.c        ****   //positon variables
+ 101:main.c        ****   long desiredCount;
+ 102:main.c        ****   long countError;
+ 103:main.c        ****   
+ 104:main.c        ****   //local variable for current encoder count
+ 105:main.c        ****   long localEncoderCount;
+ 106:main.c        ****   
+ 107:main.c        ****   while(1) { 
+ 108:main.c        ****     
+ 109:main.c        ****     // Read ADC
+ 110:main.c        ****     storeNewADC(ADC_pointer, arraySize, ADC_CHANNEL);
+ 111:main.c        ****     ADC_avg = getAverage(ADC_pointer, arraySize);
+ 112:main.c        ****     
+ 113:main.c        ****     // Convert ADC to desired encoder count
+ 114:main.c        ****     desiredCount = (float)ADC_avg * ADC_multiplier;
+ 115:main.c        ****     
+ 116:main.c        ****     //update local variable
+ 117:main.c        ****     cli();
+ 118:main.c        ****     localEncoderCount = encoderValue;
+ 119:main.c        ****     sei();
+ 120:main.c        ****     
+ 121:main.c        ****     // Compare desired count to actual count
+ 122:main.c        ****     countError = desiredCount - localEncoderCount;
+ 123:main.c        ****     
+ 124:main.c        ****     // Translate error to a PWM duty: not within 90 degrees, go 100, otherwise scale down
+ 125:main.c        ****     if(countError > slowdown_count){
+ 126:main.c        ****       OCR0A = 255;
+ 127:main.c        ****       set_bit(DRIVER_PORT, DRIVER_A);
+ 128:main.c        ****       clear_bit(DRIVER_PORT, DRIVER_B);
+ 129:main.c        ****     }else if(countError<=slowdown_count && countError>target_buffer){
+ 130:main.c        ****       OCR0A = 255 * (countError/(float)slowdown_count);
+ 131:main.c        ****       set_bit(DRIVER_PORT, DRIVER_A);
+ 132:main.c        ****       clear_bit(DRIVER_PORT, DRIVER_B);
+ 133:main.c        ****     }else if(countError<=target_buffer && countError>=-target_buffer){
+ 134:main.c        ****       OCR0A = 0;
+ 135:main.c        ****       set_bit(DRIVER_PORT, DRIVER_A);
+ 136:main.c        ****       clear_bit(DRIVER_PORT, DRIVER_B);
+ 137:main.c        ****     }else if(countError<-target_buffer && countError>=-slowdown_count){
+ 138:main.c        ****       OCR0A = 255 * -(countError/(float)slowdown_count);
+ 139:main.c        ****       clear_bit(DRIVER_PORT, DRIVER_A);
+ 140:main.c        ****       set_bit(DRIVER_PORT, DRIVER_B);
+ 141:main.c        ****     }else if(countError < -slowdown_count){
+ 142:main.c        ****       OCR0A = 255;
+ 143:main.c        ****       clear_bit(DRIVER_PORT, DRIVER_A);
+ 144:main.c        ****       set_bit(DRIVER_PORT, DRIVER_B);
+ 145:main.c        ****     }
+ 146:main.c        ****  }
+ 147:main.c        ****  
+ 148:main.c        ****  return(0);
+ 149:main.c        ****  
+ 150:main.c        **** }
+ 151:main.c        **** 
+ 152:main.c        **** void initADC(void) {
+ 233               	.LM13:
+ 234               	.LFBB2:
+ 235               	/* prologue: function */
+ 236               	/* frame size = 0 */
+ 237               	/* stack size = 0 */
+ 238               	.L__stack_usage = 0
+ 153:main.c        ****   // reference voltage on VCC, do nothing
+ 154:main.c        ****   ADCSRA |= (1 << ADPS0) | (1 << ADPS2);    // ADC clock prescaler /32
+ 240               	.LM14:
+ 241 00ac 86B1      		in r24,0x6
+ 242 00ae 8560      		ori r24,lo8(5)
+ 243 00b0 86B9      		out 0x6,r24
+ 155:main.c        ****   ADCSRA |= (1 << ADEN);               			// enable ADC
+ 245               	.LM15:
+ 246 00b2 379A      		sbi 0x6,7
+ 247 00b4 0895      		ret
+ 249               	.Lscope2:
+ 251               		.stabd	78,0,0
+ 254               	.global	readADC
+ 256               	readADC:
+ 257               		.stabd	46,0,0
+ 156:main.c        ****   
+ 157:main.c        **** }
+ 158:main.c        **** 
+ 159:main.c        **** uint16_t readADC(uint8_t channel) {
+ 259               	.LM16:
+ 260               	.LFBB3:
+ 261               	/* prologue: function */
+ 262               	/* frame size = 0 */
+ 263               	/* stack size = 0 */
+ 264               	.L__stack_usage = 0
+ 160:main.c        ****   
+ 161:main.c        ****   //read ADC value from channel (ADC0 to ADC 5)
+ 162:main.c        ****   ADMUX = (0b11000000 & ADMUX) | channel;
+ 266               	.LM17:
+ 267 00b6 97B1      		in r25,0x7
+ 268 00b8 907C      		andi r25,lo8(-64)
+ 269 00ba 982B      		or r25,r24
+ 270 00bc 97B9      		out 0x7,r25
+ 163:main.c        ****   ADCSRA |= (1 << ADSC);
+ 272               	.LM18:
+ 273 00be 369A      		sbi 0x6,6
+ 274               	.L8:
+ 164:main.c        ****   loop_until_bit_is_clear(ADCSRA, ADSC);
+ 276               	.LM19:
+ 277 00c0 3699      		sbic 0x6,6
+ 278 00c2 00C0      		rjmp .L8
+ 165:main.c        ****   return (ADC);
+ 280               	.LM20:
+ 281 00c4 84B1      		in r24,0x4
+ 282 00c6 95B1      		in r25,0x4+1
+ 166:main.c        **** }
+ 284               	.LM21:
+ 285 00c8 0895      		ret
+ 287               	.Lscope3:
+ 289               		.stabd	78,0,0
+ 294               	.global	initValues
+ 296               	initValues:
+ 297               		.stabd	46,0,0
+ 167:main.c        **** 
+ 168:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value){
+ 299               	.LM22:
+ 300               	.LFBB4:
+ 301               	/* prologue: function */
+ 302               	/* frame size = 0 */
+ 303               	/* stack size = 0 */
+ 304               	.L__stack_usage = 0
+ 169:main.c        ****   
+ 170:main.c        ****   uint8_t i;
+ 171:main.c        ****   
+ 172:main.c        ****   //copy 'value' into each element of array
+ 173:main.c        ****   for(i=0;i<size;i++){
+ 306               	.LM23:
+ 307 00ca 20E0      		ldi r18,0
+ 308               	.L10:
+ 310               	.LM24:
+ 311 00cc 2617      		cp r18,r22
+ 312 00ce 01F0      		breq .L12
+ 174:main.c        ****      *arr = value;
+ 314               	.LM25:
+ 315 00d0 FC01      		movw r30,r24
+ 316 00d2 4193      		st Z+,r20
+ 317 00d4 5193      		st Z+,r21
+ 318 00d6 CF01      		movw r24,r30
+ 173:main.c        ****   for(i=0;i<size;i++){
+ 320               	.LM26:
+ 321 00d8 2F5F      		subi r18,lo8(-(1))
+ 322 00da 00C0      		rjmp .L10
+ 323               	.L12:
+ 324               	/* epilogue start */
+ 175:main.c        ****      arr++;
+ 176:main.c        ****   }
+ 177:main.c        **** }
+ 326               	.LM27:
+ 327 00dc 0895      		ret
+ 332               	.Lscope4:
+ 334               		.stabd	78,0,0
+ 339               	.global	storeNewADC
+ 341               	storeNewADC:
+ 342               		.stabd	46,0,0
+ 178:main.c        **** 
+ 179:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
+ 344               	.LM28:
+ 345               	.LFBB5:
+ 346 00de CF93      		push r28
+ 347 00e0 DF93      		push r29
+ 348               	/* prologue: function */
+ 349               	/* frame size = 0 */
+ 350               	/* stack size = 2 */
+ 351               	.L__stack_usage = 2
+ 180:main.c        ****   
+ 181:main.c        ****   uint8_t i;
+ 182:main.c        ****   arr = arr + (size-1);
+ 353               	.LM29:
+ 354 00e2 70E0      		ldi r23,0
+ 355 00e4 EB01      		movw r28,r22
+ 356 00e6 C150      		subi r28,1
+ 357 00e8 D048      		sbci r29,-128
+ 358 00ea CC0F      		lsl r28
+ 359 00ec DD1F      		rol r29
+ 360 00ee C80F      		add r28,r24
+ 361 00f0 D91F      		adc r29,r25
+ 183:main.c        ****   
+ 184:main.c        ****   //starting with last element of array, store value from the previous element
+ 185:main.c        ****   for (i=0;i<(size-1);i++){
+ 363               	.LM30:
+ 364 00f2 90E0      		ldi r25,0
+ 365 00f4 6150      		subi r22,1
+ 366 00f6 7109      		sbc r23,__zero_reg__
+ 367               	.L14:
+ 369               	.LM31:
+ 370 00f8 292F      		mov r18,r25
+ 371 00fa 30E0      		ldi r19,0
+ 372 00fc 2617      		cp r18,r22
+ 373 00fe 3707      		cpc r19,r23
+ 374 0100 04F4      		brge .L16
+ 375 0102 FE01      		movw r30,r28
+ 186:main.c        ****     *arr = *(arr-1);
+ 377               	.LM32:
+ 378 0104 3291      		ld r19,-Z
+ 379 0106 2291      		ld r18,-Z
+ 380 0108 3983      		std Y+1,r19
+ 381 010a 2883      		st Y,r18
+ 185:main.c        ****   for (i=0;i<(size-1);i++){
+ 383               	.LM33:
+ 384 010c 9F5F      		subi r25,lo8(-(1))
+ 187:main.c        ****     arr--;
+ 386               	.LM34:
+ 387 010e EF01      		movw r28,r30
+ 388 0110 00C0      		rjmp .L14
+ 389               	.L16:
+ 188:main.c        ****   }
+ 189:main.c        ****   
+ 190:main.c        ****   //read ADC for newest value into array
+ 191:main.c        ****   *arr = readADC(channel);
+ 391               	.LM35:
+ 392 0112 842F      		mov r24,r20
+ 393 0114 00D0      		rcall readADC
+ 394 0116 9983      		std Y+1,r25
+ 395 0118 8883      		st Y,r24
+ 396               	/* epilogue start */
+ 192:main.c        **** }
+ 398               	.LM36:
+ 399 011a DF91      		pop r29
+ 400 011c CF91      		pop r28
+ 401 011e 0895      		ret
+ 406               	.Lscope5:
+ 408               		.stabd	78,0,0
+ 412               	.global	getAverage
+ 414               	getAverage:
+ 415               		.stabd	46,0,0
+ 193:main.c        **** 
+ 194:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size){
+ 417               	.LM37:
+ 418               	.LFBB6:
+ 419               	/* prologue: function */
+ 420               	/* frame size = 0 */
+ 421               	/* stack size = 0 */
+ 422               	.L__stack_usage = 0
+ 423 0120 FC01      		movw r30,r24
+ 424 0122 362F      		mov r19,r22
+ 195:main.c        ****   
+ 196:main.c        ****   uint8_t i;
+ 197:main.c        ****   uint16_t avg;
+ 198:main.c        ****   uint32_t sum = 0;
+ 426               	.LM38:
+ 427 0124 60E0      		ldi r22,0
+ 428 0126 70E0      		ldi r23,0
+ 429 0128 CB01      		movw r24,r22
+ 199:main.c        ****       
+ 200:main.c        ****   //sum all elements in array
+ 201:main.c        ****   for(i=0;i<size;i++){
+ 431               	.LM39:
+ 432 012a 20E0      		ldi r18,0
+ 433               	.L18:
+ 435               	.LM40:
+ 436 012c 2317      		cp r18,r19
+ 437 012e 01F0      		breq .L20
+ 202:main.c        ****     sum = sum + *arr;
+ 439               	.LM41:
+ 440 0130 4191      		ld r20,Z+
+ 441 0132 5191      		ld r21,Z+
+ 442 0134 640F      		add r22,r20
+ 443 0136 751F      		adc r23,r21
+ 444 0138 811D      		adc r24,__zero_reg__
+ 445 013a 911D      		adc r25,__zero_reg__
+ 201:main.c        ****   for(i=0;i<size;i++){
+ 447               	.LM42:
+ 448 013c 2F5F      		subi r18,lo8(-(1))
+ 449 013e 00C0      		rjmp .L18
+ 450               	.L20:
+ 203:main.c        ****     arr++;
+ 204:main.c        ****   }
+ 205:main.c        ****   
+ 206:main.c        ****   //calculate avg and return 
+ 207:main.c        ****   avg = sum / size;
+ 452               	.LM43:
+ 453 0140 30E0      		ldi r19,0
+ 454 0142 40E0      		ldi r20,0
+ 455 0144 50E0      		ldi r21,0
+ 456 0146 00D0      		rcall __udivmodsi4
+ 208:main.c        ****   return avg;
+ 209:main.c        **** }
+ 458               	.LM44:
+ 459 0148 C901      		movw r24,r18
+ 460 014a 0895      		ret
+ 466               	.Lscope6:
+ 468               		.stabd	78,0,0
+ 470               	.global	initTimer0PWM
+ 472               	initTimer0PWM:
+ 473               		.stabd	46,0,0
+ 210:main.c        **** 
+ 211:main.c        **** void initTimer0PWM(void){
+ 475               	.LM45:
+ 476               	.LFBB7:
+ 477               	/* prologue: function */
+ 478               	/* frame size = 0 */
+ 479               	/* stack size = 0 */
+ 480               	.L__stack_usage = 0
+ 212:main.c        ****   
+ 213:main.c        ****   //fast pwm clear on match
+ 214:main.c        ****   TCCR0A |= (1 << WGM00) | (1 << WGM01);
+ 482               	.LM46:
+ 483 014c 80B7      		in r24,0x30
+ 484 014e 8360      		ori r24,lo8(3)
+ 485 0150 80BF      		out 0x30,r24
+ 215:main.c        ****   TCCR0A |= (1<<COM0A1);
+ 487               	.LM47:
+ 488 0152 80B7      		in r24,0x30
+ 489 0154 8068      		ori r24,lo8(-128)
+ 490 0156 80BF      		out 0x30,r24
+ 216:main.c        ****   //no clock scale
+ 217:main.c        ****   TCCR0B |= (1<<CS00);
+ 492               	.LM48:
+ 493 0158 83B7      		in r24,0x33
+ 494 015a 8160      		ori r24,lo8(1)
+ 495 015c 83BF      		out 0x33,r24
+ 218:main.c        ****   //setup for output
+ 219:main.c        ****   DRIVER_DDR |= (1<<DRIVER_PWM);
+ 497               	.LM49:
+ 498 015e BA9A      		sbi 0x17,2
+ 499 0160 0895      		ret
+ 501               	.Lscope7:
+ 503               		.stabd	78,0,0
+ 505               	.global	initMotorDriverIO
+ 507               	initMotorDriverIO:
+ 508               		.stabd	46,0,0
+ 220:main.c        ****  
+ 221:main.c        **** }
+ 222:main.c        **** 
+ 223:main.c        **** void initMotorDriverIO(void){
+ 510               	.LM50:
+ 511               	.LFBB8:
+ 512               	/* prologue: function */
+ 513               	/* frame size = 0 */
+ 514               	/* stack size = 0 */
+ 515               	.L__stack_usage = 0
+ 224:main.c        ****   
+ 225:main.c        ****   //set for output
+ 226:main.c        ****   DRIVER_DDR |= (1<<DRIVER_A);
+ 517               	.LM51:
+ 518 0162 B99A      		sbi 0x17,1
+ 227:main.c        ****   DRIVER_DDR |= (1<<DRIVER_B);
+ 520               	.LM52:
+ 521 0164 B89A      		sbi 0x17,0
+ 228:main.c        ****   //init to zero
+ 229:main.c        ****   DRIVER_PORT &= ~(1<<DRIVER_A);
+ 523               	.LM53:
+ 524 0166 C198      		cbi 0x18,1
+ 230:main.c        ****   DRIVER_PORT &= ~(1<<DRIVER_B);
+ 526               	.LM54:
+ 527 0168 C098      		cbi 0x18,0
+ 528 016a 0895      		ret
+ 530               	.Lscope8:
+ 532               		.stabd	78,0,0
+ 534               	.global	initPCInterrupts
+ 536               	initPCInterrupts:
+ 537               		.stabd	46,0,0
+ 231:main.c        **** 
+ 232:main.c        **** }
+ 233:main.c        **** 
+ 234:main.c        **** void initPCInterrupts(void){
+ 539               	.LM55:
+ 540               	.LFBB9:
+ 541               	/* prologue: function */
+ 542               	/* frame size = 0 */
+ 543               	/* stack size = 0 */
+ 544               	.L__stack_usage = 0
+ 235:main.c        ****   
+ 236:main.c        ****   //set pins for input
+ 237:main.c        ****   ENCODER_DDR &= ~(1<<ENCODER_A);
+ 546               	.LM56:
+ 547 016c D198      		cbi 0x1a,1
+ 238:main.c        ****   ENCODER_DDR &= ~(1<<ENCODER_B);
+ 549               	.LM57:
+ 550 016e D298      		cbi 0x1a,2
+ 239:main.c        ****   
+ 240:main.c        ****   //enable PCINT0_vect
+ 241:main.c        ****   GIMSK |= (1<<PCIE0);
+ 552               	.LM58:
+ 553 0170 8BB7      		in r24,0x3b
+ 554 0172 8061      		ori r24,lo8(16)
+ 555 0174 8BBF      		out 0x3b,r24
+ 242:main.c        ****   //enable PCINT on PCINT1 and PCINT2
+ 243:main.c        ****   PCMSK0 |= (1 << PCINT1) | (1<< PCINT2);
+ 557               	.LM59:
+ 558 0176 82B3      		in r24,0x12
+ 559 0178 8660      		ori r24,lo8(6)
+ 560 017a 82BB      		out 0x12,r24
+ 244:main.c        ****   //enable global interrupts
+ 245:main.c        ****   sei();
+ 562               	.LM60:
+ 563               	/* #APP */
+ 564               	 ;  245 "main.c" 1
+ 565 017c 7894      		sei
+ 566               	 ;  0 "" 2
+ 567               	/* #NOAPP */
+ 568 017e 0895      		ret
+ 570               	.Lscope9:
+ 572               		.stabd	78,0,0
+ 573               	.global	__floatunsisf
+ 574               	.global	__mulsf3
+ 575               	.global	__fixsfsi
+ 576               	.global	__floatsisf
+ 577               	.global	__gtsf2
+ 578               	.global	__lesf2
+ 579               	.global	__divsf3
+ 580               	.global	__fixunssfsi
+ 581               	.global	__gesf2
+ 582               	.global	__ltsf2
+ 583               		.section	.text.startup,"ax",@progbits
+ 585               	.global	main
+ 587               	main:
+ 588               		.stabd	46,0,0
+  73:main.c        **** int main(void) {
+ 590               	.LM61:
+ 591               	.LFBB10:
+ 592 0000 CF93      		push r28
+ 593 0002 DF93      		push r29
+ 594 0004 CDB7      		in r28,__SP_L__
+ 595 0006 DEB7      		in r29,__SP_H__
+ 596 0008 C054      		subi r28,64
+ 597 000a D109      		sbc r29,__zero_reg__
+ 598 000c 0FB6      		in __tmp_reg__,__SREG__
+ 599 000e F894      		cli
+ 600 0010 DEBF      		out __SP_H__,r29
+ 601 0012 0FBE      		out __SREG__,__tmp_reg__
+ 602 0014 CDBF      		out __SP_L__,r28
+ 603               	/* prologue: function */
+ 604               	/* frame size = 64 */
+ 605               	/* stack size = 66 */
+ 606               	.L__stack_usage = 66
+  76:main.c        ****   initADC();
+ 608               	.LM62:
+ 609 0016 00D0      		rcall initADC
+  77:main.c        ****   initMotorDriverIO();
+ 611               	.LM63:
+ 612 0018 00D0      		rcall initMotorDriverIO
+  78:main.c        ****   initTimer0PWM();
+ 614               	.LM64:
+ 615 001a 00D0      		rcall initTimer0PWM
+  79:main.c        ****   initPCInterrupts();
+ 617               	.LM65:
+ 618 001c 00D0      		rcall initPCInterrupts
+  95:main.c        ****   initValues(ADC_pointer, arraySize, 0);
+ 620               	.LM66:
+ 621 001e 40E0      		ldi r20,0
+ 622 0020 50E0      		ldi r21,0
+ 623 0022 60E2      		ldi r22,lo8(32)
+ 624 0024 CE01      		movw r24,r28
+ 625 0026 0196      		adiw r24,1
+ 626 0028 00D0      		rcall initValues
+ 142:main.c        ****       OCR0A = 255;
+ 628               	.LM67:
+ 629 002a 1FEF      		ldi r17,lo8(-1)
+ 630               	.L25:
+ 110:main.c        ****     storeNewADC(ADC_pointer, arraySize, ADC_CHANNEL);
+ 632               	.LM68:
+ 633 002c 40E0      		ldi r20,0
+ 634 002e 60E2      		ldi r22,lo8(32)
+ 635 0030 CE01      		movw r24,r28
+ 636 0032 0196      		adiw r24,1
+ 637 0034 00D0      		rcall storeNewADC
+ 111:main.c        ****     ADC_avg = getAverage(ADC_pointer, arraySize);
+ 639               	.LM69:
+ 640 0036 60E2      		ldi r22,lo8(32)
+ 641 0038 CE01      		movw r24,r28
+ 642 003a 0196      		adiw r24,1
+ 643 003c 00D0      		rcall getAverage
+ 117:main.c        ****     cli();
+ 645               	.LM70:
+ 646               	/* #APP */
+ 647               	 ;  117 "main.c" 1
+ 648 003e F894      		cli
+ 649               	 ;  0 "" 2
+ 118:main.c        ****     localEncoderCount = encoderValue;
+ 651               	.LM71:
+ 652               	/* #NOAPP */
+ 653 0040 C090 0000 		lds r12,encoderValue
+ 654 0044 D090 0000 		lds r13,encoderValue+1
+ 655 0048 E090 0000 		lds r14,encoderValue+2
+ 656 004c F090 0000 		lds r15,encoderValue+3
+ 119:main.c        ****     sei();
+ 658               	.LM72:
+ 659               	/* #APP */
+ 660               	 ;  119 "main.c" 1
+ 661 0050 7894      		sei
+ 662               	 ;  0 "" 2
+ 114:main.c        ****     desiredCount = (float)ADC_avg * ADC_multiplier;
+ 664               	.LM73:
+ 665               	/* #NOAPP */
+ 666 0052 BC01      		movw r22,r24
+ 667 0054 80E0      		ldi r24,0
+ 668 0056 90E0      		ldi r25,0
+ 669 0058 00D0      		rcall __floatunsisf
+ 670 005a 2AEB      		ldi r18,lo8(-70)
+ 671 005c 3FE8      		ldi r19,lo8(-113)
+ 672 005e 49EE      		ldi r20,lo8(-23)
+ 673 0060 51E4      		ldi r21,lo8(65)
+ 674 0062 00D0      		rcall __mulsf3
+ 675 0064 00D0      		rcall __fixsfsi
+ 122:main.c        ****     countError = desiredCount - localEncoderCount;
+ 677               	.LM74:
+ 678 0066 6C19      		sub r22,r12
+ 679 0068 7D09      		sbc r23,r13
+ 680 006a 8E09      		sbc r24,r14
+ 681 006c 9F09      		sbc r25,r15
+ 125:main.c        ****     if(countError > slowdown_count){
+ 683               	.LM75:
+ 684 006e 00D0      		rcall __floatsisf
+ 685 0070 6B01      		movw r12,r22
+ 686 0072 7C01      		movw r14,r24
+ 687 0074 20E0      		ldi r18,0
+ 688 0076 30E8      		ldi r19,lo8(-128)
+ 689 0078 4BE3      		ldi r20,lo8(59)
+ 690 007a 54E4      		ldi r21,lo8(68)
+ 691 007c 00D0      		rcall __gtsf2
+ 692 007e 1816      		cp __zero_reg__,r24
+ 693 0080 04F4      		brge .L47
+ 126:main.c        ****       OCR0A = 255;
+ 695               	.LM76:
+ 696 0082 16BF      		out 0x36,r17
+ 697 0084 00C0      		rjmp .L49
+ 698               	.L47:
+ 129:main.c        ****     }else if(countError<=slowdown_count && countError>target_buffer){
+ 700               	.LM77:
+ 701 0086 20E0      		ldi r18,0
+ 702 0088 30E8      		ldi r19,lo8(-128)
+ 703 008a 4BE3      		ldi r20,lo8(59)
+ 704 008c 54E4      		ldi r21,lo8(68)
+ 705 008e C701      		movw r24,r14
+ 706 0090 B601      		movw r22,r12
+ 707 0092 00D0      		rcall __lesf2
+ 708 0094 1816      		cp __zero_reg__,r24
+ 709 0096 04F0      		brlt .L29
+ 129:main.c        ****     }else if(countError<=slowdown_count && countError>target_buffer){
+ 711               	.LM78:
+ 712 0098 20E0      		ldi r18,0
+ 713 009a 30E0      		ldi r19,0
+ 714 009c 48E4      		ldi r20,lo8(72)
+ 715 009e 52E4      		ldi r21,lo8(66)
+ 716 00a0 C701      		movw r24,r14
+ 717 00a2 B601      		movw r22,r12
+ 718 00a4 00D0      		rcall __gtsf2
+ 719 00a6 1816      		cp __zero_reg__,r24
+ 720 00a8 04F4      		brge .L29
+ 130:main.c        ****       OCR0A = 255 * (countError/(float)slowdown_count);
+ 722               	.LM79:
+ 723 00aa 20E0      		ldi r18,0
+ 724 00ac 30E8      		ldi r19,lo8(-128)
+ 725 00ae 4BE3      		ldi r20,lo8(59)
+ 726 00b0 54E4      		ldi r21,lo8(68)
+ 727 00b2 C701      		movw r24,r14
+ 728 00b4 B601      		movw r22,r12
+ 729 00b6 00D0      		rcall __divsf3
+ 730 00b8 20E0      		ldi r18,0
+ 731 00ba 30E0      		ldi r19,0
+ 732 00bc 4FE7      		ldi r20,lo8(127)
+ 733 00be 53E4      		ldi r21,lo8(67)
+ 734 00c0 00D0      		rcall __mulsf3
+ 735 00c2 00D0      		rcall __fixunssfsi
+ 736 00c4 66BF      		out 0x36,r22
+ 737               	.L49:
+ 131:main.c        ****       set_bit(DRIVER_PORT, DRIVER_A);
+ 739               	.LM80:
+ 740 00c6 C19A      		sbi 0x18,1
+ 132:main.c        ****       clear_bit(DRIVER_PORT, DRIVER_B);
+ 742               	.LM81:
+ 743 00c8 C098      		cbi 0x18,0
+ 744 00ca 00C0      		rjmp .L25
+ 745               	.L29:
+ 133:main.c        ****     }else if(countError<=target_buffer && countError>=-target_buffer){
+ 747               	.LM82:
+ 748 00cc 20E0      		ldi r18,0
+ 749 00ce 30E0      		ldi r19,0
+ 750 00d0 48E4      		ldi r20,lo8(72)
+ 751 00d2 52E4      		ldi r21,lo8(66)
+ 752 00d4 C701      		movw r24,r14
+ 753 00d6 B601      		movw r22,r12
+ 754 00d8 00D0      		rcall __lesf2
+ 755 00da 1816      		cp __zero_reg__,r24
+ 756 00dc 04F0      		brlt .L32
+ 133:main.c        ****     }else if(countError<=target_buffer && countError>=-target_buffer){
+ 758               	.LM83:
+ 759 00de 20E0      		ldi r18,0
+ 760 00e0 30E0      		ldi r19,0
+ 761 00e2 48E4      		ldi r20,lo8(72)
+ 762 00e4 52EC      		ldi r21,lo8(-62)
+ 763 00e6 C701      		movw r24,r14
+ 764 00e8 B601      		movw r22,r12
+ 765 00ea 00D0      		rcall __gesf2
+ 766 00ec 87FD      		sbrc r24,7
+ 767 00ee 00C0      		rjmp .L32
+ 134:main.c        ****       OCR0A = 0;
+ 769               	.LM84:
+ 770 00f0 16BE      		out 0x36,__zero_reg__
+ 771 00f2 00C0      		rjmp .L49
+ 772               	.L32:
+ 137:main.c        ****     }else if(countError<-target_buffer && countError>=-slowdown_count){
+ 774               	.LM85:
+ 775 00f4 20E0      		ldi r18,0
+ 776 00f6 30E0      		ldi r19,0
+ 777 00f8 48E4      		ldi r20,lo8(72)
+ 778 00fa 52EC      		ldi r21,lo8(-62)
+ 779 00fc C701      		movw r24,r14
+ 780 00fe B601      		movw r22,r12
+ 781 0100 00D0      		rcall __ltsf2
+ 782 0102 87FF      		sbrs r24,7
+ 783 0104 00C0      		rjmp .L35
+ 137:main.c        ****     }else if(countError<-target_buffer && countError>=-slowdown_count){
+ 785               	.LM86:
+ 786 0106 20E0      		ldi r18,0
+ 787 0108 30E8      		ldi r19,lo8(-128)
+ 788 010a 4BE3      		ldi r20,lo8(59)
+ 789 010c 54EC      		ldi r21,lo8(-60)
+ 790 010e C701      		movw r24,r14
+ 791 0110 B601      		movw r22,r12
+ 792 0112 00D0      		rcall __gesf2
+ 793 0114 87FD      		sbrc r24,7
+ 794 0116 00C0      		rjmp .L35
+ 138:main.c        ****       OCR0A = 255 * -(countError/(float)slowdown_count);
+ 796               	.LM87:
+ 797 0118 20E0      		ldi r18,0
+ 798 011a 30E8      		ldi r19,lo8(-128)
+ 799 011c 4BE3      		ldi r20,lo8(59)
+ 800 011e 54E4      		ldi r21,lo8(68)
+ 801 0120 C701      		movw r24,r14
+ 802 0122 B601      		movw r22,r12
+ 803 0124 00D0      		rcall __divsf3
+ 804 0126 9058      		subi r25,0x80
+ 805 0128 20E0      		ldi r18,0
+ 806 012a 30E0      		ldi r19,0
+ 807 012c 4FE7      		ldi r20,lo8(127)
+ 808 012e 53E4      		ldi r21,lo8(67)
+ 809 0130 00D0      		rcall __mulsf3
+ 810 0132 00D0      		rcall __fixunssfsi
+ 811 0134 66BF      		out 0x36,r22
+ 812 0136 00C0      		rjmp .L48
+ 813               	.L35:
+ 141:main.c        ****     }else if(countError < -slowdown_count){
+ 815               	.LM88:
+ 816 0138 20E0      		ldi r18,0
+ 817 013a 30E8      		ldi r19,lo8(-128)
+ 818 013c 4BE3      		ldi r20,lo8(59)
+ 819 013e 54EC      		ldi r21,lo8(-60)
+ 820 0140 C701      		movw r24,r14
+ 821 0142 B601      		movw r22,r12
+ 822 0144 00D0      		rcall __ltsf2
+ 823 0146 87FF      		sbrs r24,7
+ 824 0148 00C0      		rjmp .L25
+ 142:main.c        ****       OCR0A = 255;
+ 826               	.LM89:
+ 827 014a 16BF      		out 0x36,r17
+ 828               	.L48:
+ 143:main.c        ****       clear_bit(DRIVER_PORT, DRIVER_A);
+ 830               	.LM90:
+ 831 014c C198      		cbi 0x18,1
+ 144:main.c        ****       set_bit(DRIVER_PORT, DRIVER_B);
+ 833               	.LM91:
+ 834 014e C09A      		sbi 0x18,0
+ 835 0150 00C0      		rjmp .L25
+ 841               	.Lscope10:
+ 843               		.stabd	78,0,0
+ 844               	.global	pinpair
+ 845               		.section .bss
+ 848               	pinpair:
+ 849 0000 00        		.zero	1
+ 850               	.global	seqstore
+ 853               	seqstore:
+ 854 0001 00        		.zero	1
+ 855               	.global	encoderValue
+ 858               	encoderValue:
+ 859 0002 0000 0000 		.zero	4
+ 863               		.text
+ 865               	.Letext0:
+ 866               		.ident	"GCC: (GNU) 4.8.2"
+ 867               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+     /tmp/ccVaj1kh.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccVaj1kh.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccVaj1kh.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccVaj1kh.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccVaj1kh.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccVaj1kh.s:125    .text:0000000000000000 __vector_2
+     /tmp/ccVaj1kh.s:848    .bss:0000000000000000 pinpair
+     /tmp/ccVaj1kh.s:853    .bss:0000000000000001 seqstore
+     /tmp/ccVaj1kh.s:858    .bss:0000000000000002 encoderValue
+     /tmp/ccVaj1kh.s:230    .text:00000000000000ac initADC
+     /tmp/ccVaj1kh.s:256    .text:00000000000000b6 readADC
+     /tmp/ccVaj1kh.s:296    .text:00000000000000ca initValues
+     /tmp/ccVaj1kh.s:341    .text:00000000000000de storeNewADC
+     /tmp/ccVaj1kh.s:414    .text:0000000000000120 getAverage
+     /tmp/ccVaj1kh.s:472    .text:000000000000014c initTimer0PWM
+     /tmp/ccVaj1kh.s:507    .text:0000000000000162 initMotorDriverIO
+     /tmp/ccVaj1kh.s:536    .text:000000000000016c initPCInterrupts
+     /tmp/ccVaj1kh.s:587    .text.startup:0000000000000000 main
+
+UNDEFINED SYMBOLS
+__udivmodsi4
+__floatunsisf
+__mulsf3
+__fixsfsi
+__floatsisf
+__gtsf2
+__lesf2
+__divsf3
+__fixunssfsi
+__gesf2
+__ltsf2
+__do_clear_bss

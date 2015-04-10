@@ -15,15 +15,16 @@
 # MCU = attiny13
 # MCU = attiny2313
 # MCU = atmega8
-MCU = attiny85
+# MCU = attiny85
 # MCU = atmega328p
+MCU = attiny84
 
 # Target file name (without extension).
 TARGET = main
 
 #CUSTOM HEADER
 EXTRA_SOURCE_DIR = include/
-EXTRA_SOURCE_FILES = easy_attiny85.c
+EXTRA_SOURCE_FILES = 
 
 
 # Programming hardware: type avrdude -c ?
@@ -133,7 +134,7 @@ LDFLAGS += -lm
 # Programming support using avrdude. Settings and variables.
 
 
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex -U lfuse:w:0x62:m -U hfuse:w:0x5f:m -U efuse:w:0xff:m
+AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
 AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER)

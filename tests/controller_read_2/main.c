@@ -109,7 +109,7 @@ int main(void) {
     printString(topSliderValueString);
     printString(" B: ");
     printString(bottomSliderValueString);
-    printString("\r\n");
+    printString('/r/n');
 
  }
  

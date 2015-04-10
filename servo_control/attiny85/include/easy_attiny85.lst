@@ -217,15 +217,15 @@
  293               		.ident	"GCC: (GNU) 4.8.2"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 easy_attiny85.c
-     /tmp/ccU1O74A.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccU1O74A.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccU1O74A.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccU1O74A.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccU1O74A.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccU1O74A.s:108    .text:0000000000000000 toggle
-     /tmp/ccU1O74A.s:145    .text:000000000000001a pin_hi
-     /tmp/ccU1O74A.s:182    .text:0000000000000034 pin_lo
-     /tmp/ccU1O74A.s:220    .text:0000000000000050 set_as_input
-     /tmp/ccU1O74A.s:258    .text:000000000000006c set_as_output
+     /tmp/ccv3oePt.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccv3oePt.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccv3oePt.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccv3oePt.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccv3oePt.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccv3oePt.s:108    .text:0000000000000000 toggle
+     /tmp/ccv3oePt.s:145    .text:000000000000001a pin_hi
+     /tmp/ccv3oePt.s:182    .text:0000000000000034 pin_lo
+     /tmp/ccv3oePt.s:220    .text:0000000000000050 set_as_input
+     /tmp/ccv3oePt.s:258    .text:000000000000006c set_as_output
 
 NO UNDEFINED SYMBOLS
