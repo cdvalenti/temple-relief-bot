@@ -1,4 +1,4 @@
-#define MCU 'atmega84'
+#define MCU 'attiny84'
 #define F_CPU 1000000UL
 
 #include "include/macros.h"
