@@ -6,9 +6,9 @@
    6               	__zero_reg__ = 1
    9               		.text
   10               	.Ltext0:
-  71               	.global	initUSART
-  73               	initUSART:
-  74               		.stabd	46,0,0
+ 103               	.global	initUSART
+ 105               	initUSART:
+ 106               		.stabd	46,0,0
    1:include/USART.c **** #define F_CPU 1000000UL
    2:include/USART.c **** /*
    3:include/USART.c ****   Quick and dirty functions that make serial communications work.
@@ -32,189 +32,193 @@
   21:include/USART.c **** #include <util/setbaud.h>
   22:include/USART.c **** 
   23:include/USART.c **** void initUSART(void) {                                /* requires BAUD */
-  76               	.LM0:
-  77               	.LFBB1:
-  78               	/* prologue: function */
-  79               	/* frame size = 0 */
-  80               	/* stack size = 0 */
-  81               	.L__stack_usage = 0
+ 108               	.LM0:
+ 109               	.LFBB1:
+ 110               	/* prologue: function */
+ 111               	/* frame size = 0 */
+ 112               	/* stack size = 0 */
+ 113               	.L__stack_usage = 0
   24:include/USART.c ****   UBRR0H = UBRRH_VALUE;                        /* defined in setbaud.h */
-  83               	.LM1:
-  84 0000 1092 C500 		sts 197,__zero_reg__
+ 115               	.LM1:
+ 116 0000 1092 C500 		sts 197,__zero_reg__
   25:include/USART.c ****   UBRR0L = UBRRL_VALUE;
-  86               	.LM2:
-  87 0004 8CE0      		ldi r24,lo8(12)
-  88 0006 8093 C400 		sts 196,r24
+ 118               	.LM2:
+ 119 0004 8CE0      		ldi r24,lo8(12)
+ 120 0006 8093 C400 		sts 196,r24
   26:include/USART.c **** #if USE_2X
   27:include/USART.c ****   UCSR0A |= (1 << U2X0);
-  90               	.LM3:
-  91 000a E0EC      		ldi r30,lo8(-64)
-  92 000c F0E0      		ldi r31,0
-  93 000e 8081      		ld r24,Z
-  94 0010 8260      		ori r24,lo8(2)
-  95 0012 8083      		st Z,r24
+ 122               	.LM3:
+ 123 000a E0EC      		ldi r30,lo8(-64)
+ 124 000c F0E0      		ldi r31,0
+ 125 000e 8081      		ld r24,Z
+ 126 0010 8260      		ori r24,lo8(2)
+ 127 0012 8083      		st Z,r24
   28:include/USART.c **** #else
   29:include/USART.c ****   UCSR0A &= ~(1 << U2X0);
   30:include/USART.c **** #endif
   31:include/USART.c ****                                   /* Enable USART transmitter/receiver */
   32:include/USART.c ****   UCSR0B = (1 << TXEN0) | (1 << RXEN0);
-  97               	.LM4:
-  98 0014 88E1      		ldi r24,lo8(24)
-  99 0016 8093 C100 		sts 193,r24
+ 129               	.LM4:
+ 130 0014 88E1      		ldi r24,lo8(24)
+ 131 0016 8093 C100 		sts 193,r24
   33:include/USART.c ****   UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);   /* 8 data bits, 1 stop bit */
- 101               	.LM5:
- 102 001a 86E0      		ldi r24,lo8(6)
- 103 001c 8093 C200 		sts 194,r24
- 104 0020 0895      		ret
- 106               	.Lscope1:
- 108               		.stabd	78,0,0
- 111               	.global	transmitByte
- 113               	transmitByte:
- 114               		.stabd	46,0,0
+ 133               	.LM5:
+ 134 001a 86E0      		ldi r24,lo8(6)
+ 135 001c 8093 C200 		sts 194,r24
+ 136 0020 0895      		ret
+ 138               	.Lscope1:
+ 140               		.stabd	78,0,0
+ 143               	.global	transmitByte
+ 145               	transmitByte:
+ 146               		.stabd	46,0,0
   34:include/USART.c **** }
   35:include/USART.c **** 
   36:include/USART.c **** 
   37:include/USART.c **** void transmitByte(uint8_t data) {
- 116               	.LM6:
- 117               	.LFBB2:
- 118               	/* prologue: function */
- 119               	/* frame size = 0 */
- 120               	/* stack size = 0 */
- 121               	.L__stack_usage = 0
- 122               	.L3:
+ 148               	.LM6:
+ 149               	.LFBB2:
+ 150               	/* prologue: function */
+ 151               	/* frame size = 0 */
+ 152               	/* stack size = 0 */
+ 153               	.L__stack_usage = 0
+ 154               	.L4:
   38:include/USART.c ****                                      /* Wait for empty transmit buffer */
   39:include/USART.c ****   loop_until_bit_is_set(UCSR0A, UDRE0);
- 124               	.LM7:
- 125 0022 9091 C000 		lds r25,192
- 126 0026 95FF      		sbrs r25,5
- 127 0028 00C0      		rjmp .L3
+ 156               	.LM7:
+ 157 0022 9091 C000 		lds r25,192
+ 158 0026 95FF      		sbrs r25,5
+ 159 0028 00C0      		rjmp .L4
   40:include/USART.c ****   UDR0 = data;                                            /* send data */
- 129               	.LM8:
- 130 002a 8093 C600 		sts 198,r24
- 131 002e 0895      		ret
- 133               	.Lscope2:
- 135               		.stabd	78,0,0
- 137               	.global	receiveByte
- 139               	receiveByte:
- 140               		.stabd	46,0,0
+ 161               	.LM8:
+ 162 002a 8093 C600 		sts 198,r24
+ 163 002e 0895      		ret
+ 165               	.Lscope2:
+ 167               		.stabd	78,0,0
+ 169               	.global	receiveByte
+ 171               	receiveByte:
+ 172               		.stabd	46,0,0
   41:include/USART.c **** }
   42:include/USART.c **** 
   43:include/USART.c **** uint8_t receiveByte(void) {
- 142               	.LM9:
- 143               	.LFBB3:
- 144               	/* prologue: function */
- 145               	/* frame size = 0 */
- 146               	/* stack size = 0 */
- 147               	.L__stack_usage = 0
- 148               	.L9:
+ 174               	.LM9:
+ 175               	.LFBB3:
+ 176               	/* prologue: function */
+ 177               	/* frame size = 0 */
+ 178               	/* stack size = 0 */
+ 179               	.L__stack_usage = 0
+ 180               	.L8:
   44:include/USART.c ****   loop_until_bit_is_set(UCSR0A, RXC0);       /* Wait for incoming data */
- 150               	.LM10:
- 151 0030 8091 C000 		lds r24,192
- 152 0034 87FF      		sbrs r24,7
- 153 0036 00C0      		rjmp .L9
+ 182               	.LM10:
+ 183 0030 8091 C000 		lds r24,192
+ 184 0034 87FF      		sbrs r24,7
+ 185 0036 00C0      		rjmp .L8
   45:include/USART.c ****   return UDR0;                                /* return register value */
- 155               	.LM11:
- 156 0038 8091 C600 		lds r24,198
+ 187               	.LM11:
+ 188 0038 8091 C600 		lds r24,198
   46:include/USART.c **** }
- 158               	.LM12:
- 159 003c 0895      		ret
- 161               	.Lscope3:
- 163               		.stabd	78,0,0
- 166               	.global	printString
- 168               	printString:
- 169               		.stabd	46,0,0
+ 190               	.LM12:
+ 191 003c 0895      		ret
+ 193               	.Lscope3:
+ 195               		.stabd	78,0,0
+ 198               	.global	printString
+ 200               	printString:
+ 201               		.stabd	46,0,0
   47:include/USART.c **** 
   48:include/USART.c **** 
   49:include/USART.c ****                        /* Here are a bunch of useful printing commands */
   50:include/USART.c **** 
   51:include/USART.c **** void printString(const char myString[]) {
- 171               	.LM13:
- 172               	.LFBB4:
- 173 003e 1F93      		push r17
- 174 0040 CF93      		push r28
- 175 0042 DF93      		push r29
- 176               	/* prologue: function */
- 177               	/* frame size = 0 */
- 178               	/* stack size = 3 */
- 179               	.L__stack_usage = 3
- 180 0044 EC01      		movw r28,r24
+ 203               	.LM13:
+ 204               	.LFBB4:
+ 205 003e 1F93      		push r17
+ 206 0040 CF93      		push r28
+ 207 0042 DF93      		push r29
+ 208               	/* prologue: function */
+ 209               	/* frame size = 0 */
+ 210               	/* stack size = 3 */
+ 211               	.L__stack_usage = 3
+ 212 0044 EC01      		movw r28,r24
   52:include/USART.c ****   uint8_t i = 0;
- 182               	.LM14:
- 183 0046 10E0      		ldi r17,0
+ 214               	.LM14:
+ 215 0046 10E0      		ldi r17,0
+ 216               	.L10:
   53:include/USART.c ****   while (myString[i]) {
- 185               	.LM15:
- 186 0048 00C0      		rjmp .L12
- 187               	.L13:
+ 218               	.LM15:
+ 219 0048 FE01      		movw r30,r28
+ 220 004a E10F      		add r30,r17
+ 221 004c F11D      		adc r31,__zero_reg__
+ 222 004e 8081      		ld r24,Z
+ 223 0050 8823      		tst r24
+ 224 0052 01F0      		breq .L12
   54:include/USART.c ****     transmitByte(myString[i]);
- 189               	.LM16:
- 190 004a 0E94 0000 		call transmitByte
+ 226               	.LM16:
+ 227 0054 0E94 0000 		call transmitByte
   55:include/USART.c ****     i++;
- 192               	.LM17:
- 193 004e 1F5F      		subi r17,lo8(-(1))
- 194               	.L12:
-  53:include/USART.c ****   while (myString[i]) {
- 196               	.LM18:
- 197 0050 FE01      		movw r30,r28
- 198 0052 E10F      		add r30,r17
- 199 0054 F11D      		adc r31,__zero_reg__
- 200 0056 8081      		ld r24,Z
- 201 0058 8111      		cpse r24,__zero_reg__
- 202 005a 00C0      		rjmp .L13
- 203               	/* epilogue start */
+ 229               	.LM17:
+ 230 0058 1F5F      		subi r17,lo8(-(1))
+ 231 005a 00C0      		rjmp .L10
+ 232               	.L12:
+ 233               	/* epilogue start */
   56:include/USART.c ****   }
   57:include/USART.c **** }
- 205               	.LM19:
- 206 005c DF91      		pop r29
- 207 005e CF91      		pop r28
- 208 0060 1F91      		pop r17
- 209 0062 0895      		ret
- 214               	.Lscope4:
- 216               		.stabd	78,0,0
- 220               	.global	readString
- 222               	readString:
- 223               		.stabd	46,0,0
+ 235               	.LM18:
+ 236 005c DF91      		pop r29
+ 237 005e CF91      		pop r28
+ 238 0060 1F91      		pop r17
+ 239 0062 0895      		ret
+ 244               	.Lscope4:
+ 246               		.stabd	78,0,0
+ 250               	.global	readString
+ 252               	readString:
+ 253               		.stabd	46,0,0
   58:include/USART.c **** 
   59:include/USART.c **** void readString(char myString[], uint8_t maxLength) {
- 225               	.LM20:
- 226               	.LFBB5:
- 227 0064 CF92      		push r12
- 228 0066 DF92      		push r13
- 229 0068 EF92      		push r14
- 230 006a FF92      		push r15
- 231 006c 0F93      		push r16
- 232 006e 1F93      		push r17
- 233 0070 CF93      		push r28
- 234 0072 DF93      		push r29
- 235               	/* prologue: function */
- 236               	/* frame size = 0 */
- 237               	/* stack size = 8 */
- 238               	.L__stack_usage = 8
- 239 0074 8C01      		movw r16,r24
+ 255               	.LM19:
+ 256               	.LFBB5:
+ 257 0064 CF92      		push r12
+ 258 0066 DF92      		push r13
+ 259 0068 EF92      		push r14
+ 260 006a FF92      		push r15
+ 261 006c 0F93      		push r16
+ 262 006e 1F93      		push r17
+ 263 0070 CF93      		push r28
+ 264 0072 DF93      		push r29
+ 265               	/* prologue: function */
+ 266               	/* frame size = 0 */
+ 267               	/* stack size = 8 */
+ 268               	.L__stack_usage = 8
+ 269 0074 7C01      		movw r14,r24
   60:include/USART.c ****   char response;
   61:include/USART.c ****   uint8_t i;
   62:include/USART.c ****   i = 0;
- 241               	.LM21:
- 242 0076 D12C      		mov r13,__zero_reg__
+ 271               	.LM20:
+ 272 0076 D12C      		mov r13,__zero_reg__
   63:include/USART.c ****   while (i < (maxLength - 1)) {                   /* prevent over-runs */
- 244               	.LM22:
- 245 0078 C62F      		mov r28,r22
- 246 007a D0E0      		ldi r29,0
- 247 007c 2197      		sbiw r28,1
- 248 007e 00C0      		rjmp .L15
- 249               	.L17:
+ 274               	.LM21:
+ 275 0078 062F      		mov r16,r22
+ 276 007a 10E0      		ldi r17,0
+ 277 007c 0150      		subi r16,1
+ 278 007e 1109      		sbc r17,__zero_reg__
+ 279               	.L14:
+ 281               	.LM22:
+ 282 0080 CD2D      		mov r28,r13
+ 283 0082 D0E0      		ldi r29,0
+ 284 0084 C017      		cp r28,r16
+ 285 0086 D107      		cpc r29,r17
+ 286 0088 04F4      		brge .L17
   64:include/USART.c ****     response = receiveByte();
- 251               	.LM23:
- 252 0080 0E94 0000 		call receiveByte
- 253 0084 C82E      		mov r12,r24
+ 288               	.LM23:
+ 289 008a 0E94 0000 		call receiveByte
+ 290 008e C82E      		mov r12,r24
   65:include/USART.c ****     transmitByte(response);                                    /* echo */
- 255               	.LM24:
- 256 0086 0E94 0000 		call transmitByte
+ 292               	.LM24:
+ 293 0090 0E94 0000 		call transmitByte
   66:include/USART.c ****     if (response == '\r') {                     /* enter marks the end */
- 258               	.LM25:
- 259 008a 8DE0      		ldi r24,lo8(13)
- 260 008c C812      		cpse r12,r24
- 261 008e 00C0      		rjmp .L16
- 262               	.L18:
+ 295               	.LM25:
+ 296 0094 8DE0      		ldi r24,lo8(13)
+ 297 0096 C812      		cpse r12,r24
+ 298 0098 00C0      		rjmp .L15
+ 299               	.L17:
   67:include/USART.c ****       break;
   68:include/USART.c ****     }
   69:include/USART.c ****     else {
@@ -223,395 +227,384 @@
   72:include/USART.c ****     }
   73:include/USART.c ****   }
   74:include/USART.c ****   myString[i] = 0;                          /* terminal NULL character */
- 264               	.LM26:
- 265 0090 F801      		movw r30,r16
- 266 0092 ED0D      		add r30,r13
- 267 0094 F11D      		adc r31,__zero_reg__
- 268 0096 1082      		st Z,__zero_reg__
- 269 0098 00C0      		rjmp .L19
- 270               	.L16:
-  70:include/USART.c ****       myString[i] = response;                       /* add in a letter */
- 272               	.LM27:
- 273 009a F801      		movw r30,r16
- 274 009c EE0D      		add r30,r14
- 275 009e FF1D      		adc r31,r15
- 276 00a0 C082      		st Z,r12
-  71:include/USART.c ****       i++;
- 278               	.LM28:
- 279 00a2 D394      		inc r13
- 280               	.L15:
-  63:include/USART.c ****   while (i < (maxLength - 1)) {                   /* prevent over-runs */
- 282               	.LM29:
- 283 00a4 ED2C      		mov r14,r13
- 284 00a6 F12C      		mov r15,__zero_reg__
- 285 00a8 EC16      		cp r14,r28
- 286 00aa FD06      		cpc r15,r29
- 287 00ac 04F0      		brlt .L17
- 288 00ae 00C0      		rjmp .L18
- 289               	.L19:
- 290               	/* epilogue start */
+ 301               	.LM26:
+ 302 009a CE0D      		add r28,r14
+ 303 009c DF1D      		adc r29,r15
+ 304 009e 1882      		st Y,__zero_reg__
+ 305               	/* epilogue start */
   75:include/USART.c **** }
- 292               	.LM30:
- 293 00b0 DF91      		pop r29
- 294 00b2 CF91      		pop r28
- 295 00b4 1F91      		pop r17
- 296 00b6 0F91      		pop r16
- 297 00b8 FF90      		pop r15
- 298 00ba EF90      		pop r14
- 299 00bc DF90      		pop r13
- 300 00be CF90      		pop r12
- 301 00c0 0895      		ret
- 307               	.Lscope5:
- 309               		.stabd	78,0,0
- 312               	.global	printByte
- 314               	printByte:
- 315               		.stabd	46,0,0
+ 307               	.LM27:
+ 308 00a0 DF91      		pop r29
+ 309 00a2 CF91      		pop r28
+ 310 00a4 1F91      		pop r17
+ 311 00a6 0F91      		pop r16
+ 312 00a8 FF90      		pop r15
+ 313 00aa EF90      		pop r14
+ 314 00ac DF90      		pop r13
+ 315 00ae CF90      		pop r12
+ 316 00b0 0895      		ret
+ 317               	.L15:
+  70:include/USART.c ****       myString[i] = response;                       /* add in a letter */
+ 319               	.LM28:
+ 320 00b2 CE0D      		add r28,r14
+ 321 00b4 DF1D      		adc r29,r15
+ 322 00b6 C882      		st Y,r12
+  71:include/USART.c ****       i++;
+ 324               	.LM29:
+ 325 00b8 D394      		inc r13
+ 326 00ba 00C0      		rjmp .L14
+ 332               	.Lscope5:
+ 334               		.stabd	78,0,0
+ 337               	.global	printByte
+ 339               	printByte:
+ 340               		.stabd	46,0,0
   76:include/USART.c **** 
   77:include/USART.c **** void printByte(uint8_t byte) {
- 317               	.LM31:
- 318               	.LFBB6:
- 319 00c2 CF93      		push r28
- 320               	/* prologue: function */
- 321               	/* frame size = 0 */
- 322               	/* stack size = 1 */
- 323               	.L__stack_usage = 1
- 324 00c4 C82F      		mov r28,r24
+ 342               	.LM30:
+ 343               	.LFBB6:
+ 344 00bc CF93      		push r28
+ 345               	/* prologue: function */
+ 346               	/* frame size = 0 */
+ 347               	/* stack size = 1 */
+ 348               	.L__stack_usage = 1
+ 349 00be C82F      		mov r28,r24
   78:include/USART.c ****               /* Converts a byte to a string of decimal text, sends it */
   79:include/USART.c ****   transmitByte('0' + (byte / 100));                        /* Hundreds */
- 326               	.LM32:
- 327 00c6 64E6      		ldi r22,lo8(100)
- 328 00c8 0E94 0000 		call __udivmodqi4
- 329 00cc 805D      		subi r24,lo8(-(48))
- 330 00ce 0E94 0000 		call transmitByte
+ 351               	.LM31:
+ 352 00c0 64E6      		ldi r22,lo8(100)
+ 353 00c2 0E94 0000 		call __udivmodqi4
+ 354 00c6 805D      		subi r24,lo8(-(48))
+ 355 00c8 0E94 0000 		call transmitByte
   80:include/USART.c ****   transmitByte('0' + ((byte / 10) % 10));                      /* Tens */
- 332               	.LM33:
- 333 00d2 2AE0      		ldi r18,lo8(10)
- 334 00d4 8C2F      		mov r24,r28
- 335 00d6 622F      		mov r22,r18
- 336 00d8 0E94 0000 		call __udivmodqi4
- 337 00dc C92F      		mov r28,r25
- 338 00de 0E94 0000 		call __udivmodqi4
- 339 00e2 892F      		mov r24,r25
- 340 00e4 805D      		subi r24,lo8(-(48))
- 341 00e6 0E94 0000 		call transmitByte
+ 357               	.LM32:
+ 358 00cc 2AE0      		ldi r18,lo8(10)
+ 359 00ce 8C2F      		mov r24,r28
+ 360 00d0 622F      		mov r22,r18
+ 361 00d2 0E94 0000 		call __udivmodqi4
+ 362 00d6 C92F      		mov r28,r25
+ 363 00d8 0E94 0000 		call __udivmodqi4
+ 364 00dc 80E3      		ldi r24,lo8(48)
+ 365 00de 890F      		add r24,r25
+ 366 00e0 0E94 0000 		call transmitByte
   81:include/USART.c ****   transmitByte('0' + (byte % 10));                             /* Ones */
- 343               	.LM34:
- 344 00ea 8C2F      		mov r24,r28
- 345 00ec 805D      		subi r24,lo8(-(48))
- 346               	/* epilogue start */
+ 368               	.LM33:
+ 369 00e4 80E3      		ldi r24,lo8(48)
+ 370 00e6 8C0F      		add r24,r28
+ 371               	/* epilogue start */
   82:include/USART.c **** }
- 348               	.LM35:
- 349 00ee CF91      		pop r28
+ 373               	.LM34:
+ 374 00e8 CF91      		pop r28
   81:include/USART.c ****   transmitByte('0' + (byte % 10));                             /* Ones */
- 351               	.LM36:
- 352 00f0 0C94 0000 		jmp transmitByte
- 354               	.Lscope6:
- 356               		.stabd	78,0,0
- 359               	.global	printWord
- 361               	printWord:
- 362               		.stabd	46,0,0
+ 376               	.LM35:
+ 377 00ea 0C94 0000 		jmp transmitByte
+ 379               	.Lscope6:
+ 381               		.stabd	78,0,0
+ 384               	.global	printWord
+ 386               	printWord:
+ 387               		.stabd	46,0,0
   83:include/USART.c **** 
   84:include/USART.c **** void printWord(uint16_t word) {
- 364               	.LM37:
- 365               	.LFBB7:
- 366 00f4 0F93      		push r16
- 367 00f6 1F93      		push r17
- 368 00f8 CF93      		push r28
- 369 00fa DF93      		push r29
- 370               	/* prologue: function */
- 371               	/* frame size = 0 */
- 372               	/* stack size = 4 */
- 373               	.L__stack_usage = 4
- 374 00fc EC01      		movw r28,r24
+ 389               	.LM36:
+ 390               	.LFBB7:
+ 391 00ee 0F93      		push r16
+ 392 00f0 1F93      		push r17
+ 393 00f2 CF93      		push r28
+ 394 00f4 DF93      		push r29
+ 395               	/* prologue: function */
+ 396               	/* frame size = 0 */
+ 397               	/* stack size = 4 */
+ 398               	.L__stack_usage = 4
+ 399 00f6 EC01      		movw r28,r24
   85:include/USART.c ****   transmitByte('0' + (word / 10000));                 /* Ten-thousands */
- 376               	.LM38:
- 377 00fe 60E1      		ldi r22,lo8(16)
- 378 0100 77E2      		ldi r23,lo8(39)
- 379 0102 0E94 0000 		call __udivmodhi4
- 380 0106 862F      		mov r24,r22
- 381 0108 805D      		subi r24,lo8(-(48))
- 382 010a 0E94 0000 		call transmitByte
+ 401               	.LM37:
+ 402 00f8 60E1      		ldi r22,lo8(16)
+ 403 00fa 77E2      		ldi r23,lo8(39)
+ 404 00fc 0E94 0000 		call __udivmodhi4
+ 405 0100 80E3      		ldi r24,lo8(48)
+ 406 0102 860F      		add r24,r22
+ 407 0104 0E94 0000 		call transmitByte
   86:include/USART.c ****   transmitByte('0' + ((word / 1000) % 10));               /* Thousands */
- 384               	.LM39:
- 385 010e CE01      		movw r24,r28
- 386 0110 68EE      		ldi r22,lo8(-24)
- 387 0112 73E0      		ldi r23,lo8(3)
- 388 0114 0E94 0000 		call __udivmodhi4
- 389 0118 CB01      		movw r24,r22
- 390 011a 0AE0      		ldi r16,lo8(10)
- 391 011c 10E0      		ldi r17,0
- 392 011e B801      		movw r22,r16
- 393 0120 0E94 0000 		call __udivmodhi4
- 394 0124 805D      		subi r24,lo8(-(48))
- 395 0126 0E94 0000 		call transmitByte
+ 409               	.LM38:
+ 410 0108 CE01      		movw r24,r28
+ 411 010a 68EE      		ldi r22,lo8(-24)
+ 412 010c 73E0      		ldi r23,lo8(3)
+ 413 010e 0E94 0000 		call __udivmodhi4
+ 414 0112 CB01      		movw r24,r22
+ 415 0114 0AE0      		ldi r16,lo8(10)
+ 416 0116 10E0      		ldi r17,0
+ 417 0118 B801      		movw r22,r16
+ 418 011a 0E94 0000 		call __udivmodhi4
+ 419 011e 805D      		subi r24,lo8(-(48))
+ 420 0120 0E94 0000 		call transmitByte
   87:include/USART.c ****   transmitByte('0' + ((word / 100) % 10));                 /* Hundreds */
- 397               	.LM40:
- 398 012a CE01      		movw r24,r28
- 399 012c 64E6      		ldi r22,lo8(100)
- 400 012e 70E0      		ldi r23,0
- 401 0130 0E94 0000 		call __udivmodhi4
- 402 0134 CB01      		movw r24,r22
- 403 0136 B801      		movw r22,r16
- 404 0138 0E94 0000 		call __udivmodhi4
- 405 013c 805D      		subi r24,lo8(-(48))
- 406 013e 0E94 0000 		call transmitByte
+ 422               	.LM39:
+ 423 0124 CE01      		movw r24,r28
+ 424 0126 64E6      		ldi r22,lo8(100)
+ 425 0128 70E0      		ldi r23,0
+ 426 012a 0E94 0000 		call __udivmodhi4
+ 427 012e CB01      		movw r24,r22
+ 428 0130 B801      		movw r22,r16
+ 429 0132 0E94 0000 		call __udivmodhi4
+ 430 0136 805D      		subi r24,lo8(-(48))
+ 431 0138 0E94 0000 		call transmitByte
   88:include/USART.c ****   transmitByte('0' + ((word / 10) % 10));                      /* Tens */
- 408               	.LM41:
- 409 0142 CE01      		movw r24,r28
- 410 0144 B801      		movw r22,r16
- 411 0146 0E94 0000 		call __udivmodhi4
- 412 014a C82F      		mov r28,r24
- 413 014c CB01      		movw r24,r22
- 414 014e B801      		movw r22,r16
- 415 0150 0E94 0000 		call __udivmodhi4
- 416 0154 805D      		subi r24,lo8(-(48))
- 417 0156 0E94 0000 		call transmitByte
+ 433               	.LM40:
+ 434 013c CE01      		movw r24,r28
+ 435 013e B801      		movw r22,r16
+ 436 0140 0E94 0000 		call __udivmodhi4
+ 437 0144 C82F      		mov r28,r24
+ 438 0146 CB01      		movw r24,r22
+ 439 0148 B801      		movw r22,r16
+ 440 014a 0E94 0000 		call __udivmodhi4
+ 441 014e 805D      		subi r24,lo8(-(48))
+ 442 0150 0E94 0000 		call transmitByte
   89:include/USART.c ****   transmitByte('0' + (word % 10));                             /* Ones */
- 419               	.LM42:
- 420 015a 8C2F      		mov r24,r28
- 421 015c 805D      		subi r24,lo8(-(48))
- 422               	/* epilogue start */
+ 444               	.LM41:
+ 445 0154 80E3      		ldi r24,lo8(48)
+ 446 0156 8C0F      		add r24,r28
+ 447               	/* epilogue start */
   90:include/USART.c **** }
- 424               	.LM43:
- 425 015e DF91      		pop r29
- 426 0160 CF91      		pop r28
- 427 0162 1F91      		pop r17
- 428 0164 0F91      		pop r16
+ 449               	.LM42:
+ 450 0158 DF91      		pop r29
+ 451 015a CF91      		pop r28
+ 452 015c 1F91      		pop r17
+ 453 015e 0F91      		pop r16
   89:include/USART.c ****   transmitByte('0' + (word % 10));                             /* Ones */
- 430               	.LM44:
- 431 0166 0C94 0000 		jmp transmitByte
- 433               	.Lscope7:
- 435               		.stabd	78,0,0
- 438               	.global	printBinaryByte
- 440               	printBinaryByte:
- 441               		.stabd	46,0,0
+ 455               	.LM43:
+ 456 0160 0C94 0000 		jmp transmitByte
+ 458               	.Lscope7:
+ 460               		.stabd	78,0,0
+ 463               	.global	printBinaryByte
+ 465               	printBinaryByte:
+ 466               		.stabd	46,0,0
   91:include/USART.c **** 
   92:include/USART.c **** void printBinaryByte(uint8_t byte) {
- 443               	.LM45:
- 444               	.LFBB8:
- 445 016a 1F93      		push r17
- 446 016c CF93      		push r28
- 447 016e DF93      		push r29
- 448 0170 1F92      		push __zero_reg__
- 449 0172 CDB7      		in r28,__SP_L__
- 450 0174 DEB7      		in r29,__SP_H__
- 451               	/* prologue: function */
- 452               	/* frame size = 1 */
- 453               	/* stack size = 4 */
- 454               	.L__stack_usage = 4
- 455 0176 8983      		std Y+1,r24
+ 468               	.LM44:
+ 469               	.LFBB8:
+ 470 0164 1F93      		push r17
+ 471 0166 CF93      		push r28
+ 472 0168 DF93      		push r29
+ 473 016a 1F92      		push __zero_reg__
+ 474 016c CDB7      		in r28,__SP_L__
+ 475 016e DEB7      		in r29,__SP_H__
+ 476               	/* prologue: function */
+ 477               	/* frame size = 1 */
+ 478               	/* stack size = 4 */
+ 479               	.L__stack_usage = 4
+ 480 0170 8983      		std Y+1,r24
   93:include/USART.c ****                        /* Prints out a byte as a series of 1's and 0's */
   94:include/USART.c ****   uint8_t bit;
   95:include/USART.c ****   for (bit = 7; bit < 255; bit--) {
- 457               	.LM46:
- 458 0178 17E0      		ldi r17,lo8(7)
- 459               	.L25:
+ 482               	.LM45:
+ 483 0172 17E0      		ldi r17,lo8(7)
+ 484               	.L25:
   96:include/USART.c ****     if (bit_is_set(byte, bit))
- 461               	.LM47:
- 462 017a 8981      		ldd r24,Y+1
- 463 017c 90E0      		ldi r25,0
- 464 017e 012E      		mov r0,r17
- 465 0180 00C0      		rjmp 2f
- 466               		1:
- 467 0182 9595      		asr r25
- 468 0184 8795      		ror r24
- 469               		2:
- 470 0186 0A94      		dec r0
- 471 0188 02F4      		brpl 1b
- 472 018a 80FF      		sbrs r24,0
- 473 018c 00C0      		rjmp .L23
+ 486               	.LM46:
+ 487 0174 8981      		ldd r24,Y+1
+ 488 0176 90E0      		ldi r25,0
+ 489 0178 012E      		mov r0,r17
+ 490 017a 00C0      		rjmp 2f
+ 491               		1:
+ 492 017c 9595      		asr r25
+ 493 017e 8795      		ror r24
+ 494               		2:
+ 495 0180 0A94      		dec r0
+ 496 0182 02F4      		brpl 1b
+ 497 0184 80FF      		sbrs r24,0
+ 498 0186 00C0      		rjmp .L22
   97:include/USART.c ****       transmitByte('1');
- 475               	.LM48:
- 476 018e 81E3      		ldi r24,lo8(49)
- 477 0190 00C0      		rjmp .L27
- 478               	.L23:
+ 500               	.LM47:
+ 501 0188 81E3      		ldi r24,lo8(49)
+ 502 018a 00C0      		rjmp .L26
+ 503               	.L22:
   98:include/USART.c ****     else
   99:include/USART.c ****       transmitByte('0');
- 480               	.LM49:
- 481 0192 80E3      		ldi r24,lo8(48)
- 482               	.L27:
- 483 0194 0E94 0000 		call transmitByte
+ 505               	.LM48:
+ 506 018c 80E3      		ldi r24,lo8(48)
+ 507               	.L26:
+ 508 018e 0E94 0000 		call transmitByte
   95:include/USART.c ****   for (bit = 7; bit < 255; bit--) {
- 485               	.LM50:
- 486 0198 1150      		subi r17,1
- 487 019a 00F4      		brcc .L25
- 488               	/* epilogue start */
+ 510               	.LM49:
+ 511 0192 1150      		subi r17,1
+ 512 0194 00F4      		brcc .L25
+ 513               	/* epilogue start */
  100:include/USART.c ****   }
  101:include/USART.c **** }
- 490               	.LM51:
- 491 019c 0F90      		pop __tmp_reg__
- 492 019e DF91      		pop r29
- 493 01a0 CF91      		pop r28
- 494 01a2 1F91      		pop r17
- 495 01a4 0895      		ret
- 500               	.Lscope8:
- 502               		.stabd	78,0,0
- 505               	.global	nibbleToHexCharacter
- 507               	nibbleToHexCharacter:
- 508               		.stabd	46,0,0
+ 515               	.LM50:
+ 516 0196 0F90      		pop __tmp_reg__
+ 517 0198 DF91      		pop r29
+ 518 019a CF91      		pop r28
+ 519 019c 1F91      		pop r17
+ 520 019e 0895      		ret
+ 525               	.Lscope8:
+ 527               		.stabd	78,0,0
+ 530               	.global	nibbleToHexCharacter
+ 532               	nibbleToHexCharacter:
+ 533               		.stabd	46,0,0
  102:include/USART.c **** 
  103:include/USART.c **** char nibbleToHexCharacter(uint8_t nibble) {
- 510               	.LM52:
- 511               	.LFBB9:
- 512               	/* prologue: function */
- 513               	/* frame size = 0 */
- 514               	/* stack size = 0 */
- 515               	.L__stack_usage = 0
+ 535               	.LM51:
+ 536               	.LFBB9:
+ 537               	/* prologue: function */
+ 538               	/* frame size = 0 */
+ 539               	/* stack size = 0 */
+ 540               	.L__stack_usage = 0
  104:include/USART.c ****                                    /* Converts 4 bits into hexadecimal */
  105:include/USART.c ****   if (nibble < 10) {
- 517               	.LM53:
- 518 01a6 8A30      		cpi r24,lo8(10)
- 519 01a8 00F4      		brsh .L29
+ 542               	.LM52:
+ 543 01a0 8A30      		cpi r24,lo8(10)
+ 544 01a2 00F4      		brsh .L28
  106:include/USART.c ****     return ('0' + nibble);
- 521               	.LM54:
- 522 01aa 805D      		subi r24,lo8(-(48))
- 523 01ac 0895      		ret
- 524               	.L29:
+ 546               	.LM53:
+ 547 01a4 805D      		subi r24,lo8(-(48))
+ 548 01a6 0895      		ret
+ 549               	.L28:
  107:include/USART.c ****   }
  108:include/USART.c ****   else {
  109:include/USART.c ****     return ('A' + nibble - 10);
- 526               	.LM55:
- 527 01ae 895C      		subi r24,lo8(-(55))
+ 551               	.LM54:
+ 552 01a8 895C      		subi r24,lo8(-(55))
  110:include/USART.c ****   }
  111:include/USART.c **** }
- 529               	.LM56:
- 530 01b0 0895      		ret
- 532               	.Lscope9:
- 534               		.stabd	78,0,0
- 537               	.global	printHexByte
- 539               	printHexByte:
- 540               		.stabd	46,0,0
+ 554               	.LM55:
+ 555 01aa 0895      		ret
+ 557               	.Lscope9:
+ 559               		.stabd	78,0,0
+ 562               	.global	printHexByte
+ 564               	printHexByte:
+ 565               		.stabd	46,0,0
  112:include/USART.c **** 
  113:include/USART.c **** void printHexByte(uint8_t byte) {
- 542               	.LM57:
- 543               	.LFBB10:
- 544 01b2 CF93      		push r28
- 545               	/* prologue: function */
- 546               	/* frame size = 0 */
- 547               	/* stack size = 1 */
- 548               	.L__stack_usage = 1
- 549 01b4 C82F      		mov r28,r24
+ 567               	.LM56:
+ 568               	.LFBB10:
+ 569 01ac CF93      		push r28
+ 570               	/* prologue: function */
+ 571               	/* frame size = 0 */
+ 572               	/* stack size = 1 */
+ 573               	.L__stack_usage = 1
+ 574 01ae C82F      		mov r28,r24
  114:include/USART.c ****                         /* Prints a byte as its hexadecimal equivalent */
  115:include/USART.c ****   uint8_t nibble;
  116:include/USART.c ****   nibble = (byte & 0b11110000) >> 4;
  117:include/USART.c ****   transmitByte(nibbleToHexCharacter(nibble));
- 551               	.LM58:
- 552 01b6 8295      		swap r24
- 553 01b8 8F70      		andi r24,lo8(15)
- 554 01ba 0E94 0000 		call nibbleToHexCharacter
- 555 01be 0E94 0000 		call transmitByte
+ 576               	.LM57:
+ 577 01b0 8295      		swap r24
+ 578 01b2 8F70      		andi r24,lo8(15)
+ 579 01b4 0E94 0000 		call nibbleToHexCharacter
+ 580 01b8 0E94 0000 		call transmitByte
  118:include/USART.c ****   nibble = byte & 0b00001111;
  119:include/USART.c ****   transmitByte(nibbleToHexCharacter(nibble));
- 557               	.LM59:
- 558 01c2 8C2F      		mov r24,r28
- 559 01c4 8F70      		andi r24,lo8(15)
- 560 01c6 0E94 0000 		call nibbleToHexCharacter
- 561               	/* epilogue start */
+ 582               	.LM58:
+ 583 01bc 8C2F      		mov r24,r28
+ 584 01be 8F70      		andi r24,lo8(15)
+ 585 01c0 0E94 0000 		call nibbleToHexCharacter
+ 586               	/* epilogue start */
  120:include/USART.c **** }
- 563               	.LM60:
- 564 01ca CF91      		pop r28
+ 588               	.LM59:
+ 589 01c4 CF91      		pop r28
  119:include/USART.c ****   transmitByte(nibbleToHexCharacter(nibble));
- 566               	.LM61:
- 567 01cc 0C94 0000 		jmp transmitByte
- 569               	.Lscope10:
- 571               		.stabd	78,0,0
- 573               	.global	getNumber
- 575               	getNumber:
- 576               		.stabd	46,0,0
+ 591               	.LM60:
+ 592 01c6 0C94 0000 		jmp transmitByte
+ 594               	.Lscope10:
+ 596               		.stabd	78,0,0
+ 598               	.global	getNumber
+ 600               	getNumber:
+ 601               		.stabd	46,0,0
  121:include/USART.c **** 
  122:include/USART.c **** uint8_t getNumber(void) {
- 578               	.LM62:
- 579               	.LFBB11:
- 580 01d0 0F93      		push r16
- 581 01d2 1F93      		push r17
- 582 01d4 CF93      		push r28
- 583 01d6 DF93      		push r29
- 584               	/* prologue: function */
- 585               	/* frame size = 0 */
- 586               	/* stack size = 4 */
- 587               	.L__stack_usage = 4
+ 603               	.LM61:
+ 604               	.LFBB11:
+ 605 01ca 0F93      		push r16
+ 606 01cc 1F93      		push r17
+ 607 01ce CF93      		push r28
+ 608 01d0 DF93      		push r29
+ 609               	/* prologue: function */
+ 610               	/* frame size = 0 */
+ 611               	/* stack size = 4 */
+ 612               	.L__stack_usage = 4
  123:include/USART.c ****   // Gets a numerical 0-255 from the serial port.
  124:include/USART.c ****   // Converts from string to number.
  125:include/USART.c ****   char hundreds = '0';
  126:include/USART.c ****   char tens = '0';
  127:include/USART.c ****   char ones = '0';
  128:include/USART.c ****   char thisChar = '0';
- 589               	.LM63:
- 590 01d8 D0E3      		ldi r29,lo8(48)
+ 614               	.LM62:
+ 615 01d2 D0E3      		ldi r29,lo8(48)
  127:include/USART.c ****   char ones = '0';
- 592               	.LM64:
- 593 01da C0E3      		ldi r28,lo8(48)
+ 617               	.LM63:
+ 618 01d4 C0E3      		ldi r28,lo8(48)
  126:include/USART.c ****   char tens = '0';
- 595               	.LM65:
- 596 01dc 00E3      		ldi r16,lo8(48)
- 597 01de 00C0      		rjmp .L33
- 598               	.L34:
+ 620               	.LM64:
+ 621 01d6 00E3      		ldi r16,lo8(48)
+ 622               	.L33:
  129:include/USART.c ****   do {                                                   /* shift over */
  130:include/USART.c ****     hundreds = tens;
  131:include/USART.c ****     tens = ones;
  132:include/USART.c ****     ones = thisChar;
  133:include/USART.c ****     thisChar = receiveByte();                   /* get a new character */
- 600               	.LM66:
- 601 01e0 D12F      		mov r29,r17
+ 624               	.LM65:
+ 625 01d8 0E94 0000 		call receiveByte
+ 626 01dc 182F      		mov r17,r24
  134:include/USART.c ****     transmitByte(thisChar);                                    /* echo */
+ 628               	.LM66:
+ 629 01de 0E94 0000 		call transmitByte
  135:include/USART.c ****   } while (thisChar != '\r');                     /* until type return */
- 603               	.LM67:
- 604 01e2 C82F      		mov r28,r24
- 605 01e4 092F      		mov r16,r25
- 606               	.L33:
+ 631               	.LM67:
+ 632 01e2 1D30      		cpi r17,lo8(13)
+ 633 01e4 01F0      		breq .L32
  133:include/USART.c ****     thisChar = receiveByte();                   /* get a new character */
- 608               	.LM68:
- 609 01e6 0E94 0000 		call receiveByte
- 610 01ea 182F      		mov r17,r24
- 134:include/USART.c ****     transmitByte(thisChar);                                    /* echo */
- 612               	.LM69:
- 613 01ec 0E94 0000 		call transmitByte
- 614 01f0 9C2F      		mov r25,r28
- 615 01f2 8D2F      		mov r24,r29
- 617               	.LM70:
- 618 01f4 1D30      		cpi r17,lo8(13)
- 619 01f6 01F4      		brne .L34
+ 635               	.LM68:
+ 636 01e6 0C2F      		mov r16,r28
+ 637 01e8 CD2F      		mov r28,r29
+ 638 01ea D12F      		mov r29,r17
+ 639 01ec 00C0      		rjmp .L33
+ 640               	.L32:
  136:include/USART.c ****   return (100 * (hundreds - '0') + 10 * (tens - '0') + ones - '0');
- 621               	.LM71:
- 622 01f8 805D      		subi r24,lo8(-(48))
- 623 01fa 94E6      		ldi r25,lo8(100)
- 624 01fc 099F      		mul r16,r25
- 625 01fe 800D      		add r24,r0
- 626 0200 1124      		clr __zero_reg__
+ 642               	.LM69:
+ 643 01ee D053      		subi r29,lo8(-(-48))
+ 644 01f0 0053      		subi r16,lo8(-(-48))
+ 645 01f2 84E6      		ldi r24,lo8(100)
+ 646 01f4 089F      		mul r16,r24
+ 647 01f6 D00D      		add r29,r0
+ 648 01f8 1124      		clr __zero_reg__
+ 649 01fa 9C2F      		mov r25,r28
+ 650 01fc 990F      		lsl r25
+ 651 01fe 9056      		subi r25,lo8(-(-96))
+ 652 0200 892F      		mov r24,r25
+ 653 0202 880F      		lsl r24
+ 654 0204 880F      		lsl r24
+ 655 0206 890F      		add r24,r25
  137:include/USART.c **** }
- 628               	.LM72:
- 629 0202 9AE0      		ldi r25,lo8(10)
- 630 0204 C99F      		mul r28,r25
- 631 0206 800D      		add r24,r0
- 632 0208 1124      		clr __zero_reg__
- 633               	/* epilogue start */
- 634 020a DF91      		pop r29
- 635 020c CF91      		pop r28
- 636 020e 1F91      		pop r17
- 637 0210 0F91      		pop r16
- 638 0212 0895      		ret
- 640               	.Lscope11:
- 642               		.stabd	78,0,0
- 644               	.Letext0:
- 645               		.ident	"GCC: (GNU) 4.7.2"
+ 657               	.LM70:
+ 658 0208 8D0F      		add r24,r29
+ 659               	/* epilogue start */
+ 660 020a DF91      		pop r29
+ 661 020c CF91      		pop r28
+ 662 020e 1F91      		pop r17
+ 663 0210 0F91      		pop r16
+ 664 0212 0895      		ret
+ 666               	.Lscope11:
+ 668               		.stabd	78,0,0
+ 670               	.Letext0:
+ 671               		.ident	"GCC: (GNU) 4.8.2"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 USART.c
-     /tmp/ccjXQaXV.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccjXQaXV.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccjXQaXV.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccjXQaXV.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccjXQaXV.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccjXQaXV.s:73     .text:0000000000000000 initUSART
-     /tmp/ccjXQaXV.s:113    .text:0000000000000022 transmitByte
-     /tmp/ccjXQaXV.s:139    .text:0000000000000030 receiveByte
-     /tmp/ccjXQaXV.s:168    .text:000000000000003e printString
-     /tmp/ccjXQaXV.s:222    .text:0000000000000064 readString
-     /tmp/ccjXQaXV.s:314    .text:00000000000000c2 printByte
-     /tmp/ccjXQaXV.s:361    .text:00000000000000f4 printWord
-     /tmp/ccjXQaXV.s:440    .text:000000000000016a printBinaryByte
-     /tmp/ccjXQaXV.s:507    .text:00000000000001a6 nibbleToHexCharacter
-     /tmp/ccjXQaXV.s:539    .text:00000000000001b2 printHexByte
-     /tmp/ccjXQaXV.s:575    .text:00000000000001d0 getNumber
+     /tmp/ccArN393.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccArN393.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccArN393.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccArN393.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccArN393.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccArN393.s:105    .text:0000000000000000 initUSART
+     /tmp/ccArN393.s:145    .text:0000000000000022 transmitByte
+     /tmp/ccArN393.s:171    .text:0000000000000030 receiveByte
+     /tmp/ccArN393.s:200    .text:000000000000003e printString
+     /tmp/ccArN393.s:252    .text:0000000000000064 readString
+     /tmp/ccArN393.s:339    .text:00000000000000bc printByte
+     /tmp/ccArN393.s:386    .text:00000000000000ee printWord
+     /tmp/ccArN393.s:465    .text:0000000000000164 printBinaryByte
+     /tmp/ccArN393.s:532    .text:00000000000001a0 nibbleToHexCharacter
+     /tmp/ccArN393.s:564    .text:00000000000001ac printHexByte
+     /tmp/ccArN393.s:600    .text:00000000000001ca getNumber
 
 UNDEFINED SYMBOLS
 __udivmodqi4

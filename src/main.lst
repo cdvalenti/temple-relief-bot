@@ -6,9 +6,9 @@
    6               	__zero_reg__ = 1
    9               		.text
   10               	.Ltext0:
-  89               	.global	initADC
-  91               	initADC:
-  92               		.stabd	46,0,0
+ 121               	.global	__vector_1
+ 123               	__vector_1:
+ 124               		.stabd	46,0,0
    1:main.c        **** /* Temple Relief Robot, ASME Design Competition 2015
    2:main.c        ****  * -------------------------------------------------
    3:main.c        ****  * Title: temple-relief-robot/src/main.c
@@ -40,1112 +40,1213 @@
   29:main.c        **** #define DRIVER2PWM  PD5
   30:main.c        **** #define SERVO1      PB1
   31:main.c        **** #define SERVO2      PB2
-  32:main.c        **** 
-  33:main.c        **** //function declarations
-  34:main.c        **** void initADC(void);
-  35:main.c        **** uint16_t readADC(uint8_t channel);
-  36:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value);
-  37:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel);
-  38:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size);
-  39:main.c        **** void blinkTwice(void);
-  40:main.c        **** void initTimer1Servo(void);
-  41:main.c        **** void initMotorDriverIO(void);
-  42:main.c        **** void initTimer0PWM(void);
-  43:main.c        **** uint8_t computeLeftMotorPWM(int vValue, int hValue);
-  44:main.c        **** uint8_t computeRightMotorPWM(int vValue, int hValue);
-  45:main.c        **** 
-  46:main.c        **** int main(void) {
-  47:main.c        ****   
-  48:main.c        ****   //initialize functions (ADC, PWM, I/O)
-  49:main.c        ****   initADC();
-  50:main.c        ****   initTimer1Servo();
-  51:main.c        ****   initMotorDriverIO();
-  52:main.c        ****   initTimer0PWM();
-  53:main.c        ****   
-  54:main.c        ****   //moving average array sizes
-  55:main.c        ****   uint8_t joySize = 30;
-  56:main.c        ****   uint8_t slideSize = 75;
-  57:main.c        ****   
-  58:main.c        ****   //create value arrays
-  59:main.c        ****   uint16_t verticalValue [joySize];
-  60:main.c        ****   uint16_t horizontalValue [joySize];
-  61:main.c        ****   uint16_t topSliderValue [slideSize];
-  62:main.c        ****   uint16_t bottomSliderValue [slideSize];
-  63:main.c        ****   //create pointers
-  64:main.c        ****   uint16_t * verticalPointer;
-  65:main.c        ****   uint16_t * horizontalPointer;
-  66:main.c        ****   uint16_t * topSliderPointer;
-  67:main.c        ****   uint16_t * bottomSliderPointer;
-  68:main.c        ****   //have pointers pointing to first element of each array
-  69:main.c        ****   verticalPointer = &verticalValue[0];
-  70:main.c        ****   horizontalPointer = &horizontalValue[0];
-  71:main.c        ****   topSliderPointer = &topSliderValue[0];
-  72:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
-  73:main.c        ****   
-  74:main.c        ****   //initialize values of arrays
-  75:main.c        ****   initValues(verticalPointer, joySize, 511);
-  76:main.c        ****   initValues(horizontalPointer, joySize, 511);
-  77:main.c        ****   initValues(topSliderPointer, slideSize, 0);
-  78:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
-  79:main.c        ****   
-  80:main.c        ****   //avg value variables
-  81:main.c        ****   int avgVerticalValue;
-  82:main.c        ****   int avgHorizontalValue;
-  83:main.c        ****   uint16_t avgTopSliderValue;
-  84:main.c        ****   uint16_t avgBottomSliderValue;
-  85:main.c        ****   
-  86:main.c        ****   //converter variables
-  87:main.c        ****   float converterSlideValue = 1.955;
-  88:main.c        ****   float offsetSlideValue = 500.0;
-  89:main.c        ****   float convertedTopSliderValue;
-  90:main.c        ****   float convertedBottomSliderValue;
-  91:main.c        ****   
-  92:main.c        ****   while(1) { 
-  93:main.c        ****     
-  94:main.c        ****     /* ***************** Read Joystick Values ***************** */
-  95:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
-  96:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
-  97:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
-  98:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
-  99:main.c        ****     
- 100:main.c        ****     /* ********************* Read Sliders ********************* */
- 101:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
- 102:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
- 103:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
- 104:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
- 105:main.c        ****     
- 106:main.c        ****     /* *********** Convert Joystick to Drive PWM and set ********** */
- 107:main.c        ****     OCR0A = computeLeftMotorPWM(avgVerticalValue, avgHorizontalValue);
- 108:main.c        ****     OCR0B = computeRightMotorPWM(avgVerticalValue, avgHorizontalValue);
- 109:main.c        ****     
- 110:main.c        ****     /* ********* Convert Sliders ADC value to PWM and set ********* */
- 111:main.c        ****     convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;
- 112:main.c        ****     OCR1A = (uint16_t) convertedTopSliderValue;
- 113:main.c        ****     convertedBottomSliderValue = (converterSlideValue * avgBottomSliderValue) + offsetSlideValue;
- 114:main.c        ****     OCR1B = (uint16_t) convertedBottomSliderValue;
- 115:main.c        ****  }
- 116:main.c        ****  
- 117:main.c        ****  return(0);
- 118:main.c        ****  
- 119:main.c        **** }
- 120:main.c        **** 
- 121:main.c        **** void initADC(void) {
-  94               	.LM0:
-  95               	.LFBB1:
-  96               	/* prologue: function */
-  97               	/* frame size = 0 */
-  98               	/* stack size = 0 */
-  99               	.L__stack_usage = 0
- 122:main.c        ****   //initialize ADC (set ref voltage, prescaler, and enable)
- 123:main.c        ****   ADMUX |= (1 << REFS0);                		// reference voltage on AVCC
- 101               	.LM1:
- 102 0000 ECE7      		ldi r30,lo8(124)
- 103 0002 F0E0      		ldi r31,0
- 104 0004 8081      		ld r24,Z
- 105 0006 8064      		ori r24,lo8(64)
- 106 0008 8083      		st Z,r24
- 124:main.c        ****   ADCSRA |= (1 << ADPS0) | (1 << ADPS1);    // ADC clock prescaler /8
- 108               	.LM2:
- 109 000a EAE7      		ldi r30,lo8(122)
- 110 000c F0E0      		ldi r31,0
- 111 000e 8081      		ld r24,Z
- 112 0010 8360      		ori r24,lo8(3)
- 113 0012 8083      		st Z,r24
- 125:main.c        ****   ADCSRA |= (1 << ADEN);               			// enable ADC
- 115               	.LM3:
- 116 0014 8081      		ld r24,Z
- 117 0016 8068      		ori r24,lo8(-128)
- 118 0018 8083      		st Z,r24
- 119 001a 0895      		ret
- 121               	.Lscope1:
- 123               		.stabd	78,0,0
- 126               	.global	readADC
- 128               	readADC:
- 129               		.stabd	46,0,0
- 126:main.c        **** }
- 127:main.c        **** 
- 128:main.c        **** uint16_t readADC(uint8_t channel) {
- 131               	.LM4:
- 132               	.LFBB2:
- 133               	/* prologue: function */
- 134               	/* frame size = 0 */
- 135               	/* stack size = 0 */
- 136               	.L__stack_usage = 0
- 129:main.c        ****   //read ADC value from channel (ADC0 to ADC 5)
- 130:main.c        ****   ADMUX = (0b11110000 & ADMUX) | channel;
- 138               	.LM5:
- 139 001c 9091 7C00 		lds r25,124
- 140 0020 907F      		andi r25,lo8(-16)
- 141 0022 982B      		or r25,r24
- 142 0024 9093 7C00 		sts 124,r25
- 131:main.c        ****   ADCSRA |= (1 << ADSC);
- 144               	.LM6:
- 145 0028 8091 7A00 		lds r24,122
- 146 002c 8064      		ori r24,lo8(64)
- 147 002e 8093 7A00 		sts 122,r24
- 148               	.L3:
- 132:main.c        ****   loop_until_bit_is_clear(ADCSRA, ADSC);
- 150               	.LM7:
- 151 0032 8091 7A00 		lds r24,122
- 152 0036 86FD      		sbrc r24,6
- 153 0038 00C0      		rjmp .L3
- 133:main.c        ****   return (ADC);
- 155               	.LM8:
- 156 003a 2091 7800 		lds r18,120
- 157 003e 3091 7900 		lds r19,120+1
- 134:main.c        **** }
- 159               	.LM9:
- 160 0042 C901      		movw r24,r18
- 161 0044 0895      		ret
- 163               	.Lscope2:
- 165               		.stabd	78,0,0
- 170               	.global	initValues
- 172               	initValues:
- 173               		.stabd	46,0,0
- 135:main.c        **** 
- 136:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value){
- 175               	.LM10:
- 176               	.LFBB3:
- 177               	/* prologue: function */
- 178               	/* frame size = 0 */
- 179               	/* stack size = 0 */
- 180               	.L__stack_usage = 0
- 137:main.c        ****   
- 138:main.c        ****   uint8_t i;
- 139:main.c        ****   
- 140:main.c        ****   //copy 'value' into each element of array
- 141:main.c        ****   for(i=0;i<size;i++){
- 182               	.LM11:
- 183 0046 20E0      		ldi r18,0
- 184 0048 00C0      		rjmp .L6
- 185               	.L7:
- 142:main.c        ****      *arr = value;
- 187               	.LM12:
- 188 004a FC01      		movw r30,r24
- 189 004c 4193      		st Z+,r20
- 190 004e 5193      		st Z+,r21
- 191 0050 CF01      		movw r24,r30
- 141:main.c        ****   for(i=0;i<size;i++){
- 193               	.LM13:
- 194 0052 2F5F      		subi r18,lo8(-(1))
- 195               	.L6:
- 141:main.c        ****   for(i=0;i<size;i++){
- 197               	.LM14:
- 198 0054 2613      		cpse r18,r22
- 199 0056 00C0      		rjmp .L7
- 200               	/* epilogue start */
- 143:main.c        ****      arr++;
- 144:main.c        ****   }
- 145:main.c        **** }
- 202               	.LM15:
- 203 0058 0895      		ret
- 208               	.Lscope3:
- 210               		.stabd	78,0,0
- 215               	.global	storeNewADC
- 217               	storeNewADC:
- 218               		.stabd	46,0,0
- 146:main.c        **** 
- 147:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
- 220               	.LM16:
- 221               	.LFBB4:
- 222 005a CF93      		push r28
- 223 005c DF93      		push r29
- 224               	/* prologue: function */
- 225               	/* frame size = 0 */
- 226               	/* stack size = 2 */
- 227               	.L__stack_usage = 2
- 148:main.c        ****   
- 149:main.c        ****   uint8_t i;
- 150:main.c        ****   arr = arr + (size-1);
- 229               	.LM17:
- 230 005e 70E0      		ldi r23,0
- 231 0060 6150      		subi r22,1
- 232 0062 7109      		sbc r23,__zero_reg__
- 233 0064 EB01      		movw r28,r22
- 234 0066 CC0F      		lsl r28
- 235 0068 DD1F      		rol r29
- 236 006a C80F      		add r28,r24
- 237 006c D91F      		adc r29,r25
- 151:main.c        ****   
- 152:main.c        ****   //starting with last element of array, store value from the previous element
- 153:main.c        ****   for (i=0;i<(size-1);i++){
- 239               	.LM18:
- 240 006e 90E0      		ldi r25,0
- 241 0070 00C0      		rjmp .L9
- 242               	.L10:
- 147:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
- 244               	.LM19:
- 245 0072 FE01      		movw r30,r28
- 154:main.c        ****     *arr = *(arr-1);
- 247               	.LM20:
- 248 0074 3291      		ld r19,-Z
- 249 0076 2291      		ld r18,-Z
- 250 0078 3983      		std Y+1,r19
- 251 007a 2883      		st Y,r18
- 153:main.c        ****   for (i=0;i<(size-1);i++){
- 253               	.LM21:
- 254 007c 9F5F      		subi r25,lo8(-(1))
- 155:main.c        ****     arr--;
- 256               	.LM22:
- 257 007e EF01      		movw r28,r30
- 258               	.L9:
- 153:main.c        ****   for (i=0;i<(size-1);i++){
- 260               	.LM23:
- 261 0080 292F      		mov r18,r25
- 262 0082 30E0      		ldi r19,0
- 263 0084 2617      		cp r18,r22
- 264 0086 3707      		cpc r19,r23
- 265 0088 04F0      		brlt .L10
- 156:main.c        ****   }
- 157:main.c        ****   
- 158:main.c        ****   //read ADC for newest value into array
- 159:main.c        ****   *arr = readADC(channel);
- 267               	.LM24:
- 268 008a 842F      		mov r24,r20
- 269 008c 0E94 0000 		call readADC
- 270 0090 9983      		std Y+1,r25
- 271 0092 8883      		st Y,r24
- 272               	/* epilogue start */
- 160:main.c        **** }
- 274               	.LM25:
- 275 0094 DF91      		pop r29
- 276 0096 CF91      		pop r28
- 277 0098 0895      		ret
- 282               	.Lscope4:
- 284               		.stabd	78,0,0
- 288               	.global	getAverage
- 290               	getAverage:
- 291               		.stabd	46,0,0
- 161:main.c        **** 
- 162:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size){
- 293               	.LM26:
- 294               	.LFBB5:
- 295               	/* prologue: function */
- 296               	/* frame size = 0 */
- 297               	/* stack size = 0 */
- 298               	.L__stack_usage = 0
- 299 009a FC01      		movw r30,r24
- 300 009c 362F      		mov r19,r22
+  32:main.c        **** #define INTERRUPT0  PD2
+  33:main.c        **** #define INTERRUPT1  PD3
+  34:main.c        **** #define INT_DDR     DDRD
+  35:main.c        **** #define INT_PORT    PORTD
+  36:main.c        **** #define INT_PIN     PIND
+  37:main.c        **** #define CW          2500
+  38:main.c        **** #define MID         1500
+  39:main.c        **** #define CCW         500
+  40:main.c        **** 
+  41:main.c        **** //function declarations
+  42:main.c        **** void initADC(void);
+  43:main.c        **** uint16_t readADC(uint8_t channel);
+  44:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value);
+  45:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel);
+  46:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size);
+  47:main.c        **** void blinkTwice(void);
+  48:main.c        **** void initTimer1Servo(void);
+  49:main.c        **** void initMotorDriverIO(void);
+  50:main.c        **** void initTimer0PWM(void);
+  51:main.c        **** uint8_t computeLeftMotorPWM(int vValue, int hValue);
+  52:main.c        **** uint8_t computeRightMotorPWM(int vValue, int hValue);
+  53:main.c        **** void initInterrupts(void);
+  54:main.c        **** 
+  55:main.c        **** volatile uint16_t bridgeButtonCount = 0;
+  56:main.c        **** volatile uint16_t grainButtonCount = 0;
+  57:main.c        **** 
+  58:main.c        **** ISR(INT0_vect){
+ 126               	.LM0:
+ 127               	.LFBB1:
+ 128 0000 1F92      		push r1
+ 129 0002 0F92      		push r0
+ 130 0004 0FB6      		in r0,__SREG__
+ 131 0006 0F92      		push r0
+ 132 0008 1124      		clr __zero_reg__
+ 133 000a 8F93      		push r24
+ 134 000c 9F93      		push r25
+ 135               	/* prologue: Signal */
+ 136               	/* frame size = 0 */
+ 137               	/* stack size = 5 */
+ 138               	.L__stack_usage = 5
+  59:main.c        ****   
+  60:main.c        ****   int interruptCount = 0;
+ 140               	.LM1:
+ 141 000e 80E0      		ldi r24,0
+ 142 0010 90E0      		ldi r25,0
+ 143               	.L2:
+  61:main.c        ****   
+  62:main.c        ****   while ((bit_is_clear(INT_PIN, INTERRUPT0))) {
+ 145               	.LM2:
+ 146 0012 4A99      		sbic 0x9,2
+ 147 0014 00C0      		rjmp .L9
+  63:main.c        ****     interruptCount++;
+ 149               	.LM3:
+ 150 0016 0196      		adiw r24,1
+ 151 0018 00C0      		rjmp .L2
+ 152               	.L9:
+  64:main.c        ****   }
+  65:main.c        ****   
+  66:main.c        ****   if(interruptCount>250){
+ 154               	.LM4:
+ 155 001a 8B3F      		cpi r24,-5
+ 156 001c 9105      		cpc r25,__zero_reg__
+ 157 001e 04F0      		brlt .L1
+  67:main.c        ****     if(bridgeButtonCount%2 == 0){
+ 159               	.LM5:
+ 160 0020 8091 0000 		lds r24,bridgeButtonCount
+ 161 0024 9091 0000 		lds r25,bridgeButtonCount+1
+ 162 0028 80FD      		sbrc r24,0
+ 163 002a 00C0      		rjmp .L5
+  68:main.c        ****       OCR1A = CCW;
+ 165               	.LM6:
+ 166 002c 84EF      		ldi r24,lo8(-12)
+ 167 002e 91E0      		ldi r25,lo8(1)
+ 168 0030 00C0      		rjmp .L7
+ 169               	.L5:
+  69:main.c        ****     }else{
+  70:main.c        ****       OCR1A = CW;
+ 171               	.LM7:
+ 172 0032 84EC      		ldi r24,lo8(-60)
+ 173 0034 99E0      		ldi r25,lo8(9)
+ 174               	.L7:
+ 175 0036 9093 8900 		sts 136+1,r25
+ 176 003a 8093 8800 		sts 136,r24
+  71:main.c        ****     }
+  72:main.c        ****     bridgeButtonCount++;
+ 178               	.LM8:
+ 179 003e 8091 0000 		lds r24,bridgeButtonCount
+ 180 0042 9091 0000 		lds r25,bridgeButtonCount+1
+ 181 0046 0196      		adiw r24,1
+ 182 0048 9093 0000 		sts bridgeButtonCount+1,r25
+ 183 004c 8093 0000 		sts bridgeButtonCount,r24
+ 184               	.L1:
+ 185               	/* epilogue start */
+  73:main.c        ****   }
+  74:main.c        ****   
+  75:main.c        **** }
+ 187               	.LM9:
+ 188 0050 9F91      		pop r25
+ 189 0052 8F91      		pop r24
+ 190 0054 0F90      		pop r0
+ 191 0056 0FBE      		out __SREG__,r0
+ 192 0058 0F90      		pop r0
+ 193 005a 1F90      		pop r1
+ 194 005c 1895      		reti
+ 199               	.Lscope1:
+ 201               		.stabd	78,0,0
+ 203               	.global	__vector_2
+ 205               	__vector_2:
+ 206               		.stabd	46,0,0
+  76:main.c        **** 
+  77:main.c        **** ISR(INT1_vect){
+ 208               	.LM10:
+ 209               	.LFBB2:
+ 210 005e 1F92      		push r1
+ 211 0060 0F92      		push r0
+ 212 0062 0FB6      		in r0,__SREG__
+ 213 0064 0F92      		push r0
+ 214 0066 1124      		clr __zero_reg__
+ 215 0068 8F93      		push r24
+ 216 006a 9F93      		push r25
+ 217               	/* prologue: Signal */
+ 218               	/* frame size = 0 */
+ 219               	/* stack size = 5 */
+ 220               	.L__stack_usage = 5
+  78:main.c        ****   
+  79:main.c        ****   int interruptCount = 0;
+ 222               	.LM11:
+ 223 006c 80E0      		ldi r24,0
+ 224 006e 90E0      		ldi r25,0
+ 225               	.L11:
+  80:main.c        ****   
+  81:main.c        ****   while ((bit_is_clear(INT_PIN, INTERRUPT1))) {
+ 227               	.LM12:
+ 228 0070 4B99      		sbic 0x9,3
+ 229 0072 00C0      		rjmp .L17
+  82:main.c        ****     interruptCount++;
+ 231               	.LM13:
+ 232 0074 0196      		adiw r24,1
+ 233 0076 00C0      		rjmp .L11
+ 234               	.L17:
+  83:main.c        ****   }
+  84:main.c        ****   
+  85:main.c        ****   if(interruptCount>250 && bridgeButtonCount>1){
+ 236               	.LM14:
+ 237 0078 8B3F      		cpi r24,-5
+ 238 007a 9105      		cpc r25,__zero_reg__
+ 239 007c 04F0      		brlt .L10
+ 241               	.LM15:
+ 242 007e 8091 0000 		lds r24,bridgeButtonCount
+ 243 0082 9091 0000 		lds r25,bridgeButtonCount+1
+ 244 0086 0297      		sbiw r24,2
+ 245 0088 00F0      		brlo .L10
+  86:main.c        ****     if(grainButtonCount%2 == 0){
+ 247               	.LM16:
+ 248 008a 8091 0000 		lds r24,grainButtonCount
+ 249 008e 9091 0000 		lds r25,grainButtonCount+1
+ 250 0092 80FD      		sbrc r24,0
+ 251 0094 00C0      		rjmp .L14
+  87:main.c        ****       OCR1B = CCW;
+ 253               	.LM17:
+ 254 0096 84EF      		ldi r24,lo8(-12)
+ 255 0098 91E0      		ldi r25,lo8(1)
+ 256 009a 00C0      		rjmp .L16
+ 257               	.L14:
+  88:main.c        ****     }else{
+  89:main.c        ****       OCR1B = CW;
+ 259               	.LM18:
+ 260 009c 84EC      		ldi r24,lo8(-60)
+ 261 009e 99E0      		ldi r25,lo8(9)
+ 262               	.L16:
+ 263 00a0 9093 8B00 		sts 138+1,r25
+ 264 00a4 8093 8A00 		sts 138,r24
+  90:main.c        ****     }
+  91:main.c        ****     grainButtonCount++;
+ 266               	.LM19:
+ 267 00a8 8091 0000 		lds r24,grainButtonCount
+ 268 00ac 9091 0000 		lds r25,grainButtonCount+1
+ 269 00b0 0196      		adiw r24,1
+ 270 00b2 9093 0000 		sts grainButtonCount+1,r25
+ 271 00b6 8093 0000 		sts grainButtonCount,r24
+ 272               	.L10:
+ 273               	/* epilogue start */
+  92:main.c        ****   }
+  93:main.c        **** }
+ 275               	.LM20:
+ 276 00ba 9F91      		pop r25
+ 277 00bc 8F91      		pop r24
+ 278 00be 0F90      		pop r0
+ 279 00c0 0FBE      		out __SREG__,r0
+ 280 00c2 0F90      		pop r0
+ 281 00c4 1F90      		pop r1
+ 282 00c6 1895      		reti
+ 287               	.Lscope2:
+ 289               		.stabd	78,0,0
+ 291               	.global	initADC
+ 293               	initADC:
+ 294               		.stabd	46,0,0
+  94:main.c        **** 
+  95:main.c        **** int main(void) {
+  96:main.c        ****   
+  97:main.c        ****   //initialize functions (ADC, PWM, I/O)
+  98:main.c        ****   initADC();
+  99:main.c        ****   initTimer1Servo();
+ 100:main.c        ****   initMotorDriverIO();
+ 101:main.c        ****   initTimer0PWM();
+ 102:main.c        ****   
+ 103:main.c        ****   //moving average array sizes
+ 104:main.c        ****   uint8_t joySize = 30;
+ 105:main.c        ****   
+ 106:main.c        ****   //create value arrays
+ 107:main.c        ****   uint16_t verticalValue [joySize];
+ 108:main.c        ****   uint16_t horizontalValue [joySize];
+ 109:main.c        **** 
+ 110:main.c        ****   //create pointers
+ 111:main.c        ****   uint16_t * verticalPointer;
+ 112:main.c        ****   uint16_t * horizontalPointer;
+ 113:main.c        **** 
+ 114:main.c        ****   //have pointers pointing to first element of each array
+ 115:main.c        ****   verticalPointer = &verticalValue[0];
+ 116:main.c        ****   horizontalPointer = &horizontalValue[0];
+ 117:main.c        ****   
+ 118:main.c        ****   //initialize values of arrays
+ 119:main.c        ****   initValues(verticalPointer, joySize, 511);
+ 120:main.c        ****   initValues(horizontalPointer, joySize, 511);
+ 121:main.c        ****   
+ 122:main.c        ****   //avg value variables
+ 123:main.c        ****   int avgVerticalValue;
+ 124:main.c        ****   int avgHorizontalValue;
+ 125:main.c        ****   
+ 126:main.c        ****   while(1) { 
+ 127:main.c        ****     
+ 128:main.c        ****     /* ***************** Read Joystick Values ***************** */
+ 129:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
+ 130:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
+ 131:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
+ 132:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
+ 133:main.c        ****     
+ 134:main.c        ****     
+ 135:main.c        ****     /* *********** Convert Joystick to Drive PWM and set ********** */
+ 136:main.c        ****     OCR0A = computeLeftMotorPWM(avgVerticalValue, avgHorizontalValue);
+ 137:main.c        ****     OCR0B = computeRightMotorPWM(avgVerticalValue, avgHorizontalValue);
+ 138:main.c        ****     
+ 139:main.c        ****  }
+ 140:main.c        ****  
+ 141:main.c        ****  return(0);
+ 142:main.c        ****  
+ 143:main.c        **** }
+ 144:main.c        **** 
+ 145:main.c        **** void initADC(void) {
+ 296               	.LM21:
+ 297               	.LFBB3:
+ 298               	/* prologue: function */
+ 299               	/* frame size = 0 */
+ 300               	/* stack size = 0 */
+ 301               	.L__stack_usage = 0
+ 146:main.c        ****   //initialize ADC (set ref voltage, prescaler, and enable)
+ 147:main.c        ****   ADMUX |= (1 << REFS0);                		// reference voltage on AVCC
+ 303               	.LM22:
+ 304 00c8 ECE7      		ldi r30,lo8(124)
+ 305 00ca F0E0      		ldi r31,0
+ 306 00cc 8081      		ld r24,Z
+ 307 00ce 8064      		ori r24,lo8(64)
+ 308 00d0 8083      		st Z,r24
+ 148:main.c        ****   ADCSRA |= (1 << ADPS0) | (1 << ADPS1);    // ADC clock prescaler /8
+ 310               	.LM23:
+ 311 00d2 EAE7      		ldi r30,lo8(122)
+ 312 00d4 F0E0      		ldi r31,0
+ 313 00d6 8081      		ld r24,Z
+ 314 00d8 8360      		ori r24,lo8(3)
+ 315 00da 8083      		st Z,r24
+ 149:main.c        ****   ADCSRA |= (1 << ADEN);               			// enable ADC
+ 317               	.LM24:
+ 318 00dc 8081      		ld r24,Z
+ 319 00de 8068      		ori r24,lo8(-128)
+ 320 00e0 8083      		st Z,r24
+ 321 00e2 0895      		ret
+ 323               	.Lscope3:
+ 325               		.stabd	78,0,0
+ 328               	.global	readADC
+ 330               	readADC:
+ 331               		.stabd	46,0,0
+ 150:main.c        **** }
+ 151:main.c        **** 
+ 152:main.c        **** uint16_t readADC(uint8_t channel) {
+ 333               	.LM25:
+ 334               	.LFBB4:
+ 335               	/* prologue: function */
+ 336               	/* frame size = 0 */
+ 337               	/* stack size = 0 */
+ 338               	.L__stack_usage = 0
+ 153:main.c        ****   //read ADC value from channel (ADC0 to ADC 5)
+ 154:main.c        ****   ADMUX = (0b11110000 & ADMUX) | channel;
+ 340               	.LM26:
+ 341 00e4 9091 7C00 		lds r25,124
+ 342 00e8 907F      		andi r25,lo8(-16)
+ 343 00ea 982B      		or r25,r24
+ 344 00ec 9093 7C00 		sts 124,r25
+ 155:main.c        ****   ADCSRA |= (1 << ADSC);
+ 346               	.LM27:
+ 347 00f0 8091 7A00 		lds r24,122
+ 348 00f4 8064      		ori r24,lo8(64)
+ 349 00f6 8093 7A00 		sts 122,r24
+ 350               	.L21:
+ 156:main.c        ****   loop_until_bit_is_clear(ADCSRA, ADSC);
+ 352               	.LM28:
+ 353 00fa 8091 7A00 		lds r24,122
+ 354 00fe 86FD      		sbrc r24,6
+ 355 0100 00C0      		rjmp .L21
+ 157:main.c        ****   return (ADC);
+ 357               	.LM29:
+ 358 0102 8091 7800 		lds r24,120
+ 359 0106 9091 7900 		lds r25,120+1
+ 158:main.c        **** }
+ 361               	.LM30:
+ 362 010a 0895      		ret
+ 364               	.Lscope4:
+ 366               		.stabd	78,0,0
+ 371               	.global	initValues
+ 373               	initValues:
+ 374               		.stabd	46,0,0
+ 159:main.c        **** 
+ 160:main.c        **** void initValues(uint16_t * arr, uint8_t size, uint16_t value){
+ 376               	.LM31:
+ 377               	.LFBB5:
+ 378               	/* prologue: function */
+ 379               	/* frame size = 0 */
+ 380               	/* stack size = 0 */
+ 381               	.L__stack_usage = 0
+ 161:main.c        ****   
+ 162:main.c        ****   uint8_t i;
  163:main.c        ****   
- 164:main.c        ****   uint8_t i;
- 165:main.c        ****   uint16_t avg;
- 166:main.c        ****   uint32_t sum = 0;
- 302               	.LM27:
- 303 009e 60E0      		ldi r22,0
- 304 00a0 70E0      		ldi r23,0
- 305 00a2 CB01      		movw r24,r22
- 167:main.c        ****       
- 168:main.c        ****   //sum all elements in array
- 169:main.c        ****   for(i=0;i<size;i++){
- 307               	.LM28:
- 308 00a4 20E0      		ldi r18,0
- 309 00a6 00C0      		rjmp .L12
- 310               	.L13:
- 170:main.c        ****     sum = sum + *arr;
- 312               	.LM29:
- 313 00a8 4191      		ld r20,Z+
- 314 00aa 5191      		ld r21,Z+
- 315 00ac 640F      		add r22,r20
- 316 00ae 751F      		adc r23,r21
- 317 00b0 811D      		adc r24,__zero_reg__
- 318 00b2 911D      		adc r25,__zero_reg__
- 169:main.c        ****   for(i=0;i<size;i++){
- 320               	.LM30:
- 321 00b4 2F5F      		subi r18,lo8(-(1))
- 322               	.L12:
- 169:main.c        ****   for(i=0;i<size;i++){
- 324               	.LM31:
- 325 00b6 2313      		cpse r18,r19
- 326 00b8 00C0      		rjmp .L13
- 171:main.c        ****     arr++;
- 172:main.c        ****   }
- 173:main.c        ****   
- 174:main.c        ****   //calculate avg and return 
- 175:main.c        ****   avg = sum / size;
- 328               	.LM32:
- 329 00ba 30E0      		ldi r19,0
- 330 00bc 40E0      		ldi r20,0
- 331 00be 50E0      		ldi r21,0
- 332 00c0 0E94 0000 		call __udivmodsi4
- 176:main.c        ****   return avg;
- 177:main.c        **** }
- 334               	.LM33:
- 335 00c4 C901      		movw r24,r18
- 336 00c6 0895      		ret
- 342               	.Lscope5:
- 344               		.stabd	78,0,0
- 346               	.global	initTimer1Servo
- 348               	initTimer1Servo:
- 349               		.stabd	46,0,0
- 178:main.c        **** 
- 179:main.c        **** void initTimer1Servo(void) {
- 351               	.LM34:
- 352               	.LFBB6:
- 353               	/* prologue: function */
- 354               	/* frame size = 0 */
- 355               	/* stack size = 0 */
- 356               	.L__stack_usage = 0
- 180:main.c        ****   /* Set up Timer1 (16bit) to give a pulse every 50ms */
+ 164:main.c        ****   //copy 'value' into each element of array
+ 165:main.c        ****   for(i=0;i<size;i++){
+ 383               	.LM32:
+ 384 010c 20E0      		ldi r18,0
+ 385               	.L23:
+ 387               	.LM33:
+ 388 010e 2617      		cp r18,r22
+ 389 0110 01F0      		breq .L25
+ 166:main.c        ****      *arr = value;
+ 391               	.LM34:
+ 392 0112 FC01      		movw r30,r24
+ 393 0114 4193      		st Z+,r20
+ 394 0116 5193      		st Z+,r21
+ 395 0118 CF01      		movw r24,r30
+ 165:main.c        ****   for(i=0;i<size;i++){
+ 397               	.LM35:
+ 398 011a 2F5F      		subi r18,lo8(-(1))
+ 399 011c 00C0      		rjmp .L23
+ 400               	.L25:
+ 401               	/* epilogue start */
+ 167:main.c        ****      arr++;
+ 168:main.c        ****   }
+ 169:main.c        **** }
+ 403               	.LM36:
+ 404 011e 0895      		ret
+ 409               	.Lscope5:
+ 411               		.stabd	78,0,0
+ 416               	.global	storeNewADC
+ 418               	storeNewADC:
+ 419               		.stabd	46,0,0
+ 170:main.c        **** 
+ 171:main.c        **** void storeNewADC(uint16_t * arr, uint8_t size, uint8_t channel){
+ 421               	.LM37:
+ 422               	.LFBB6:
+ 423 0120 CF93      		push r28
+ 424 0122 DF93      		push r29
+ 425               	/* prologue: function */
+ 426               	/* frame size = 0 */
+ 427               	/* stack size = 2 */
+ 428               	.L__stack_usage = 2
+ 172:main.c        ****   
+ 173:main.c        ****   uint8_t i;
+ 174:main.c        ****   arr = arr + (size-1);
+ 430               	.LM38:
+ 431 0124 70E0      		ldi r23,0
+ 432 0126 EB01      		movw r28,r22
+ 433 0128 C150      		subi r28,1
+ 434 012a D048      		sbci r29,-128
+ 435 012c CC0F      		lsl r28
+ 436 012e DD1F      		rol r29
+ 437 0130 C80F      		add r28,r24
+ 438 0132 D91F      		adc r29,r25
+ 175:main.c        ****   
+ 176:main.c        ****   //starting with last element of array, store value from the previous element
+ 177:main.c        ****   for (i=0;i<(size-1);i++){
+ 440               	.LM39:
+ 441 0134 90E0      		ldi r25,0
+ 442 0136 6150      		subi r22,1
+ 443 0138 7109      		sbc r23,__zero_reg__
+ 444               	.L27:
+ 446               	.LM40:
+ 447 013a 292F      		mov r18,r25
+ 448 013c 30E0      		ldi r19,0
+ 449 013e 2617      		cp r18,r22
+ 450 0140 3707      		cpc r19,r23
+ 451 0142 04F4      		brge .L29
+ 452 0144 FE01      		movw r30,r28
+ 178:main.c        ****     *arr = *(arr-1);
+ 454               	.LM41:
+ 455 0146 3291      		ld r19,-Z
+ 456 0148 2291      		ld r18,-Z
+ 457 014a 3983      		std Y+1,r19
+ 458 014c 2883      		st Y,r18
+ 177:main.c        ****   for (i=0;i<(size-1);i++){
+ 460               	.LM42:
+ 461 014e 9F5F      		subi r25,lo8(-(1))
+ 179:main.c        ****     arr--;
+ 463               	.LM43:
+ 464 0150 EF01      		movw r28,r30
+ 465 0152 00C0      		rjmp .L27
+ 466               	.L29:
+ 180:main.c        ****   }
  181:main.c        ****   
- 182:main.c        ****   //Use Fast PWM mode, counter max in ICR1
- 183:main.c        ****   TCCR1A |= (1 << WGM11);
- 358               	.LM35:
- 359 00c8 E0E8      		ldi r30,lo8(-128)
- 360 00ca F0E0      		ldi r31,0
- 361 00cc 8081      		ld r24,Z
- 362 00ce 8260      		ori r24,lo8(2)
- 363 00d0 8083      		st Z,r24
- 184:main.c        ****   TCCR1B |= (1 << WGM12) | (1 << WGM13);
- 365               	.LM36:
- 366 00d2 A1E8      		ldi r26,lo8(-127)
- 367 00d4 B0E0      		ldi r27,0
- 368 00d6 8C91      		ld r24,X
- 369 00d8 8861      		ori r24,lo8(24)
- 370 00da 8C93      		st X,r24
- 185:main.c        ****   
- 186:main.c        ****   // /1 prescaling -- counting in microseconds
- 187:main.c        ****   TCCR1B |= (1 << CS10);
- 372               	.LM37:
- 373 00dc 8C91      		ld r24,X
- 374 00de 8160      		ori r24,lo8(1)
- 375 00e0 8C93      		st X,r24
- 188:main.c        ****   
- 189:main.c        ****   //TOP value = 50ms
- 190:main.c        ****   ICR1 = 50000;
- 377               	.LM38:
- 378 00e2 80E5      		ldi r24,lo8(80)
- 379 00e4 93EC      		ldi r25,lo8(-61)
- 380 00e6 9093 8700 		sts 134+1,r25
- 381 00ea 8093 8600 		sts 134,r24
- 191:main.c        ****   
- 192:main.c        ****   //Direct output on PB1 (OC1A) and PB2 (OC1B)
- 193:main.c        ****   TCCR1A |= (1 << COM1A1);
- 383               	.LM39:
- 384 00ee 8081      		ld r24,Z
- 385 00f0 8068      		ori r24,lo8(-128)
- 386 00f2 8083      		st Z,r24
- 194:main.c        ****   TCCR1A |= (1 << COM1B1);
- 388               	.LM40:
- 389 00f4 8081      		ld r24,Z
- 390 00f6 8062      		ori r24,lo8(32)
- 391 00f8 8083      		st Z,r24
- 195:main.c        ****   
- 196:main.c        ****   //set pins for output
- 197:main.c        ****   DDRB |= (1 << SERVO1);
- 393               	.LM41:
- 394 00fa 219A      		sbi 0x4,1
- 198:main.c        ****   DDRB |= (1 << SERVO2);
- 396               	.LM42:
- 397 00fc 229A      		sbi 0x4,2
- 398 00fe 0895      		ret
- 400               	.Lscope6:
- 402               		.stabd	78,0,0
- 404               	.global	initTimer0PWM
- 406               	initTimer0PWM:
- 407               		.stabd	46,0,0
- 199:main.c        **** }
- 200:main.c        **** 
- 201:main.c        **** void initTimer0PWM(void){
- 409               	.LM43:
- 410               	.LFBB7:
- 411               	/* prologue: function */
- 412               	/* frame size = 0 */
- 413               	/* stack size = 0 */
- 414               	.L__stack_usage = 0
- 202:main.c        ****   /* Set up Timer0 (8bit) */
- 203:main.c        ****   
- 204:main.c        ****   //Use Mode 3, FastPWM
- 205:main.c        ****   TCCR0A |= (1 << WGM00) | (1 << WGM01);
- 416               	.LM44:
- 417 0100 84B5      		in r24,0x24
- 418 0102 8360      		ori r24,lo8(3)
- 419 0104 84BD      		out 0x24,r24
- 206:main.c        **** 
- 207:main.c        ****   //Clear at match, set at bottom
- 208:main.c        ****   TCCR0A |= (1 << COM0A1) | (1 << COM0B1);
- 421               	.LM45:
- 422 0106 84B5      		in r24,0x24
- 423 0108 806A      		ori r24,lo8(-96)
- 424 010a 84BD      		out 0x24,r24
+ 182:main.c        ****   //read ADC for newest value into array
+ 183:main.c        ****   *arr = readADC(channel);
+ 468               	.LM44:
+ 469 0154 842F      		mov r24,r20
+ 470 0156 0E94 0000 		call readADC
+ 471 015a 9983      		std Y+1,r25
+ 472 015c 8883      		st Y,r24
+ 473               	/* epilogue start */
+ 184:main.c        **** }
+ 475               	.LM45:
+ 476 015e DF91      		pop r29
+ 477 0160 CF91      		pop r28
+ 478 0162 0895      		ret
+ 483               	.Lscope6:
+ 485               		.stabd	78,0,0
+ 489               	.global	getAverage
+ 491               	getAverage:
+ 492               		.stabd	46,0,0
+ 185:main.c        **** 
+ 186:main.c        **** uint16_t getAverage(uint16_t * arr, uint8_t size){
+ 494               	.LM46:
+ 495               	.LFBB7:
+ 496               	/* prologue: function */
+ 497               	/* frame size = 0 */
+ 498               	/* stack size = 0 */
+ 499               	.L__stack_usage = 0
+ 500 0164 FC01      		movw r30,r24
+ 501 0166 362F      		mov r19,r22
+ 187:main.c        ****   
+ 188:main.c        ****   uint8_t i;
+ 189:main.c        ****   uint16_t avg;
+ 190:main.c        ****   uint32_t sum = 0;
+ 503               	.LM47:
+ 504 0168 60E0      		ldi r22,0
+ 505 016a 70E0      		ldi r23,0
+ 506 016c CB01      		movw r24,r22
+ 191:main.c        ****       
+ 192:main.c        ****   //sum all elements in array
+ 193:main.c        ****   for(i=0;i<size;i++){
+ 508               	.LM48:
+ 509 016e 20E0      		ldi r18,0
+ 510               	.L31:
+ 512               	.LM49:
+ 513 0170 2317      		cp r18,r19
+ 514 0172 01F0      		breq .L33
+ 194:main.c        ****     sum = sum + *arr;
+ 516               	.LM50:
+ 517 0174 4191      		ld r20,Z+
+ 518 0176 5191      		ld r21,Z+
+ 519 0178 640F      		add r22,r20
+ 520 017a 751F      		adc r23,r21
+ 521 017c 811D      		adc r24,__zero_reg__
+ 522 017e 911D      		adc r25,__zero_reg__
+ 193:main.c        ****   for(i=0;i<size;i++){
+ 524               	.LM51:
+ 525 0180 2F5F      		subi r18,lo8(-(1))
+ 526 0182 00C0      		rjmp .L31
+ 527               	.L33:
+ 195:main.c        ****     arr++;
+ 196:main.c        ****   }
+ 197:main.c        ****   
+ 198:main.c        ****   //calculate avg and return 
+ 199:main.c        ****   avg = sum / size;
+ 529               	.LM52:
+ 530 0184 30E0      		ldi r19,0
+ 531 0186 40E0      		ldi r20,0
+ 532 0188 50E0      		ldi r21,0
+ 533 018a 0E94 0000 		call __udivmodsi4
+ 200:main.c        ****   return avg;
+ 201:main.c        **** }
+ 535               	.LM53:
+ 536 018e C901      		movw r24,r18
+ 537 0190 0895      		ret
+ 543               	.Lscope7:
+ 545               		.stabd	78,0,0
+ 547               	.global	initTimer1Servo
+ 549               	initTimer1Servo:
+ 550               		.stabd	46,0,0
+ 202:main.c        **** 
+ 203:main.c        **** void initTimer1Servo(void) {
+ 552               	.LM54:
+ 553               	.LFBB8:
+ 554               	/* prologue: function */
+ 555               	/* frame size = 0 */
+ 556               	/* stack size = 0 */
+ 557               	.L__stack_usage = 0
+ 204:main.c        ****   /* Set up Timer1 (16bit) to give a pulse every 50ms */
+ 205:main.c        ****   
+ 206:main.c        ****   //Use Fast PWM mode, counter max in ICR1
+ 207:main.c        ****   TCCR1A |= (1 << WGM11);
+ 559               	.LM55:
+ 560 0192 E0E8      		ldi r30,lo8(-128)
+ 561 0194 F0E0      		ldi r31,0
+ 562 0196 8081      		ld r24,Z
+ 563 0198 8260      		ori r24,lo8(2)
+ 564 019a 8083      		st Z,r24
+ 208:main.c        ****   TCCR1B |= (1 << WGM12) | (1 << WGM13);
+ 566               	.LM56:
+ 567 019c A1E8      		ldi r26,lo8(-127)
+ 568 019e B0E0      		ldi r27,0
+ 569 01a0 8C91      		ld r24,X
+ 570 01a2 8861      		ori r24,lo8(24)
+ 571 01a4 8C93      		st X,r24
  209:main.c        ****   
- 210:main.c        ****   // No prescale, gives freq = ~4kHz
- 211:main.c        ****   TCCR0B |= (1<<CS00);
- 426               	.LM46:
- 427 010c 85B5      		in r24,0x25
- 428 010e 8160      		ori r24,lo8(1)
- 429 0110 85BD      		out 0x25,r24
+ 210:main.c        ****   // /1 prescaling -- counting in microseconds
+ 211:main.c        ****   TCCR1B |= (1 << CS10);
+ 573               	.LM57:
+ 574 01a6 8C91      		ld r24,X
+ 575 01a8 8160      		ori r24,lo8(1)
+ 576 01aa 8C93      		st X,r24
  212:main.c        ****   
- 213:main.c        ****   //set pins for output
- 214:main.c        ****   DDRD |= (1 << DRIVER1PWM) | (1 << DRIVER2PWM);
- 431               	.LM47:
- 432 0112 8AB1      		in r24,0xa
- 433 0114 8066      		ori r24,lo8(96)
- 434 0116 8AB9      		out 0xa,r24
- 435 0118 0895      		ret
- 437               	.Lscope7:
- 439               		.stabd	78,0,0
- 441               	.global	initMotorDriverIO
- 443               	initMotorDriverIO:
- 444               		.stabd	46,0,0
- 215:main.c        **** }
- 216:main.c        **** 
- 217:main.c        **** void initMotorDriverIO(void){
- 446               	.LM48:
- 447               	.LFBB8:
- 448               	/* prologue: function */
- 449               	/* frame size = 0 */
- 450               	/* stack size = 0 */
- 451               	.L__stack_usage = 0
- 218:main.c        ****   //set for output
- 219:main.c        ****   DDRB |= (1<<DRIVER1A);
- 453               	.LM49:
- 454 011a 209A      		sbi 0x4,0
- 220:main.c        ****   DDRB |= (1<<DRIVER1B);
- 456               	.LM50:
- 457 011c 249A      		sbi 0x4,4
- 221:main.c        ****   DDRB |= (1<<DRIVER2A);
- 459               	.LM51:
- 460 011e 249A      		sbi 0x4,4
- 222:main.c        ****   DDRB |= (1<<DRIVER2B);
- 462               	.LM52:
- 463 0120 259A      		sbi 0x4,5
- 223:main.c        ****   //init to zero
- 224:main.c        ****   pin_lo('B',DRIVER1A);
- 465               	.LM53:
- 466 0122 60E0      		ldi r22,0
- 467 0124 70E0      		ldi r23,0
- 468 0126 82E4      		ldi r24,lo8(66)
- 469 0128 0E94 0000 		call pin_lo
- 225:main.c        ****   pin_lo('D',DRIVER1B);
- 471               	.LM54:
- 472 012c 64E0      		ldi r22,lo8(4)
- 473 012e 70E0      		ldi r23,0
- 474 0130 84E4      		ldi r24,lo8(68)
- 475 0132 0E94 0000 		call pin_lo
- 226:main.c        ****   pin_lo('B',DRIVER2A);
- 477               	.LM55:
- 478 0136 64E0      		ldi r22,lo8(4)
- 479 0138 70E0      		ldi r23,0
- 480 013a 82E4      		ldi r24,lo8(66)
- 481 013c 0E94 0000 		call pin_lo
- 227:main.c        ****   pin_lo('B',DRIVER2B);
- 483               	.LM56:
- 484 0140 65E0      		ldi r22,lo8(5)
- 485 0142 70E0      		ldi r23,0
- 486 0144 82E4      		ldi r24,lo8(66)
- 487 0146 0C94 0000 		jmp pin_lo
- 489               	.Lscope8:
- 491               		.stabd	78,0,0
- 492               	.global	__floatsisf
- 493               	.global	__subsf3
- 494               	.global	__mulsf3
- 495               	.global	__fixsfsi
- 499               	.global	computeLeftMotorPWM
- 501               	computeLeftMotorPWM:
- 502               		.stabd	46,0,0
- 228:main.c        **** }
- 229:main.c        **** 
- 230:main.c        **** uint8_t computeLeftMotorPWM(int vValue, int hValue){
- 504               	.LM57:
- 505               	.LFBB9:
- 506 014a CF93      		push r28
- 507 014c DF93      		push r29
- 508               	/* prologue: function */
- 509               	/* frame size = 0 */
- 510               	/* stack size = 2 */
- 511               	.L__stack_usage = 2
- 231:main.c        ****   
- 232:main.c        ****   int leftMotor;
- 233:main.c        ****   
- 234:main.c        ****   /* 1. Check if horizontal joystick is out of center position and adjust vertical values */
- 235:main.c        ****   if(hValue > 531 || hValue < 451){
- 513               	.LM58:
- 514 014e 9B01      		movw r18,r22
- 515 0150 235C      		subi r18,-61
- 516 0152 3140      		sbci r19,1
- 517 0154 2135      		cpi r18,81
- 518 0156 3105      		cpc r19,__zero_reg__
- 519 0158 00F0      		brlo .L25
- 236:main.c        ****     leftMotor = (int)(vValue - (hValue-511)/2);
- 521               	.LM59:
- 522 015a 9B01      		movw r18,r22
- 523 015c 2F5F      		subi r18,-1
- 524 015e 3140      		sbci r19,1
- 525 0160 37FF      		sbrs r19,7
- 526 0162 00C0      		rjmp .L19
- 527 0164 2F5F      		subi r18,-1
- 528 0166 3F4F      		sbci r19,-1
- 529               	.L19:
- 530 0168 3595      		asr r19
- 531 016a 2795      		ror r18
- 532 016c EC01      		movw r28,r24
- 533 016e C21B      		sub r28,r18
- 534 0170 D30B      		sbc r29,r19
- 237:main.c        ****     //keep values within bounds
- 238:main.c        ****     if (leftMotor > 1023)
- 536               	.LM60:
- 537 0172 C115      		cp r28,__zero_reg__
- 538 0174 84E0      		ldi r24,4
- 539 0176 D807      		cpc r29,r24
- 540 0178 04F4      		brge .L26
- 239:main.c        ****       leftMotor = 1023;
- 240:main.c        ****     if (leftMotor < 0)
- 542               	.LM61:
- 543 017a D7FD      		sbrc r29,7
- 544 017c 00C0      		rjmp .L27
- 545 017e 00C0      		rjmp .L18
- 546               	.L25:
- 241:main.c        ****       leftMotor = 0;
- 242:main.c        ****   //horizontal position in the center, do nothing to the vertical values
- 243:main.c        ****   }else{
- 244:main.c        ****     leftMotor = vValue;
- 548               	.LM62:
- 549 0180 EC01      		movw r28,r24
- 550               	.L18:
- 245:main.c        ****   }
- 246:main.c        ****   
- 247:main.c        ****   /* 2. Convert Value to control digital out lines and 8 bit PWM */
- 248:main.c        ****   if(leftMotor > 531){              //forwards
- 552               	.LM63:
- 553 0182 C431      		cpi r28,20
- 554 0184 82E0      		ldi r24,2
- 555 0186 D807      		cpc r29,r24
- 556 0188 04F0      		brlt .L22
- 557 018a 00C0      		rjmp .L20
- 558               	.L26:
- 239:main.c        ****       leftMotor = 1023;
- 560               	.LM64:
- 561 018c CFEF      		ldi r28,lo8(-1)
- 562 018e D3E0      		ldi r29,lo8(3)
- 563               	.L20:
- 249:main.c        ****     //set direction bits
- 250:main.c        ****     pin_hi('B', DRIVER1A);
- 565               	.LM65:
- 566 0190 60E0      		ldi r22,0
- 567 0192 70E0      		ldi r23,0
- 568 0194 82E4      		ldi r24,lo8(66)
- 569 0196 0E94 0000 		call pin_hi
- 251:main.c        ****     pin_lo('D', DRIVER1B);
- 571               	.LM66:
- 572 019a 64E0      		ldi r22,lo8(4)
- 573 019c 70E0      		ldi r23,0
- 574 019e 84E4      		ldi r24,lo8(68)
- 575 01a0 0E94 0000 		call pin_lo
- 252:main.c        ****     //convert ADC to PWM (0-255)
- 253:main.c        ****     leftMotor = (leftMotor - 513.0)/2;
- 577               	.LM67:
- 578 01a4 BE01      		movw r22,r28
- 579 01a6 8827      		clr r24
- 580 01a8 77FD      		sbrc r23,7
- 581 01aa 8095      		com r24
- 582 01ac 982F      		mov r25,r24
- 583 01ae 0E94 0000 		call __floatsisf
- 584 01b2 20E0      		ldi r18,0
- 585 01b4 30E4      		ldi r19,lo8(64)
- 586 01b6 40E0      		ldi r20,0
- 587 01b8 54E4      		ldi r21,lo8(68)
- 588 01ba 00C0      		rjmp .L28
- 589               	.L22:
- 254:main.c        ****   }else if(leftMotor < 451){        //backwards
- 591               	.LM68:
- 592 01bc C33C      		cpi r28,-61
- 593 01be 81E0      		ldi r24,1
- 594 01c0 D807      		cpc r29,r24
- 595 01c2 04F4      		brge .L24
- 596 01c4 00C0      		rjmp .L21
- 597               	.L27:
- 241:main.c        ****       leftMotor = 0;
- 599               	.LM69:
- 600 01c6 C0E0      		ldi r28,0
- 601 01c8 D0E0      		ldi r29,0
- 602               	.L21:
- 255:main.c        ****     //set direction bits
- 256:main.c        ****     pin_lo('B', DRIVER1A);
- 604               	.LM70:
- 605 01ca 60E0      		ldi r22,0
- 606 01cc 70E0      		ldi r23,0
- 607 01ce 82E4      		ldi r24,lo8(66)
- 608 01d0 0E94 0000 		call pin_lo
- 257:main.c        ****     pin_hi('D', DRIVER1B);
- 610               	.LM71:
- 611 01d4 64E0      		ldi r22,lo8(4)
- 612 01d6 70E0      		ldi r23,0
- 613 01d8 84E4      		ldi r24,lo8(68)
- 614 01da 0E94 0000 		call pin_hi
- 258:main.c        ****     //convert ADC to PWM (0-255)
- 259:main.c        ****     leftMotor = (510.0 - (float)leftMotor)/2;
- 616               	.LM72:
- 617 01de BE01      		movw r22,r28
- 618 01e0 8827      		clr r24
- 619 01e2 77FD      		sbrc r23,7
- 620 01e4 8095      		com r24
- 621 01e6 982F      		mov r25,r24
- 622 01e8 0E94 0000 		call __floatsisf
- 623 01ec 9B01      		movw r18,r22
- 624 01ee AC01      		movw r20,r24
- 625 01f0 60E0      		ldi r22,0
- 626 01f2 70E0      		ldi r23,0
- 627 01f4 8FEF      		ldi r24,lo8(-1)
- 628 01f6 93E4      		ldi r25,lo8(67)
- 629               	.L28:
- 630 01f8 0E94 0000 		call __subsf3
- 631 01fc 20E0      		ldi r18,0
- 632 01fe 30E0      		ldi r19,0
- 633 0200 40E0      		ldi r20,0
- 634 0202 5FE3      		ldi r21,lo8(63)
- 635 0204 0E94 0000 		call __mulsf3
- 636 0208 0E94 0000 		call __fixsfsi
- 637 020c CB01      		movw r24,r22
- 638 020e 00C0      		rjmp .L23
- 639               	.L24:
- 260:main.c        ****   }else{                            //center
- 261:main.c        ****     //set direction bits
- 262:main.c        ****     pin_lo('B', DRIVER1A);
- 641               	.LM73:
- 642 0210 60E0      		ldi r22,0
- 643 0212 70E0      		ldi r23,0
- 644 0214 82E4      		ldi r24,lo8(66)
- 645 0216 0E94 0000 		call pin_lo
- 263:main.c        ****     pin_lo('D', DRIVER1B);
- 647               	.LM74:
- 648 021a 64E0      		ldi r22,lo8(4)
- 649 021c 70E0      		ldi r23,0
- 650 021e 84E4      		ldi r24,lo8(68)
- 651 0220 0E94 0000 		call pin_lo
- 264:main.c        ****     //set PWM to zero
- 265:main.c        ****     leftMotor = 0;
- 653               	.LM75:
- 654 0224 80E0      		ldi r24,0
- 655 0226 90E0      		ldi r25,0
- 656               	.L23:
- 657               	/* epilogue start */
- 266:main.c        ****   }
- 267:main.c        ****   
- 268:main.c        ****   return (uint8_t) leftMotor;
- 269:main.c        ****   
- 270:main.c        **** }
- 659               	.LM76:
- 660 0228 DF91      		pop r29
- 661 022a CF91      		pop r28
- 662 022c 0895      		ret
- 664               	.Lscope9:
- 666               		.stabd	78,0,0
- 670               	.global	computeRightMotorPWM
- 672               	computeRightMotorPWM:
- 673               		.stabd	46,0,0
- 271:main.c        **** 
- 272:main.c        **** uint8_t computeRightMotorPWM(int vValue, int hValue){
- 675               	.LM77:
- 676               	.LFBB10:
- 677 022e CF93      		push r28
- 678 0230 DF93      		push r29
- 679               	/* prologue: function */
- 680               	/* frame size = 0 */
- 681               	/* stack size = 2 */
- 682               	.L__stack_usage = 2
+ 213:main.c        ****   //TOP value = 50ms
+ 214:main.c        ****   ICR1 = 50000;
+ 578               	.LM58:
+ 579 01ac 80E5      		ldi r24,lo8(80)
+ 580 01ae 93EC      		ldi r25,lo8(-61)
+ 581 01b0 9093 8700 		sts 134+1,r25
+ 582 01b4 8093 8600 		sts 134,r24
+ 215:main.c        ****   
+ 216:main.c        ****   //Direct output on PB1 (OC1A) and PB2 (OC1B)
+ 217:main.c        ****   TCCR1A |= (1 << COM1A1);
+ 584               	.LM59:
+ 585 01b8 8081      		ld r24,Z
+ 586 01ba 8068      		ori r24,lo8(-128)
+ 587 01bc 8083      		st Z,r24
+ 218:main.c        ****   TCCR1A |= (1 << COM1B1);
+ 589               	.LM60:
+ 590 01be 8081      		ld r24,Z
+ 591 01c0 8062      		ori r24,lo8(32)
+ 592 01c2 8083      		st Z,r24
+ 219:main.c        ****   
+ 220:main.c        ****   //set pins for output
+ 221:main.c        ****   DDRB |= (1 << SERVO1);
+ 594               	.LM61:
+ 595 01c4 219A      		sbi 0x4,1
+ 222:main.c        ****   DDRB |= (1 << SERVO2);
+ 597               	.LM62:
+ 598 01c6 229A      		sbi 0x4,2
+ 223:main.c        ****   
+ 224:main.c        ****   OCR1A = CW;
+ 600               	.LM63:
+ 601 01c8 84EC      		ldi r24,lo8(-60)
+ 602 01ca 99E0      		ldi r25,lo8(9)
+ 603 01cc 9093 8900 		sts 136+1,r25
+ 604 01d0 8093 8800 		sts 136,r24
+ 225:main.c        ****   OCR1B = CW;
+ 606               	.LM64:
+ 607 01d4 9093 8B00 		sts 138+1,r25
+ 608 01d8 8093 8A00 		sts 138,r24
+ 609 01dc 0895      		ret
+ 611               	.Lscope8:
+ 613               		.stabd	78,0,0
+ 615               	.global	initTimer0PWM
+ 617               	initTimer0PWM:
+ 618               		.stabd	46,0,0
+ 226:main.c        **** }
+ 227:main.c        **** 
+ 228:main.c        **** void initTimer0PWM(void){
+ 620               	.LM65:
+ 621               	.LFBB9:
+ 622               	/* prologue: function */
+ 623               	/* frame size = 0 */
+ 624               	/* stack size = 0 */
+ 625               	.L__stack_usage = 0
+ 229:main.c        ****   /* Set up Timer0 (8bit) */
+ 230:main.c        ****   
+ 231:main.c        ****   //Use Mode 3, FastPWM
+ 232:main.c        ****   TCCR0A |= (1 << WGM00) | (1 << WGM01);
+ 627               	.LM66:
+ 628 01de 84B5      		in r24,0x24
+ 629 01e0 8360      		ori r24,lo8(3)
+ 630 01e2 84BD      		out 0x24,r24
+ 233:main.c        **** 
+ 234:main.c        ****   //Clear at match, set at bottom
+ 235:main.c        ****   TCCR0A |= (1 << COM0A1) | (1 << COM0B1);
+ 632               	.LM67:
+ 633 01e4 84B5      		in r24,0x24
+ 634 01e6 806A      		ori r24,lo8(-96)
+ 635 01e8 84BD      		out 0x24,r24
+ 236:main.c        ****   
+ 237:main.c        ****   // No prescale, gives freq = ~4kHz
+ 238:main.c        ****   TCCR0B |= (1<<CS00);
+ 637               	.LM68:
+ 638 01ea 85B5      		in r24,0x25
+ 639 01ec 8160      		ori r24,lo8(1)
+ 640 01ee 85BD      		out 0x25,r24
+ 239:main.c        ****   
+ 240:main.c        ****   //set pins for output
+ 241:main.c        ****   DDRD |= (1 << DRIVER1PWM) | (1 << DRIVER2PWM);
+ 642               	.LM69:
+ 643 01f0 8AB1      		in r24,0xa
+ 644 01f2 8066      		ori r24,lo8(96)
+ 645 01f4 8AB9      		out 0xa,r24
+ 646 01f6 0895      		ret
+ 648               	.Lscope9:
+ 650               		.stabd	78,0,0
+ 652               	.global	initMotorDriverIO
+ 654               	initMotorDriverIO:
+ 655               		.stabd	46,0,0
+ 242:main.c        **** }
+ 243:main.c        **** 
+ 244:main.c        **** void initMotorDriverIO(void){
+ 657               	.LM70:
+ 658               	.LFBB10:
+ 659               	/* prologue: function */
+ 660               	/* frame size = 0 */
+ 661               	/* stack size = 0 */
+ 662               	.L__stack_usage = 0
+ 245:main.c        ****   //set for output
+ 246:main.c        ****   DDRB |= (1<<DRIVER1A);
+ 664               	.LM71:
+ 665 01f8 209A      		sbi 0x4,0
+ 247:main.c        ****   DDRB |= (1<<DRIVER1B);
+ 667               	.LM72:
+ 668 01fa 249A      		sbi 0x4,4
+ 248:main.c        ****   DDRB |= (1<<DRIVER2A);
+ 670               	.LM73:
+ 671 01fc 249A      		sbi 0x4,4
+ 249:main.c        ****   DDRB |= (1<<DRIVER2B);
+ 673               	.LM74:
+ 674 01fe 259A      		sbi 0x4,5
+ 250:main.c        ****   //init to zero
+ 251:main.c        ****   pin_lo('B',DRIVER1A);
+ 676               	.LM75:
+ 677 0200 60E0      		ldi r22,0
+ 678 0202 70E0      		ldi r23,0
+ 679 0204 82E4      		ldi r24,lo8(66)
+ 680 0206 0E94 0000 		call pin_lo
+ 252:main.c        ****   pin_lo('D',DRIVER1B);
+ 682               	.LM76:
+ 683 020a 64E0      		ldi r22,lo8(4)
+ 684 020c 70E0      		ldi r23,0
+ 685 020e 84E4      		ldi r24,lo8(68)
+ 686 0210 0E94 0000 		call pin_lo
+ 253:main.c        ****   pin_lo('B',DRIVER2A);
+ 688               	.LM77:
+ 689 0214 64E0      		ldi r22,lo8(4)
+ 690 0216 70E0      		ldi r23,0
+ 691 0218 82E4      		ldi r24,lo8(66)
+ 692 021a 0E94 0000 		call pin_lo
+ 254:main.c        ****   pin_lo('B',DRIVER2B);
+ 694               	.LM78:
+ 695 021e 65E0      		ldi r22,lo8(5)
+ 696 0220 70E0      		ldi r23,0
+ 697 0222 82E4      		ldi r24,lo8(66)
+ 698 0224 0C94 0000 		jmp pin_lo
+ 700               	.Lscope10:
+ 702               		.stabd	78,0,0
+ 703               	.global	__floatsisf
+ 704               	.global	__subsf3
+ 705               	.global	__mulsf3
+ 706               	.global	__fixsfsi
+ 710               	.global	computeLeftMotorPWM
+ 712               	computeLeftMotorPWM:
+ 713               		.stabd	46,0,0
+ 255:main.c        **** }
+ 256:main.c        **** 
+ 257:main.c        **** uint8_t computeLeftMotorPWM(int vValue, int hValue){
+ 715               	.LM79:
+ 716               	.LFBB11:
+ 717 0228 CF93      		push r28
+ 718 022a DF93      		push r29
+ 719               	/* prologue: function */
+ 720               	/* frame size = 0 */
+ 721               	/* stack size = 2 */
+ 722               	.L__stack_usage = 2
+ 723 022c EC01      		movw r28,r24
+ 258:main.c        ****   
+ 259:main.c        ****   int leftMotor;
+ 260:main.c        ****   
+ 261:main.c        ****   /* 1. Check if horizontal joystick is out of center position and adjust vertical values */
+ 262:main.c        ****   if(hValue > 531 || hValue < 451){
+ 725               	.LM80:
+ 726 022e CB01      		movw r24,r22
+ 727 0230 835C      		subi r24,-61
+ 728 0232 9140      		sbci r25,1
+ 729 0234 8135      		cpi r24,81
+ 730 0236 9105      		cpc r25,__zero_reg__
+ 731 0238 00F0      		brlo .L38
+ 263:main.c        ****     leftMotor = (int)(vValue - (hValue-511)/2);
+ 733               	.LM81:
+ 734 023a 6F5F      		subi r22,-1
+ 735 023c 7140      		sbci r23,1
+ 736 023e 77FF      		sbrs r23,7
+ 737 0240 00C0      		rjmp .L39
+ 738 0242 6F5F      		subi r22,-1
+ 739 0244 7F4F      		sbci r23,-1
+ 740               	.L39:
+ 741 0246 7595      		asr r23
+ 742 0248 6795      		ror r22
+ 743 024a C61B      		sub r28,r22
+ 744 024c D70B      		sbc r29,r23
+ 264:main.c        ****     //keep values within bounds
+ 265:main.c        ****     if (leftMotor > 1023)
+ 746               	.LM82:
+ 747 024e C115      		cp r28,__zero_reg__
+ 748 0250 84E0      		ldi r24,4
+ 749 0252 D807      		cpc r29,r24
+ 750 0254 04F4      		brge .L45
+ 266:main.c        ****       leftMotor = 1023;
+ 267:main.c        ****     if (leftMotor < 0)
+ 752               	.LM83:
+ 753 0256 D7FD      		sbrc r29,7
+ 754 0258 00C0      		rjmp .L46
+ 755               	.L38:
+ 268:main.c        ****       leftMotor = 0;
+ 269:main.c        ****   //horizontal position in the center, do nothing to the vertical values
+ 270:main.c        ****   }else{
+ 271:main.c        ****     leftMotor = vValue;
+ 272:main.c        ****   }
  273:main.c        ****   
- 274:main.c        ****   int rightMotor;
- 275:main.c        ****   
- 276:main.c        ****   /* 1. Check if horizontal joystick is out of center position and adjust vertical values */
- 277:main.c        ****   if(hValue > 531 || hValue < 451){
- 684               	.LM78:
- 685 0232 9B01      		movw r18,r22
- 686 0234 235C      		subi r18,-61
- 687 0236 3140      		sbci r19,1
- 688 0238 2135      		cpi r18,81
- 689 023a 3105      		cpc r19,__zero_reg__
- 690 023c 00F0      		brlo .L37
- 278:main.c        ****     rightMotor = (int)(vValue + (hValue-511)/2);
- 692               	.LM79:
- 693 023e 6F5F      		subi r22,-1
- 694 0240 7140      		sbci r23,1
- 695 0242 77FF      		sbrs r23,7
- 696 0244 00C0      		rjmp .L31
- 697 0246 6F5F      		subi r22,-1
- 698 0248 7F4F      		sbci r23,-1
- 699               	.L31:
- 700 024a EB01      		movw r28,r22
- 701 024c D595      		asr r29
- 702 024e C795      		ror r28
- 703 0250 C80F      		add r28,r24
- 704 0252 D91F      		adc r29,r25
- 279:main.c        ****     //keep values within bounds
- 280:main.c        ****     if (rightMotor > 1023)
- 706               	.LM80:
- 707 0254 C115      		cp r28,__zero_reg__
- 708 0256 84E0      		ldi r24,4
- 709 0258 D807      		cpc r29,r24
- 710 025a 04F4      		brge .L38
- 281:main.c        ****       rightMotor = 1023;
- 282:main.c        ****     if (rightMotor < 0)
- 712               	.LM81:
- 713 025c D7FD      		sbrc r29,7
- 714 025e 00C0      		rjmp .L39
- 715 0260 00C0      		rjmp .L30
- 716               	.L37:
- 283:main.c        ****       rightMotor = 0;
- 284:main.c        ****   //horizontal position in the center, do nothing to the vertical values
- 285:main.c        ****   }else{
- 286:main.c        ****     rightMotor = vValue;
- 718               	.LM82:
- 719 0262 EC01      		movw r28,r24
- 720               	.L30:
- 287:main.c        ****   }
- 288:main.c        ****   
- 289:main.c        ****   /* 2. Convert Value to control digital out lines and 8 bit PWM */
- 290:main.c        ****   if(rightMotor > 531){              //forwards
- 722               	.LM83:
- 723 0264 C431      		cpi r28,20
- 724 0266 82E0      		ldi r24,2
- 725 0268 D807      		cpc r29,r24
- 726 026a 04F0      		brlt .L34
- 727 026c 00C0      		rjmp .L32
- 728               	.L38:
- 281:main.c        ****       rightMotor = 1023;
- 730               	.LM84:
- 731 026e CFEF      		ldi r28,lo8(-1)
- 732 0270 D3E0      		ldi r29,lo8(3)
- 733               	.L32:
- 291:main.c        ****     //set direction bits
- 292:main.c        ****     pin_lo('B', DRIVER2A);
- 735               	.LM85:
- 736 0272 64E0      		ldi r22,lo8(4)
- 737 0274 70E0      		ldi r23,0
- 738 0276 82E4      		ldi r24,lo8(66)
- 739 0278 0E94 0000 		call pin_lo
- 293:main.c        ****     pin_hi('B', DRIVER2B);
- 741               	.LM86:
- 742 027c 65E0      		ldi r22,lo8(5)
- 743 027e 70E0      		ldi r23,0
- 744 0280 82E4      		ldi r24,lo8(66)
- 745 0282 0E94 0000 		call pin_hi
- 294:main.c        ****     //convert ADC to PWM (0-255)
- 295:main.c        ****     rightMotor = (rightMotor - 513.0)/2;
- 747               	.LM87:
- 748 0286 BE01      		movw r22,r28
- 749 0288 8827      		clr r24
- 750 028a 77FD      		sbrc r23,7
- 751 028c 8095      		com r24
- 752 028e 982F      		mov r25,r24
- 753 0290 0E94 0000 		call __floatsisf
- 754 0294 20E0      		ldi r18,0
- 755 0296 30E4      		ldi r19,lo8(64)
- 756 0298 40E0      		ldi r20,0
- 757 029a 54E4      		ldi r21,lo8(68)
- 758 029c 00C0      		rjmp .L40
- 759               	.L34:
- 296:main.c        ****   }else if(rightMotor < 451){        //backwards
- 761               	.LM88:
- 762 029e C33C      		cpi r28,-61
- 763 02a0 81E0      		ldi r24,1
- 764 02a2 D807      		cpc r29,r24
- 765 02a4 04F4      		brge .L36
- 766 02a6 00C0      		rjmp .L33
- 767               	.L39:
- 283:main.c        ****       rightMotor = 0;
- 769               	.LM89:
- 770 02a8 C0E0      		ldi r28,0
- 771 02aa D0E0      		ldi r29,0
- 772               	.L33:
- 297:main.c        ****     //set direction bits
- 298:main.c        ****     pin_hi('B', DRIVER2A);
- 774               	.LM90:
- 775 02ac 64E0      		ldi r22,lo8(4)
- 776 02ae 70E0      		ldi r23,0
- 777 02b0 82E4      		ldi r24,lo8(66)
- 778 02b2 0E94 0000 		call pin_hi
- 299:main.c        ****     pin_lo('B', DRIVER2B);
- 780               	.LM91:
- 781 02b6 65E0      		ldi r22,lo8(5)
- 782 02b8 70E0      		ldi r23,0
- 783 02ba 82E4      		ldi r24,lo8(66)
- 784 02bc 0E94 0000 		call pin_lo
- 300:main.c        ****     //convert ADC to PWM (0-255)
- 301:main.c        ****     rightMotor = (510.0 - (float)rightMotor)/2;
- 786               	.LM92:
- 787 02c0 BE01      		movw r22,r28
- 788 02c2 8827      		clr r24
- 789 02c4 77FD      		sbrc r23,7
- 790 02c6 8095      		com r24
- 791 02c8 982F      		mov r25,r24
- 792 02ca 0E94 0000 		call __floatsisf
- 793 02ce 9B01      		movw r18,r22
- 794 02d0 AC01      		movw r20,r24
- 795 02d2 60E0      		ldi r22,0
- 796 02d4 70E0      		ldi r23,0
- 797 02d6 8FEF      		ldi r24,lo8(-1)
- 798 02d8 93E4      		ldi r25,lo8(67)
- 799               	.L40:
- 800 02da 0E94 0000 		call __subsf3
- 801 02de 20E0      		ldi r18,0
- 802 02e0 30E0      		ldi r19,0
- 803 02e2 40E0      		ldi r20,0
- 804 02e4 5FE3      		ldi r21,lo8(63)
- 805 02e6 0E94 0000 		call __mulsf3
- 806 02ea 0E94 0000 		call __fixsfsi
- 807 02ee CB01      		movw r24,r22
- 808 02f0 00C0      		rjmp .L35
- 809               	.L36:
- 302:main.c        ****   }else{                            //center
- 303:main.c        ****     //set direction bits
- 304:main.c        ****     pin_lo('B', DRIVER2A);
- 811               	.LM93:
- 812 02f2 64E0      		ldi r22,lo8(4)
- 813 02f4 70E0      		ldi r23,0
- 814 02f6 82E4      		ldi r24,lo8(66)
- 815 02f8 0E94 0000 		call pin_lo
- 305:main.c        ****     pin_lo('B', DRIVER2B);
- 817               	.LM94:
- 818 02fc 65E0      		ldi r22,lo8(5)
- 819 02fe 70E0      		ldi r23,0
- 820 0300 82E4      		ldi r24,lo8(66)
- 821 0302 0E94 0000 		call pin_lo
- 306:main.c        ****     //set PWM to zero
- 307:main.c        ****     rightMotor = 0;
- 823               	.LM95:
- 824 0306 80E0      		ldi r24,0
- 825 0308 90E0      		ldi r25,0
- 826               	.L35:
- 827               	/* epilogue start */
- 308:main.c        ****   }
- 309:main.c        ****   
- 310:main.c        ****   return (uint8_t) rightMotor;
- 311:main.c        ****   
- 312:main.c        **** }
- 829               	.LM96:
- 830 030a DF91      		pop r29
- 831 030c CF91      		pop r28
- 832 030e 0895      		ret
- 834               	.Lscope10:
- 836               		.stabd	78,0,0
- 837               	.global	__floatunsisf
- 838               	.global	__addsf3
- 839               	.global	__fixunssfsi
- 840               		.section	.text.startup,"ax",@progbits
- 842               	.global	main
- 844               	main:
- 845               		.stabd	46,0,0
-  46:main.c        **** int main(void) {
- 847               	.LM97:
- 848               	.LFBB11:
- 849 0000 CF93      		push r28
- 850 0002 DF93      		push r29
- 851 0004 CDB7      		in r28,__SP_L__
- 852 0006 DEB7      		in r29,__SP_H__
- 853 0008 C45A      		subi r28,-92
- 854 000a D140      		sbci r29,1
- 855 000c 0FB6      		in __tmp_reg__,__SREG__
- 856 000e F894      		cli
- 857 0010 DEBF      		out __SP_H__,r29
- 858 0012 0FBE      		out __SREG__,__tmp_reg__
- 859 0014 CDBF      		out __SP_L__,r28
- 860               	/* prologue: function */
- 861               	/* frame size = 420 */
- 862               	/* stack size = 422 */
- 863               	.L__stack_usage = 422
-  49:main.c        ****   initADC();
- 865               	.LM98:
- 866 0016 0E94 0000 		call initADC
-  50:main.c        ****   initTimer1Servo();
- 868               	.LM99:
- 869 001a 0E94 0000 		call initTimer1Servo
-  51:main.c        ****   initMotorDriverIO();
- 871               	.LM100:
- 872 001e 0E94 0000 		call initMotorDriverIO
-  52:main.c        ****   initTimer0PWM();
- 874               	.LM101:
- 875 0022 0E94 0000 		call initTimer0PWM
-  69:main.c        ****   verticalPointer = &verticalValue[0];
- 877               	.LM102:
- 878 0026 5E01      		movw r10,r28
- 879 0028 83ED      		ldi r24,-45
- 880 002a A81A      		sub r10,r24
- 881 002c 8EEF      		ldi r24,-2
- 882 002e B80A      		sbc r11,r24
-  75:main.c        ****   initValues(verticalPointer, joySize, 511);
- 884               	.LM103:
- 885 0030 4FEF      		ldi r20,lo8(-1)
- 886 0032 51E0      		ldi r21,lo8(1)
- 887 0034 6EE1      		ldi r22,lo8(30)
- 888 0036 C501      		movw r24,r10
- 889 0038 0E94 0000 		call initValues
-  70:main.c        ****   horizontalPointer = &horizontalValue[0];
- 891               	.LM104:
- 892 003c 6E01      		movw r12,r28
- 893 003e 87E9      		ldi r24,-105
- 894 0040 C81A      		sub r12,r24
- 895 0042 8EEF      		ldi r24,-2
- 896 0044 D80A      		sbc r13,r24
-  76:main.c        ****   initValues(horizontalPointer, joySize, 511);
- 898               	.LM105:
- 899 0046 4FEF      		ldi r20,lo8(-1)
- 900 0048 51E0      		ldi r21,lo8(1)
- 901 004a 6EE1      		ldi r22,lo8(30)
- 902 004c C601      		movw r24,r12
- 903 004e 0E94 0000 		call initValues
-  77:main.c        ****   initValues(topSliderPointer, slideSize, 0);
- 905               	.LM106:
- 906 0052 40E0      		ldi r20,0
- 907 0054 50E0      		ldi r21,0
- 908 0056 6BE4      		ldi r22,lo8(75)
- 909 0058 EE24      		clr r14
- 910 005a E394      		inc r14
- 911 005c F12C      		mov r15,__zero_reg__
- 912 005e EC0E      		add r14,r28
- 913 0060 FD1E      		adc r15,r29
- 914 0062 C701      		movw r24,r14
- 915 0064 0E94 0000 		call initValues
-  72:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
- 917               	.LM107:
- 918 0068 8E01      		movw r16,r28
- 919 006a 0956      		subi r16,105
- 920 006c 1F4F      		sbci r17,-1
-  78:main.c        ****   initValues(bottomSliderPointer, slideSize, 0);
- 922               	.LM108:
- 923 006e 40E0      		ldi r20,0
- 924 0070 50E0      		ldi r21,0
- 925 0072 6BE4      		ldi r22,lo8(75)
- 926 0074 C801      		movw r24,r16
- 927 0076 0E94 0000 		call initValues
-  69:main.c        ****   verticalPointer = &verticalValue[0];
- 929               	.LM109:
- 930 007a 4501      		movw r8,r10
-  70:main.c        ****   horizontalPointer = &horizontalValue[0];
- 932               	.LM110:
- 933 007c 5601      		movw r10,r12
- 101:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
- 935               	.LM111:
- 936 007e 6701      		movw r12,r14
-  72:main.c        ****   bottomSliderPointer = &bottomSliderValue[0];
- 938               	.LM112:
- 939 0080 7801      		movw r14,r16
- 940               	.L42:
-  95:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
- 942               	.LM113:
- 943 0082 40E0      		ldi r20,0
- 944 0084 6EE1      		ldi r22,lo8(30)
- 945 0086 C401      		movw r24,r8
- 946 0088 0E94 0000 		call storeNewADC
-  96:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
- 948               	.LM114:
- 949 008c 6EE1      		ldi r22,lo8(30)
- 950 008e C401      		movw r24,r8
- 951 0090 0E94 0000 		call getAverage
- 952 0094 2C01      		movw r4,r24
-  97:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
- 954               	.LM115:
- 955 0096 41E0      		ldi r20,lo8(1)
- 956 0098 6EE1      		ldi r22,lo8(30)
- 957 009a C501      		movw r24,r10
- 958 009c 0E94 0000 		call storeNewADC
-  98:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
- 960               	.LM116:
- 961 00a0 6EE1      		ldi r22,lo8(30)
- 962 00a2 C501      		movw r24,r10
- 963 00a4 0E94 0000 		call getAverage
- 964 00a8 1C01      		movw r2,r24
- 101:main.c        ****     storeNewADC(topSliderPointer, slideSize, 2);
- 966               	.LM117:
- 967 00aa 42E0      		ldi r20,lo8(2)
- 968 00ac 6BE4      		ldi r22,lo8(75)
- 969 00ae C601      		movw r24,r12
- 970 00b0 0E94 0000 		call storeNewADC
- 102:main.c        ****     avgTopSliderValue = getAverage(topSliderPointer, slideSize);
- 972               	.LM118:
- 973 00b4 6BE4      		ldi r22,lo8(75)
- 974 00b6 C601      		movw r24,r12
- 975 00b8 0E94 0000 		call getAverage
- 976 00bc 3C01      		movw r6,r24
- 103:main.c        ****     storeNewADC(bottomSliderPointer, slideSize, 3);
- 978               	.LM119:
- 979 00be 43E0      		ldi r20,lo8(3)
- 980 00c0 6BE4      		ldi r22,lo8(75)
- 981 00c2 C701      		movw r24,r14
- 982 00c4 0E94 0000 		call storeNewADC
- 104:main.c        ****     avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
- 984               	.LM120:
- 985 00c8 6BE4      		ldi r22,lo8(75)
- 986 00ca C701      		movw r24,r14
- 987 00cc 0E94 0000 		call getAverage
- 988 00d0 8C01      		movw r16,r24
- 107:main.c        ****     OCR0A = computeLeftMotorPWM(avgVerticalValue, avgHorizontalValue);
- 990               	.LM121:
- 991 00d2 B101      		movw r22,r2
- 992 00d4 C201      		movw r24,r4
- 993 00d6 0E94 0000 		call computeLeftMotorPWM
- 994 00da 87BD      		out 0x27,r24
- 108:main.c        ****     OCR0B = computeRightMotorPWM(avgVerticalValue, avgHorizontalValue);
- 996               	.LM122:
- 997 00dc B101      		movw r22,r2
- 998 00de C201      		movw r24,r4
- 999 00e0 0E94 0000 		call computeRightMotorPWM
- 1000 00e4 88BD      		out 0x28,r24
- 111:main.c        ****     convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;
- 1002               	.LM123:
- 1003 00e6 B301      		movw r22,r6
- 1004 00e8 80E0      		ldi r24,0
- 1005 00ea 90E0      		ldi r25,0
- 1006 00ec 0E94 0000 		call __floatunsisf
- 1007 00f0 21E7      		ldi r18,lo8(113)
- 1008 00f2 3DE3      		ldi r19,lo8(61)
- 1009 00f4 4AEF      		ldi r20,lo8(-6)
- 1010 00f6 5FE3      		ldi r21,lo8(63)
- 1011 00f8 0E94 0000 		call __mulsf3
- 1012 00fc 20E0      		ldi r18,0
- 1013 00fe 30E0      		ldi r19,0
- 1014 0100 4AEF      		ldi r20,lo8(-6)
- 1015 0102 53E4      		ldi r21,lo8(67)
- 1016 0104 0E94 0000 		call __addsf3
- 112:main.c        ****     OCR1A = (uint16_t) convertedTopSliderValue;
- 1018               	.LM124:
- 1019 0108 0E94 0000 		call __fixunssfsi
- 1020 010c 7093 8900 		sts 136+1,r23
- 1021 0110 6093 8800 		sts 136,r22
- 113:main.c        ****     convertedBottomSliderValue = (converterSlideValue * avgBottomSliderValue) + offsetSlideValue;
- 1023               	.LM125:
- 1024 0114 B801      		movw r22,r16
- 1025 0116 80E0      		ldi r24,0
- 1026 0118 90E0      		ldi r25,0
- 1027 011a 0E94 0000 		call __floatunsisf
- 1028 011e 21E7      		ldi r18,lo8(113)
- 1029 0120 3DE3      		ldi r19,lo8(61)
- 1030 0122 4AEF      		ldi r20,lo8(-6)
- 1031 0124 5FE3      		ldi r21,lo8(63)
- 1032 0126 0E94 0000 		call __mulsf3
- 1033 012a 20E0      		ldi r18,0
- 1034 012c 30E0      		ldi r19,0
- 1035 012e 4AEF      		ldi r20,lo8(-6)
- 1036 0130 53E4      		ldi r21,lo8(67)
- 1037 0132 0E94 0000 		call __addsf3
- 114:main.c        ****     OCR1B = (uint16_t) convertedBottomSliderValue;
- 1039               	.LM126:
- 1040 0136 0E94 0000 		call __fixunssfsi
- 1041 013a 7093 8B00 		sts 138+1,r23
- 1042 013e 6093 8A00 		sts 138,r22
- 1043 0142 00C0      		rjmp .L42
- 1049               	.Lscope11:
- 1051               		.stabd	78,0,0
- 1052               		.text
- 1054               	.Letext0:
- 1055               		.ident	"GCC: (GNU) 4.7.2"
+ 274:main.c        ****   /* 2. Convert Value to control digital out lines and 8 bit PWM */
+ 275:main.c        ****   if(leftMotor > 531){              //forwards
+ 757               	.LM84:
+ 758 025a C431      		cpi r28,20
+ 759 025c 82E0      		ldi r24,2
+ 760 025e D807      		cpc r29,r24
+ 761 0260 04F0      		brlt .L42
+ 762 0262 00C0      		rjmp .L40
+ 763               	.L45:
+ 266:main.c        ****       leftMotor = 1023;
+ 765               	.LM85:
+ 766 0264 CFEF      		ldi r28,lo8(-1)
+ 767 0266 D3E0      		ldi r29,lo8(3)
+ 768               	.L40:
+ 276:main.c        ****     //set direction bits
+ 277:main.c        ****     pin_hi('B', DRIVER1A);
+ 770               	.LM86:
+ 771 0268 60E0      		ldi r22,0
+ 772 026a 70E0      		ldi r23,0
+ 773 026c 82E4      		ldi r24,lo8(66)
+ 774 026e 0E94 0000 		call pin_hi
+ 278:main.c        ****     pin_lo('D', DRIVER1B);
+ 776               	.LM87:
+ 777 0272 64E0      		ldi r22,lo8(4)
+ 778 0274 70E0      		ldi r23,0
+ 779 0276 84E4      		ldi r24,lo8(68)
+ 780 0278 0E94 0000 		call pin_lo
+ 279:main.c        ****     //convert ADC to PWM (0-255)
+ 280:main.c        ****     leftMotor = (leftMotor - 513.0)/2;
+ 782               	.LM88:
+ 783 027c BE01      		movw r22,r28
+ 784 027e 8827      		clr r24
+ 785 0280 77FD      		sbrc r23,7
+ 786 0282 8095      		com r24
+ 787 0284 982F      		mov r25,r24
+ 788 0286 0E94 0000 		call __floatsisf
+ 789 028a 20E0      		ldi r18,0
+ 790 028c 30E4      		ldi r19,lo8(64)
+ 791 028e 40E0      		ldi r20,0
+ 792 0290 54E4      		ldi r21,lo8(68)
+ 793 0292 00C0      		rjmp .L47
+ 794               	.L42:
+ 281:main.c        ****   }else if(leftMotor < 451){        //backwards
+ 796               	.LM89:
+ 797 0294 C33C      		cpi r28,-61
+ 798 0296 81E0      		ldi r24,1
+ 799 0298 D807      		cpc r29,r24
+ 800 029a 04F4      		brge .L44
+ 801 029c 00C0      		rjmp .L41
+ 802               	.L46:
+ 268:main.c        ****       leftMotor = 0;
+ 804               	.LM90:
+ 805 029e C0E0      		ldi r28,0
+ 806 02a0 D0E0      		ldi r29,0
+ 807               	.L41:
+ 282:main.c        ****     //set direction bits
+ 283:main.c        ****     pin_lo('B', DRIVER1A);
+ 809               	.LM91:
+ 810 02a2 60E0      		ldi r22,0
+ 811 02a4 70E0      		ldi r23,0
+ 812 02a6 82E4      		ldi r24,lo8(66)
+ 813 02a8 0E94 0000 		call pin_lo
+ 284:main.c        ****     pin_hi('D', DRIVER1B);
+ 815               	.LM92:
+ 816 02ac 64E0      		ldi r22,lo8(4)
+ 817 02ae 70E0      		ldi r23,0
+ 818 02b0 84E4      		ldi r24,lo8(68)
+ 819 02b2 0E94 0000 		call pin_hi
+ 285:main.c        ****     //convert ADC to PWM (0-255)
+ 286:main.c        ****     leftMotor = (510.0 - (float)leftMotor)/2;
+ 821               	.LM93:
+ 822 02b6 BE01      		movw r22,r28
+ 823 02b8 8827      		clr r24
+ 824 02ba 77FD      		sbrc r23,7
+ 825 02bc 8095      		com r24
+ 826 02be 982F      		mov r25,r24
+ 827 02c0 0E94 0000 		call __floatsisf
+ 828 02c4 9B01      		movw r18,r22
+ 829 02c6 AC01      		movw r20,r24
+ 830 02c8 60E0      		ldi r22,0
+ 831 02ca 70E0      		ldi r23,0
+ 832 02cc 8FEF      		ldi r24,lo8(-1)
+ 833 02ce 93E4      		ldi r25,lo8(67)
+ 834               	.L47:
+ 835 02d0 0E94 0000 		call __subsf3
+ 836 02d4 20E0      		ldi r18,0
+ 837 02d6 30E0      		ldi r19,0
+ 838 02d8 40E0      		ldi r20,0
+ 839 02da 5FE3      		ldi r21,lo8(63)
+ 840 02dc 0E94 0000 		call __mulsf3
+ 841 02e0 0E94 0000 		call __fixsfsi
+ 842 02e4 862F      		mov r24,r22
+ 843 02e6 00C0      		rjmp .L43
+ 844               	.L44:
+ 287:main.c        ****   }else{                            //center
+ 288:main.c        ****     //set direction bits
+ 289:main.c        ****     pin_lo('B', DRIVER1A);
+ 846               	.LM94:
+ 847 02e8 60E0      		ldi r22,0
+ 848 02ea 70E0      		ldi r23,0
+ 849 02ec 82E4      		ldi r24,lo8(66)
+ 850 02ee 0E94 0000 		call pin_lo
+ 290:main.c        ****     pin_lo('D', DRIVER1B);
+ 852               	.LM95:
+ 853 02f2 64E0      		ldi r22,lo8(4)
+ 854 02f4 70E0      		ldi r23,0
+ 855 02f6 84E4      		ldi r24,lo8(68)
+ 856 02f8 0E94 0000 		call pin_lo
+ 291:main.c        ****     //set PWM to zero
+ 292:main.c        ****     leftMotor = 0;
+ 858               	.LM96:
+ 859 02fc 80E0      		ldi r24,0
+ 860               	.L43:
+ 861               	/* epilogue start */
+ 293:main.c        ****   }
+ 294:main.c        ****   
+ 295:main.c        ****   return (uint8_t) leftMotor;
+ 296:main.c        ****   
+ 297:main.c        **** }
+ 863               	.LM97:
+ 864 02fe DF91      		pop r29
+ 865 0300 CF91      		pop r28
+ 866 0302 0895      		ret
+ 868               	.Lscope11:
+ 870               		.stabd	78,0,0
+ 874               	.global	computeRightMotorPWM
+ 876               	computeRightMotorPWM:
+ 877               		.stabd	46,0,0
+ 298:main.c        **** 
+ 299:main.c        **** uint8_t computeRightMotorPWM(int vValue, int hValue){
+ 879               	.LM98:
+ 880               	.LFBB12:
+ 881 0304 CF93      		push r28
+ 882 0306 DF93      		push r29
+ 883               	/* prologue: function */
+ 884               	/* frame size = 0 */
+ 885               	/* stack size = 2 */
+ 886               	.L__stack_usage = 2
+ 887 0308 EC01      		movw r28,r24
+ 300:main.c        ****   
+ 301:main.c        ****   int rightMotor;
+ 302:main.c        ****   
+ 303:main.c        ****   /* 1. Check if horizontal joystick is out of center position and adjust vertical values */
+ 304:main.c        ****   if(hValue > 531 || hValue < 451){
+ 889               	.LM99:
+ 890 030a CB01      		movw r24,r22
+ 891 030c 835C      		subi r24,-61
+ 892 030e 9140      		sbci r25,1
+ 893 0310 8135      		cpi r24,81
+ 894 0312 9105      		cpc r25,__zero_reg__
+ 895 0314 00F0      		brlo .L49
+ 305:main.c        ****     rightMotor = (int)(vValue + (hValue-511)/2);
+ 897               	.LM100:
+ 898 0316 6F5F      		subi r22,-1
+ 899 0318 7140      		sbci r23,1
+ 900 031a 77FF      		sbrs r23,7
+ 901 031c 00C0      		rjmp .L50
+ 902 031e 6F5F      		subi r22,-1
+ 903 0320 7F4F      		sbci r23,-1
+ 904               	.L50:
+ 905 0322 7595      		asr r23
+ 906 0324 6795      		ror r22
+ 907 0326 C60F      		add r28,r22
+ 908 0328 D71F      		adc r29,r23
+ 306:main.c        ****     //keep values within bounds
+ 307:main.c        ****     if (rightMotor > 1023)
+ 910               	.LM101:
+ 911 032a C115      		cp r28,__zero_reg__
+ 912 032c 84E0      		ldi r24,4
+ 913 032e D807      		cpc r29,r24
+ 914 0330 04F4      		brge .L56
+ 308:main.c        ****       rightMotor = 1023;
+ 309:main.c        ****     if (rightMotor < 0)
+ 916               	.LM102:
+ 917 0332 D7FD      		sbrc r29,7
+ 918 0334 00C0      		rjmp .L57
+ 919               	.L49:
+ 310:main.c        ****       rightMotor = 0;
+ 311:main.c        ****   //horizontal position in the center, do nothing to the vertical values
+ 312:main.c        ****   }else{
+ 313:main.c        ****     rightMotor = vValue;
+ 314:main.c        ****   }
+ 315:main.c        ****   
+ 316:main.c        ****   /* 2. Convert Value to control digital out lines and 8 bit PWM */
+ 317:main.c        ****   if(rightMotor > 531){              //forwards
+ 921               	.LM103:
+ 922 0336 C431      		cpi r28,20
+ 923 0338 82E0      		ldi r24,2
+ 924 033a D807      		cpc r29,r24
+ 925 033c 04F0      		brlt .L53
+ 926 033e 00C0      		rjmp .L51
+ 927               	.L56:
+ 308:main.c        ****       rightMotor = 1023;
+ 929               	.LM104:
+ 930 0340 CFEF      		ldi r28,lo8(-1)
+ 931 0342 D3E0      		ldi r29,lo8(3)
+ 932               	.L51:
+ 318:main.c        ****     //set direction bits
+ 319:main.c        ****     pin_lo('B', DRIVER2A);
+ 934               	.LM105:
+ 935 0344 64E0      		ldi r22,lo8(4)
+ 936 0346 70E0      		ldi r23,0
+ 937 0348 82E4      		ldi r24,lo8(66)
+ 938 034a 0E94 0000 		call pin_lo
+ 320:main.c        ****     pin_hi('B', DRIVER2B);
+ 940               	.LM106:
+ 941 034e 65E0      		ldi r22,lo8(5)
+ 942 0350 70E0      		ldi r23,0
+ 943 0352 82E4      		ldi r24,lo8(66)
+ 944 0354 0E94 0000 		call pin_hi
+ 321:main.c        ****     //convert ADC to PWM (0-255)
+ 322:main.c        ****     rightMotor = (rightMotor - 513.0)/2;
+ 946               	.LM107:
+ 947 0358 BE01      		movw r22,r28
+ 948 035a 8827      		clr r24
+ 949 035c 77FD      		sbrc r23,7
+ 950 035e 8095      		com r24
+ 951 0360 982F      		mov r25,r24
+ 952 0362 0E94 0000 		call __floatsisf
+ 953 0366 20E0      		ldi r18,0
+ 954 0368 30E4      		ldi r19,lo8(64)
+ 955 036a 40E0      		ldi r20,0
+ 956 036c 54E4      		ldi r21,lo8(68)
+ 957 036e 00C0      		rjmp .L58
+ 958               	.L53:
+ 323:main.c        ****   }else if(rightMotor < 451){        //backwards
+ 960               	.LM108:
+ 961 0370 C33C      		cpi r28,-61
+ 962 0372 81E0      		ldi r24,1
+ 963 0374 D807      		cpc r29,r24
+ 964 0376 04F4      		brge .L55
+ 965 0378 00C0      		rjmp .L52
+ 966               	.L57:
+ 310:main.c        ****       rightMotor = 0;
+ 968               	.LM109:
+ 969 037a C0E0      		ldi r28,0
+ 970 037c D0E0      		ldi r29,0
+ 971               	.L52:
+ 324:main.c        ****     //set direction bits
+ 325:main.c        ****     pin_hi('B', DRIVER2A);
+ 973               	.LM110:
+ 974 037e 64E0      		ldi r22,lo8(4)
+ 975 0380 70E0      		ldi r23,0
+ 976 0382 82E4      		ldi r24,lo8(66)
+ 977 0384 0E94 0000 		call pin_hi
+ 326:main.c        ****     pin_lo('B', DRIVER2B);
+ 979               	.LM111:
+ 980 0388 65E0      		ldi r22,lo8(5)
+ 981 038a 70E0      		ldi r23,0
+ 982 038c 82E4      		ldi r24,lo8(66)
+ 983 038e 0E94 0000 		call pin_lo
+ 327:main.c        ****     //convert ADC to PWM (0-255)
+ 328:main.c        ****     rightMotor = (510.0 - (float)rightMotor)/2;
+ 985               	.LM112:
+ 986 0392 BE01      		movw r22,r28
+ 987 0394 8827      		clr r24
+ 988 0396 77FD      		sbrc r23,7
+ 989 0398 8095      		com r24
+ 990 039a 982F      		mov r25,r24
+ 991 039c 0E94 0000 		call __floatsisf
+ 992 03a0 9B01      		movw r18,r22
+ 993 03a2 AC01      		movw r20,r24
+ 994 03a4 60E0      		ldi r22,0
+ 995 03a6 70E0      		ldi r23,0
+ 996 03a8 8FEF      		ldi r24,lo8(-1)
+ 997 03aa 93E4      		ldi r25,lo8(67)
+ 998               	.L58:
+ 999 03ac 0E94 0000 		call __subsf3
+ 1000 03b0 20E0      		ldi r18,0
+ 1001 03b2 30E0      		ldi r19,0
+ 1002 03b4 40E0      		ldi r20,0
+ 1003 03b6 5FE3      		ldi r21,lo8(63)
+ 1004 03b8 0E94 0000 		call __mulsf3
+ 1005 03bc 0E94 0000 		call __fixsfsi
+ 1006 03c0 862F      		mov r24,r22
+ 1007 03c2 00C0      		rjmp .L54
+ 1008               	.L55:
+ 329:main.c        ****   }else{                            //center
+ 330:main.c        ****     //set direction bits
+ 331:main.c        ****     pin_lo('B', DRIVER2A);
+ 1010               	.LM113:
+ 1011 03c4 64E0      		ldi r22,lo8(4)
+ 1012 03c6 70E0      		ldi r23,0
+ 1013 03c8 82E4      		ldi r24,lo8(66)
+ 1014 03ca 0E94 0000 		call pin_lo
+ 332:main.c        ****     pin_lo('B', DRIVER2B);
+ 1016               	.LM114:
+ 1017 03ce 65E0      		ldi r22,lo8(5)
+ 1018 03d0 70E0      		ldi r23,0
+ 1019 03d2 82E4      		ldi r24,lo8(66)
+ 1020 03d4 0E94 0000 		call pin_lo
+ 333:main.c        ****     //set PWM to zero
+ 334:main.c        ****     rightMotor = 0;
+ 1022               	.LM115:
+ 1023 03d8 80E0      		ldi r24,0
+ 1024               	.L54:
+ 1025               	/* epilogue start */
+ 335:main.c        ****   }
+ 336:main.c        ****   
+ 337:main.c        ****   return (uint8_t) rightMotor;
+ 338:main.c        ****   
+ 339:main.c        **** }
+ 1027               	.LM116:
+ 1028 03da DF91      		pop r29
+ 1029 03dc CF91      		pop r28
+ 1030 03de 0895      		ret
+ 1032               	.Lscope12:
+ 1034               		.stabd	78,0,0
+ 1035               		.section	.text.startup,"ax",@progbits
+ 1037               	.global	main
+ 1039               	main:
+ 1040               		.stabd	46,0,0
+  95:main.c        **** int main(void) {
+ 1042               	.LM117:
+ 1043               	.LFBB13:
+ 1044 0000 CF93      		push r28
+ 1045 0002 DF93      		push r29
+ 1046 0004 CDB7      		in r28,__SP_L__
+ 1047 0006 DEB7      		in r29,__SP_H__
+ 1048 0008 C857      		subi r28,120
+ 1049 000a D109      		sbc r29,__zero_reg__
+ 1050 000c 0FB6      		in __tmp_reg__,__SREG__
+ 1051 000e F894      		cli
+ 1052 0010 DEBF      		out __SP_H__,r29
+ 1053 0012 0FBE      		out __SREG__,__tmp_reg__
+ 1054 0014 CDBF      		out __SP_L__,r28
+ 1055               	/* prologue: function */
+ 1056               	/* frame size = 120 */
+ 1057               	/* stack size = 122 */
+ 1058               	.L__stack_usage = 122
+  98:main.c        ****   initADC();
+ 1060               	.LM118:
+ 1061 0016 0E94 0000 		call initADC
+  99:main.c        ****   initTimer1Servo();
+ 1063               	.LM119:
+ 1064 001a 0E94 0000 		call initTimer1Servo
+ 100:main.c        ****   initMotorDriverIO();
+ 1066               	.LM120:
+ 1067 001e 0E94 0000 		call initMotorDriverIO
+ 101:main.c        ****   initTimer0PWM();
+ 1069               	.LM121:
+ 1070 0022 0E94 0000 		call initTimer0PWM
+ 119:main.c        ****   initValues(verticalPointer, joySize, 511);
+ 1072               	.LM122:
+ 1073 0026 4FEF      		ldi r20,lo8(-1)
+ 1074 0028 51E0      		ldi r21,lo8(1)
+ 1075 002a 6EE1      		ldi r22,lo8(30)
+ 1076 002c CE01      		movw r24,r28
+ 1077 002e 0196      		adiw r24,1
+ 1078 0030 0E94 0000 		call initValues
+ 120:main.c        ****   initValues(horizontalPointer, joySize, 511);
+ 1080               	.LM123:
+ 1081 0034 4FEF      		ldi r20,lo8(-1)
+ 1082 0036 51E0      		ldi r21,lo8(1)
+ 1083 0038 6EE1      		ldi r22,lo8(30)
+ 1084 003a CE01      		movw r24,r28
+ 1085 003c CD96      		adiw r24,61
+ 1086 003e 0E94 0000 		call initValues
+ 1087               	.L60:
+ 129:main.c        ****     storeNewADC(verticalPointer, joySize, 0);
+ 1089               	.LM124:
+ 1090 0042 40E0      		ldi r20,0
+ 1091 0044 6EE1      		ldi r22,lo8(30)
+ 1092 0046 CE01      		movw r24,r28
+ 1093 0048 0196      		adiw r24,1
+ 1094 004a 0E94 0000 		call storeNewADC
+ 130:main.c        ****     avgVerticalValue = getAverage(verticalPointer, joySize);
+ 1096               	.LM125:
+ 1097 004e 6EE1      		ldi r22,lo8(30)
+ 1098 0050 CE01      		movw r24,r28
+ 1099 0052 0196      		adiw r24,1
+ 1100 0054 0E94 0000 		call getAverage
+ 1101 0058 8C01      		movw r16,r24
+ 131:main.c        ****     storeNewADC(horizontalPointer, joySize, 1);
+ 1103               	.LM126:
+ 1104 005a 41E0      		ldi r20,lo8(1)
+ 1105 005c 6EE1      		ldi r22,lo8(30)
+ 1106 005e CE01      		movw r24,r28
+ 1107 0060 CD96      		adiw r24,61
+ 1108 0062 0E94 0000 		call storeNewADC
+ 132:main.c        ****     avgHorizontalValue = getAverage(horizontalPointer, joySize);
+ 1110               	.LM127:
+ 1111 0066 6EE1      		ldi r22,lo8(30)
+ 1112 0068 CE01      		movw r24,r28
+ 1113 006a CD96      		adiw r24,61
+ 1114 006c 0E94 0000 		call getAverage
+ 1115 0070 7C01      		movw r14,r24
+ 136:main.c        ****     OCR0A = computeLeftMotorPWM(avgVerticalValue, avgHorizontalValue);
+ 1117               	.LM128:
+ 1118 0072 BC01      		movw r22,r24
+ 1119 0074 C801      		movw r24,r16
+ 1120 0076 0E94 0000 		call computeLeftMotorPWM
+ 1121 007a 87BD      		out 0x27,r24
+ 137:main.c        ****     OCR0B = computeRightMotorPWM(avgVerticalValue, avgHorizontalValue);
+ 1123               	.LM129:
+ 1124 007c B701      		movw r22,r14
+ 1125 007e C801      		movw r24,r16
+ 1126 0080 0E94 0000 		call computeRightMotorPWM
+ 1127 0084 88BD      		out 0x28,r24
+ 1128 0086 00C0      		rjmp .L60
+ 1130               	.Lscope13:
+ 1132               		.stabd	78,0,0
+ 1133               		.text
+ 1135               	.global	initInterrupts
+ 1137               	initInterrupts:
+ 1138               		.stabd	46,0,0
+ 340:main.c        **** 
+ 341:main.c        **** void initInterrupts(void){
+ 1140               	.LM130:
+ 1141               	.LFBB14:
+ 1142               	/* prologue: function */
+ 1143               	/* frame size = 0 */
+ 1144               	/* stack size = 0 */
+ 1145               	.L__stack_usage = 0
+ 342:main.c        ****     
+ 343:main.c        ****     INT_DDR &= ~(1<<INTERRUPT0);
+ 1147               	.LM131:
+ 1148 03e0 5298      		cbi 0xa,2
+ 344:main.c        ****     INT_DDR &= ~(1<<INTERRUPT1);
+ 1150               	.LM132:
+ 1151 03e2 5398      		cbi 0xa,3
+ 345:main.c        ****     INT_PORT |= (1<<INTERRUPT0) | (1<<INTERRUPT1);
+ 1153               	.LM133:
+ 1154 03e4 8BB1      		in r24,0xb
+ 1155 03e6 8C60      		ori r24,lo8(12)
+ 1156 03e8 8BB9      		out 0xb,r24
+ 346:main.c        ****     EIMSK |= (1<<INT0) | (1<<INT1);
+ 1158               	.LM134:
+ 1159 03ea 8DB3      		in r24,0x1d
+ 1160 03ec 8360      		ori r24,lo8(3)
+ 1161 03ee 8DBB      		out 0x1d,r24
+ 347:main.c        ****     EICRA |= (1<<ISC01) | (1<<ISC11);
+ 1163               	.LM135:
+ 1164 03f0 E9E6      		ldi r30,lo8(105)
+ 1165 03f2 F0E0      		ldi r31,0
+ 1166 03f4 8081      		ld r24,Z
+ 1167 03f6 8A60      		ori r24,lo8(10)
+ 1168 03f8 8083      		st Z,r24
+ 348:main.c        ****     sei();
+ 1170               	.LM136:
+ 1171               	/* #APP */
+ 1172               	 ;  348 "main.c" 1
+ 1173 03fa 7894      		sei
+ 1174               	 ;  0 "" 2
+ 1175               	/* #NOAPP */
+ 1176 03fc 0895      		ret
+ 1178               	.Lscope14:
+ 1180               		.stabd	78,0,0
+ 1181               	.global	grainButtonCount
+ 1182               		.section .bss
+ 1185               	grainButtonCount:
+ 1186 0000 0000      		.zero	2
+ 1187               	.global	bridgeButtonCount
+ 1190               	bridgeButtonCount:
+ 1191 0002 0000      		.zero	2
+ 1194               		.text
+ 1196               	.Letext0:
+ 1197               		.ident	"GCC: (GNU) 4.8.2"
+ 1198               	.global __do_clear_bss
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-     /tmp/cc3R7Iys.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/cc3R7Iys.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/cc3R7Iys.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/cc3R7Iys.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/cc3R7Iys.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/cc3R7Iys.s:91     .text:0000000000000000 initADC
-     /tmp/cc3R7Iys.s:128    .text:000000000000001c readADC
-     /tmp/cc3R7Iys.s:172    .text:0000000000000046 initValues
-     /tmp/cc3R7Iys.s:217    .text:000000000000005a storeNewADC
-     /tmp/cc3R7Iys.s:290    .text:000000000000009a getAverage
-     /tmp/cc3R7Iys.s:348    .text:00000000000000c8 initTimer1Servo
-     /tmp/cc3R7Iys.s:406    .text:0000000000000100 initTimer0PWM
-     /tmp/cc3R7Iys.s:443    .text:000000000000011a initMotorDriverIO
-     /tmp/cc3R7Iys.s:501    .text:000000000000014a computeLeftMotorPWM
-     /tmp/cc3R7Iys.s:672    .text:000000000000022e computeRightMotorPWM
-     /tmp/cc3R7Iys.s:844    .text.startup:0000000000000000 main
+     /tmp/ccsljPRR.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccsljPRR.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccsljPRR.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccsljPRR.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccsljPRR.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccsljPRR.s:123    .text:0000000000000000 __vector_1
+     /tmp/ccsljPRR.s:1190   .bss:0000000000000002 bridgeButtonCount
+     /tmp/ccsljPRR.s:205    .text:000000000000005e __vector_2
+     /tmp/ccsljPRR.s:1185   .bss:0000000000000000 grainButtonCount
+     /tmp/ccsljPRR.s:293    .text:00000000000000c8 initADC
+     /tmp/ccsljPRR.s:330    .text:00000000000000e4 readADC
+     /tmp/ccsljPRR.s:373    .text:000000000000010c initValues
+     /tmp/ccsljPRR.s:418    .text:0000000000000120 storeNewADC
+     /tmp/ccsljPRR.s:491    .text:0000000000000164 getAverage
+     /tmp/ccsljPRR.s:549    .text:0000000000000192 initTimer1Servo
+     /tmp/ccsljPRR.s:617    .text:00000000000001de initTimer0PWM
+     /tmp/ccsljPRR.s:654    .text:00000000000001f8 initMotorDriverIO
+     /tmp/ccsljPRR.s:712    .text:0000000000000228 computeLeftMotorPWM
+     /tmp/ccsljPRR.s:876    .text:0000000000000304 computeRightMotorPWM
+     /tmp/ccsljPRR.s:1039   .text.startup:0000000000000000 main
+     /tmp/ccsljPRR.s:1137   .text:00000000000003e0 initInterrupts
 
 UNDEFINED SYMBOLS
 __udivmodsi4
@@ -1155,6 +1256,4 @@ __subsf3
 __mulsf3
 __fixsfsi
 pin_hi
-__floatunsisf
-__addsf3
-__fixunssfsi
+__do_clear_bss

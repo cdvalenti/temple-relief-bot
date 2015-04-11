@@ -9,7 +9,7 @@
  123               	.global	__vector_2
  125               	__vector_2:
  126               		.stabd	46,0,0
-   1:main.c        **** #define MCU 'atmega84'
+   1:main.c        **** #define MCU 'attiny84'
    2:main.c        **** #define F_CPU 1000000UL
    3:main.c        **** 
    4:main.c        **** #include "include/macros.h"
@@ -869,24 +869,24 @@
  867               	.global __do_clear_bss
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-     /tmp/ccVaj1kh.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccVaj1kh.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccVaj1kh.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccVaj1kh.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccVaj1kh.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccVaj1kh.s:125    .text:0000000000000000 __vector_2
-     /tmp/ccVaj1kh.s:848    .bss:0000000000000000 pinpair
-     /tmp/ccVaj1kh.s:853    .bss:0000000000000001 seqstore
-     /tmp/ccVaj1kh.s:858    .bss:0000000000000002 encoderValue
-     /tmp/ccVaj1kh.s:230    .text:00000000000000ac initADC
-     /tmp/ccVaj1kh.s:256    .text:00000000000000b6 readADC
-     /tmp/ccVaj1kh.s:296    .text:00000000000000ca initValues
-     /tmp/ccVaj1kh.s:341    .text:00000000000000de storeNewADC
-     /tmp/ccVaj1kh.s:414    .text:0000000000000120 getAverage
-     /tmp/ccVaj1kh.s:472    .text:000000000000014c initTimer0PWM
-     /tmp/ccVaj1kh.s:507    .text:0000000000000162 initMotorDriverIO
-     /tmp/ccVaj1kh.s:536    .text:000000000000016c initPCInterrupts
-     /tmp/ccVaj1kh.s:587    .text.startup:0000000000000000 main
+     /tmp/ccPgUHpU.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccPgUHpU.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccPgUHpU.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccPgUHpU.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccPgUHpU.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccPgUHpU.s:125    .text:0000000000000000 __vector_2
+     /tmp/ccPgUHpU.s:848    .bss:0000000000000000 pinpair
+     /tmp/ccPgUHpU.s:853    .bss:0000000000000001 seqstore
+     /tmp/ccPgUHpU.s:858    .bss:0000000000000002 encoderValue
+     /tmp/ccPgUHpU.s:230    .text:00000000000000ac initADC
+     /tmp/ccPgUHpU.s:256    .text:00000000000000b6 readADC
+     /tmp/ccPgUHpU.s:296    .text:00000000000000ca initValues
+     /tmp/ccPgUHpU.s:341    .text:00000000000000de storeNewADC
+     /tmp/ccPgUHpU.s:414    .text:0000000000000120 getAverage
+     /tmp/ccPgUHpU.s:472    .text:000000000000014c initTimer0PWM
+     /tmp/ccPgUHpU.s:507    .text:0000000000000162 initMotorDriverIO
+     /tmp/ccPgUHpU.s:536    .text:000000000000016c initPCInterrupts
+     /tmp/ccPgUHpU.s:587    .text.startup:0000000000000000 main
 
 UNDEFINED SYMBOLS
 __udivmodsi4

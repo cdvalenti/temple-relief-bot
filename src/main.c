@@ -29,6 +29,14 @@
 #define DRIVER2PWM  PD5
 #define SERVO1      PB1
 #define SERVO2      PB2
+#define INTERRUPT0  PD2
+#define INTERRUPT1  PD3
+#define INT_DDR     DDRD
+#define INT_PORT    PORTD
+#define INT_PIN     PIND
+#define CW          2500
+#define MID         1500
+#define CCW         500
 
 //function declarations
 void initADC(void);
@@ -42,6 +50,47 @@ void initMotorDriverIO(void);
 void initTimer0PWM(void);
 uint8_t computeLeftMotorPWM(int vValue, int hValue);
 uint8_t computeRightMotorPWM(int vValue, int hValue);
+void initInterrupts(void);
+
+volatile uint16_t bridgeButtonCount = 0;
+volatile uint16_t grainButtonCount = 0;
+
+ISR(INT0_vect){
+  
+  int interruptCount = 0;
+  
+  while ((bit_is_clear(INT_PIN, INTERRUPT0))) {
+    interruptCount++;
+  }
+  
+  if(interruptCount>250){
+    if(bridgeButtonCount%2 == 0){
+      OCR1A = CCW;
+    }else{
+      OCR1A = CW;
+    }
+    bridgeButtonCount++;
+  }
+  
+}
+
+ISR(INT1_vect){
+  
+  int interruptCount = 0;
+  
+  while ((bit_is_clear(INT_PIN, INTERRUPT1))) {
+    interruptCount++;
+  }
+  
+  if(interruptCount>250 && bridgeButtonCount>1){
+    if(grainButtonCount%2 == 0){
+      OCR1B = CCW;
+    }else{
+      OCR1B = CW;
+    }
+    grainButtonCount++;
+  }
+}
 
 int main(void) {
   
@@ -53,41 +102,26 @@ int main(void) {
   
   //moving average array sizes
   uint8_t joySize = 30;
-  uint8_t slideSize = 75;
   
   //create value arrays
   uint16_t verticalValue [joySize];
   uint16_t horizontalValue [joySize];
-  uint16_t topSliderValue [slideSize];
-  uint16_t bottomSliderValue [slideSize];
+
   //create pointers
   uint16_t * verticalPointer;
   uint16_t * horizontalPointer;
-  uint16_t * topSliderPointer;
-  uint16_t * bottomSliderPointer;
+
   //have pointers pointing to first element of each array
   verticalPointer = &verticalValue[0];
   horizontalPointer = &horizontalValue[0];
-  topSliderPointer = &topSliderValue[0];
-  bottomSliderPointer = &bottomSliderValue[0];
   
   //initialize values of arrays
   initValues(verticalPointer, joySize, 511);
   initValues(horizontalPointer, joySize, 511);
-  initValues(topSliderPointer, slideSize, 0);
-  initValues(bottomSliderPointer, slideSize, 0);
   
   //avg value variables
   int avgVerticalValue;
   int avgHorizontalValue;
-  uint16_t avgTopSliderValue;
-  uint16_t avgBottomSliderValue;
-  
-  //converter variables
-  float converterSlideValue = 1.955;
-  float offsetSlideValue = 500.0;
-  float convertedTopSliderValue;
-  float convertedBottomSliderValue;
   
   while(1) { 
     
@@ -97,21 +131,11 @@ int main(void) {
     storeNewADC(horizontalPointer, joySize, 1);
     avgHorizontalValue = getAverage(horizontalPointer, joySize);
     
-    /* ********************* Read Sliders ********************* */
-    storeNewADC(topSliderPointer, slideSize, 2);
-    avgTopSliderValue = getAverage(topSliderPointer, slideSize);
-    storeNewADC(bottomSliderPointer, slideSize, 3);
-    avgBottomSliderValue = getAverage(bottomSliderPointer, slideSize);
     
     /* *********** Convert Joystick to Drive PWM and set ********** */
     OCR0A = computeLeftMotorPWM(avgVerticalValue, avgHorizontalValue);
     OCR0B = computeRightMotorPWM(avgVerticalValue, avgHorizontalValue);
     
-    /* ********* Convert Sliders ADC value to PWM and set ********* */
-    convertedTopSliderValue = (converterSlideValue * avgTopSliderValue) + offsetSlideValue;
-    OCR1A = (uint16_t) convertedTopSliderValue;
-    convertedBottomSliderValue = (converterSlideValue * avgBottomSliderValue) + offsetSlideValue;
-    OCR1B = (uint16_t) convertedBottomSliderValue;
  }
  
  return(0);
@@ -196,6 +220,9 @@ void initTimer1Servo(void) {
   //set pins for output
   DDRB |= (1 << SERVO1);
   DDRB |= (1 << SERVO2);
+  
+  OCR1A = CW;
+  OCR1B = CW;
 }
 
 void initTimer0PWM(void){
@@ -311,3 +338,14 @@ uint8_t computeRightMotorPWM(int vValue, int hValue){
   
 }
 
+void initInterrupts(void){
+    //set as inputs
+    INT_DDR &= ~(1<<INTERRUPT0);
+    INT_DDR &= ~(1<<INTERRUPT1);
+    //pullups
+    INT_PORT |= (1<<INTERRUPT0) | (1<<INTERRUPT1);
+    //interrupt set up
+    EIMSK |= (1<<INT0) | (1<<INT1);
+    EICRA |= (1<<ISC01) | (1<<ISC11);
+    sei();
+}
