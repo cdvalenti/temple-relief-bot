@@ -80,9 +80,9 @@ ISR(PCINT0_vect) {
   50:	9f 93       	push	r25
   52:	af 93       	push	r26
   54:	bf 93       	push	r27
-  //variables to store encoder states
-  uint8_t MSB;
   uint8_t LSB;
+  
+  
   
   //find state of encoder a
   if(bit_is_set(ENCODER_PIN,ENCODER_A)){
@@ -455,9 +455,9 @@ void initPCInterrupts(void){
  218:	80 e0       	ldi	r24, 0x00	; 0
  21a:	90 e0       	ldi	r25, 0x00	; 0
  21c:	19 d1       	rcall	.+562    	; 0x450 <__floatunsisf>
- 21e:	2a eb       	ldi	r18, 0xBA	; 186
- 220:	3f e8       	ldi	r19, 0x8F	; 143
- 222:	49 ee       	ldi	r20, 0xE9	; 233
+ 21e:	2b e1       	ldi	r18, 0x1B	; 27
+ 220:	34 e1       	ldi	r19, 0x14	; 20
+ 222:	4b ef       	ldi	r20, 0xFB	; 251
  224:	51 e4       	ldi	r21, 0x41	; 65
  226:	ca d1       	rcall	.+916    	; 0x5bc <__mulsf3>
  228:	e2 d0       	rcall	.+452    	; 0x3ee <__fixsfsi>

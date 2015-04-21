@@ -60,10 +60,12 @@ ISR(INT0_vect){
   int interruptCount = 0;
   
   while ((bit_is_clear(INT_PIN, INTERRUPT0))) {
-    interruptCount++;
+    if(interruptCount<=100){
+      interruptCount++;
+    }
   }
   
-  if(interruptCount>250){
+  if(interruptCount>99){
     if(bridgeButtonCount%2 == 0){
       OCR1A = CCW;
     }else{
@@ -79,10 +81,13 @@ ISR(INT1_vect){
   int interruptCount = 0;
   
   while ((bit_is_clear(INT_PIN, INTERRUPT1))) {
-    interruptCount++;
+    if(interruptCount<=100){
+      interruptCount++;
+    }
   }
   
-  if(interruptCount>250 && bridgeButtonCount>1){
+  if(interruptCount>99 && bridgeButtonCount > 1){
+  
     if(grainButtonCount%2 == 0){
       OCR1B = CCW;
     }else{
@@ -99,6 +104,7 @@ int main(void) {
   initTimer1Servo();
   initMotorDriverIO();
   initTimer0PWM();
+  initInterrupts();
   
   //moving average array sizes
   uint8_t joySize = 30;

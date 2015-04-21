@@ -6,6 +6,7 @@
 #include <avr/interrupt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <util/delay.h>
 
 #define ENCODER_A     PA1   //PCINT1
 #define ENCODER_B     PA2   //PCINT2
@@ -18,6 +19,7 @@
 #define DRIVER_B      PB0
 #define DRIVER_PORT   PORTB
 #define DRIVER_DDR    DDRB
+
 
 //global variables for position update
 volatile long encoderValue = 0;
@@ -39,6 +41,8 @@ ISR(PCINT0_vect) {
   //variables to store encoder states
   uint8_t MSB;
   uint8_t LSB;
+  
+  
   
   //find state of encoder a
   if(bit_is_set(ENCODER_PIN,ENCODER_A)){
@@ -78,10 +82,23 @@ int main(void) {
   initTimer0PWM();
   initPCInterrupts();
   
+  //which arm is being used: 1 true, 0 flase
+  uint8_t front_arm = 0;
+  
   //gearmotor characteristics
   float cpr = 8400.0/4;
-  float chain_ratio = (16.0)*(12.0/9.0)*(12.0/9.0);
-  float range_of_motion = 180.0;
+  
+  float chain_ratio;
+  float range_of_motion;
+  
+  if(front_arm){
+    chain_ratio = (16.0)*(12.0/9.0)*(12.0/11.0);
+    range_of_motion = 190.0;
+  }else{
+    chain_ratio = (16.0)*(12.0/9.0)*(12.0/10.0);
+    range_of_motion = 215.0;
+  }
+  
   float max_desired_count = (cpr*chain_ratio)*(range_of_motion/360.0);
   float ADC_multiplier = max_desired_count/1023.0;
   float slowdown_count = 750.0;
@@ -103,6 +120,12 @@ int main(void) {
   
   //local variable for current encoder count
   long localEncoderCount;
+  
+  if(front_arm){
+    cli();
+    encoderValue = 1000;
+    sei();
+  }
   
   while(1) { 
     
