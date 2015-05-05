@@ -125,6 +125,10 @@ int main(void) {
     cli();
     encoderValue = 1000;
     sei();
+  }else{
+	cli();
+	encoderValue = 1000;
+	sei();
   }
   
   while(1) { 
